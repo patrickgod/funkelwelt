@@ -91,6 +91,13 @@ const DE = {
   // it costs nothing to read aloud.
   'say.willkommen':
     'Da bist du ja! Ich bin Luma. Die Welt ist dunkel geworden, und du bist das erste Kind seit langem, das eine Laterne trägt.',
+  // One per steering, because the instruction has to match the control
+  // the child actually has. A fairy telling a thumbstick user to tap is
+  // worse than a fairy saying nothing.
+  'say.tippen':
+    'Tipp einfach dorthin, wo du hingehen möchtest. Probier es mal — ich komme mit.',
+  'say.daumen':
+    'Leg deinen Daumen irgendwo auf die Wiese und schieb ihn. Probier es mal — ich komme mit.',
   'say.erstesHaus':
     'Siehst du das Haus dort drüben? Da drinnen wohnen die verliebten Zahlen. Geh ruhig hinein.',
   'say.imHaus':

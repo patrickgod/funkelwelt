@@ -45,6 +45,7 @@ import * as stand from '../core/spielstand.js';
 import { held, heldSchatten, W as HELD_W, H as HELD_H,
   type Aussehen, type Richtung } from '../spiel/held.js';
 import { Steuerung, TOT, WEIT } from '../spiel/steuerung.js';
+import { kugel, KW as LUMA_W, KH as LUMA_H } from '../spiel/luma.js';
 import * as k from './kacheln.js';
 import * as karte from './karte.js';
 import * as sprites from './sprites.js';
@@ -157,8 +158,45 @@ export class Welt {
 
   /** So the door reacts once per visit rather than sixty times a second. */
   private inTuer = false;
+
+  /**
+   * Waking up: how far open the lantern is, 0 to 1.
+   *
+   * The world arrives dark and the light spreads out of the middle of
+   * it. A child who has just pressed a button on a picture is not yet
+   * in a place; this is the second and a half in which they become
+   * somebody standing somewhere, and it costs one multiplier.
+   */
+  private oeffnung = 0;
+  private oeffnungsDauer = 0.9;
+
+  /**
+   * A ring on the ground, for the one time the game asks for something.
+   *
+   * Used exactly once per adventurer, to teach the only control there
+   * is. It is a PLACE rather than an instruction — a six-year-old who
+   * cannot read a sentence can absolutely understand a glowing circle
+   * that wants standing in.
+   */
+  private ziel: { x: number; y: number; dann: () => void } | null = null;
+  private zielFunke = -1;
   /** Seconds since the last puff of dust off the adventurer's feet. */
   private seitStaub = 0;
+
+  /**
+   * Luma, flying along beside him.
+   *
+   * Her own position rather than a fixed offset, chased towards a point
+   * at his shoulder — because a companion pinned to the character moves
+   * exactly as the character moves, which reads as a decal rather than
+   * as somebody keeping up. The lag IS the character: she overshoots
+   * when he stops and swings wide when he turns.
+   */
+  private lx = 0;
+  private ly = 0;
+  /** Where she has just been, for the little trail behind her. */
+  private spur: [number, number][] = [];
+  private readonly kugelBild: HTMLCanvasElement[] = [];
 
   /**
    * What happens when the adventurer steps into the doorway.
@@ -191,6 +229,23 @@ export class Welt {
       this.hy = karte.START.y;
     }
     this.bauen();
+  }
+
+  /**
+   * Open the lantern from nothing.
+   *
+   * `lang` for a child who has never been here — long enough that the
+   * dark registers as somewhere they are waking up in rather than as a
+   * slow load.
+   */
+  wachAuf(lang: boolean): void {
+    this.oeffnung = 0;
+    this.oeffnungsDauer = lang ? 2.2 : 0.9;
+  }
+
+  /** Ask the child to walk to a spot, once. */
+  zeigeZiel(x: number, y: number, dann: () => void): void {
+    this.ziel = { x, y, dann };
   }
 
   // -------------------------------------------------------- prerendering
@@ -232,6 +287,7 @@ export class Welt {
       this.stufen[0].push(m.toCanvas());
     }
     for (let f = 0; f < 2; f++) this.funkeBild.push(k.funke(f).toCanvas());
+    for (let f = 0; f < 4; f++) this.kugelBild.push(kugel(f).toCanvas());
     this.schattenBild = heldSchatten().toCanvas();
   }
 
@@ -349,6 +405,9 @@ export class Welt {
 
   schritt(dt: number, st: Steuerung): void {
     this.zeit += dt;
+    if (this.oeffnung < 1) {
+      this.oeffnung = Math.min(1, this.oeffnung + dt / this.oeffnungsDauer);
+    }
     this.gespielt += dt;
     if (this.gespielt >= 5) {
       stand.get().spielzeit += Math.floor(this.gespielt);
@@ -415,8 +474,39 @@ export class Welt {
       this.schrittZeit = 0;
     }
 
+    this.lumaFliegen(dt);
+    if (this.ziel && Math.hypot(this.ziel.x - this.hx, this.ziel.y - this.hy) < 18) {
+      const dann = this.ziel.dann;
+      const [sx, sy] = this.aufSchirm(this.ziel.x, this.ziel.y);
+      this.ziel = null;
+      fx.burst('stern', sx, sy, { n: 14, speed: 150, up: 0.7, life: 0.9 });
+      audio.sparkle(5);
+      dann();
+    }
     this.funkenPruefen();
     this.tuerPruefen();
+  }
+
+  /**
+   * Luma keeps up.
+   *
+   * A spring towards a point off his leading shoulder, plus a slow bob
+   * that is hers rather than his. She is deliberately a little slow: at
+   * a stiffness where she stayed exactly in place she stopped looking
+   * alive, and the half second she takes to catch up when he stops is
+   * the entire difference between a companion and a sticker.
+   */
+  private lumaFliegen(dt: number): void {
+    const seite = this.blick === 'links' ? 1 : this.blick === 'rechts' ? -1 : -1;
+    const zx = this.hx + seite * 11;
+    const zy = this.hy - 22 + Math.sin(this.zeit * 2.1) * 2.5;
+    if (!this.lx && !this.ly) { this.lx = zx; this.ly = zy; }
+    const k2 = Math.min(1, dt * 4.2);
+    this.lx += (zx - this.lx) * k2;
+    this.ly += (zy - this.ly) * k2;
+
+    this.spur.push([this.lx, this.ly]);
+    if (this.spur.length > 9) this.spur.shift();
   }
 
   /**
@@ -587,6 +677,41 @@ export class Welt {
       ctx.drawImage(b, sx, sy, b.width * S, b.height * S);
     }
 
+    // 4b. the ring, if the game is asking for something
+    if (this.ziel) {
+      // Loud on purpose.
+      //
+      // The first version was one thin ellipse at half opacity, and on a
+      // screen this busy it was invisible — which for the only thing the
+      // game ever asks a child to do is the whole feature failing. It is
+      // a filled pool of light with two rings round it now, and it
+      // breathes.
+      const [zx, zy] = hin(this.ziel.x, this.ziel.y);
+      const puls = 1 + Math.sin(this.zeit * 3.2) * 0.13;
+      ctx.save();
+      ctx.globalAlpha = 0.30 + Math.sin(this.zeit * 3.2) * 0.08;
+      ctx.fillStyle = '#ffe08a';
+      ctx.beginPath();
+      ctx.ellipse(zx, zy, 15 * S * puls, 8 * S * puls, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 0.95;
+      ctx.strokeStyle = '#fff6cf';
+      ctx.lineWidth = Math.max(3, Math.round(S * 1.1));
+      for (const r of [15, 10]) {
+        ctx.beginPath();
+        ctx.ellipse(zx, zy, r * S * puls, r * S * 0.53 * puls, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+      // And a spark out of it now and then, so it is alive rather than
+      // painted on. Twice a second, which is often enough to catch an
+      // eye and rare enough not to become weather.
+      if (Math.floor(this.zeit * 2) !== this.zielFunke) {
+        this.zielFunke = Math.floor(this.zeit * 2);
+        fx.burst('funke', zx, zy, { n: 3, speed: 60, up: 1.1, life: 0.7 });
+      }
+    }
+
     // 5. everything standing on it, back to front, with the adventurer
     //    in the middle of the sort — which is the whole reason he can
     //    walk behind a tree and in front of the next one.
@@ -596,6 +721,7 @@ export class Welt {
       this.dingZeichnen(ctx, karte.dinge[i], vw, vh, hin, S);
     }
     this.heldZeichnen(ctx, hin, S);
+    this.lumaZeichnen(ctx, hin, S);
     for (; i < karte.dinge.length; i++) {
       this.dingZeichnen(ctx, karte.dinge[i], vw, vh, hin, S);
     }
@@ -614,10 +740,25 @@ export class Welt {
     // flame. One world pixel of wander is enough to see and not enough
     // to notice.
     const flackern = Math.sin(this.zeit * 2.3) * 0.6 + Math.sin(this.zeit * 5.1) * 0.4;
+    // Eased, so it opens quickly and settles rather than creeping.
+    const auf = 1 - Math.pow(1 - this.oeffnung, 3);
     const rh = (ring === 0 ? LICHT_HELD : LICHT_HELD_WEIT);
+    const rz = Math.max(1, Math.round(rh * auf));
+    // Nearest-neighbour on a hard 0/255 mask stays a hard 0/255 mask, so
+    // scaling it costs nothing and softens nothing.
     mc.drawImage(this.scheibeHeld[ring],
-      Math.round(this.hx - this.camX - rh + flackern),
-      Math.round(this.hy - 8 - this.camY - rh + flackern * 0.7));
+      Math.round(this.hx - this.camX - rz + flackern),
+      Math.round(this.hy - 8 - this.camY - rz + flackern * 0.7),
+      rz * 2, rz * 2);
+    // She is a light too, and a small one. Enough that the ground under
+    // her is a shade brighter than the ground beside it, which is what
+    // makes her look like she is giving something off rather than
+    // hovering in front of it.
+    const rk = ring === 0 ? 13 : 22;
+    mc.drawImage(this.scheibeLampe[ring],
+      Math.round(this.lx - this.camX - rk), Math.round(this.ly - this.camY - rk),
+      rk * 2, rk * 2);
+
     const rl = ring === 0 ? LICHT_LAMPE : LICHT_LAMPE_WEIT;
     for (const l of this.lampen) {
       if (l.x < this.camX - rl || l.x > this.camX + vw + rl) continue;
@@ -672,6 +813,28 @@ export class Welt {
     }
     const [px, py] = hin(x, y);
     ctx.drawImage(b, px, py, b.width * S, b.height * S);
+  }
+
+  /** Luma, and the three fading motes she leaves behind her. */
+  private lumaZeichnen(
+    ctx: CanvasRenderingContext2D, hin: (x: number, y: number) => [number, number], S: number,
+  ): void {
+    const b = this.kugelBild[Math.floor(this.zeit * 9) % 4];
+    if (!b) return;
+    // The trail first, and only three of it. A longer one reads as a
+    // comet and she is a fairy; three motes read as the air not quite
+    // having caught up with her.
+    ctx.save();
+    for (let j = 0; j < 3; j++) {
+      const p = this.spur[this.spur.length - 2 - j * 3];
+      if (!p) continue;
+      ctx.globalAlpha = 0.34 - j * 0.09;
+      const [tx, ty] = hin(p[0] - LUMA_W / 2, p[1] - LUMA_H / 2);
+      ctx.drawImage(b, tx, ty, LUMA_W * S, LUMA_H * S);
+    }
+    ctx.restore();
+    const [sx, sy] = hin(this.lx - LUMA_W / 2, this.ly - LUMA_H / 2);
+    ctx.drawImage(b, sx, sy, LUMA_W * S, LUMA_H * S);
   }
 
   /**

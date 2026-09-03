@@ -99,9 +99,24 @@ if (!(await page.locator('.namensfeld').inputValue())) {
 await page.locator('button', { hasText: 'Los geht es' }).first().tap();
 await page.waitForTimeout(1500);
 
+// Waking up: the lantern opening out of the dark.
+if (want('welt-wach')) {
+  await page.waitForTimeout(200);
+  await shot('welt-wach');
+}
+
 // Luma, saying hello. She is the first thing that happens in a new
 // adventure, so she is shot before she is dismissed.
+await page.waitForTimeout(1200);
 if (want('welt-luma')) await shot('welt-luma');
+
+// The ring she asks the child to walk to — the only thing this game
+// ever teaches, and it teaches it by asking.
+if (want('welt-ring')) {
+  await page.locator('.luma').tap();
+  await page.waitForTimeout(900);
+  await shot('welt-ring');
+}
 
 /** Tap her away, however many lines she has queued up. */
 async function lumaWeg() {

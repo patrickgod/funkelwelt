@@ -384,18 +384,45 @@ function weltBauen(): void {
   dieWelt.anTuer = () => zeigeHaus();
   muenzenGezeigt = -1;
   hudBauen();
-  // Luma says hello once per adventurer, and then hands over to the one
-  // line that tells a child where to go. Neither of them knows about the
-  // other: the welcome simply says what happens when it is finished.
-  //
-  // And the house line is skipped entirely for a child who has already
-  // been inside, because "geh ruhig hinein" to somebody on their fourth
-  // visit is a fairy who has not been paying attention.
+  // The world arrives dark and opens. Long the first time, because that
+  // is a child waking up somewhere; short after that, because it is a
+  // child coming back.
+  const neu = !stand.gehoert('say.willkommen');
+  dieWelt.wachAuf(neu);
+
+  // Three beats, and each one only knows what happens after it: hello,
+  // then how to walk, then where to go. Nothing here is a tutorial
+  // screen — every step is Luma saying two sentences and then a thing
+  // on the ground to walk to.
   setTimeout(() => {
-    luma.einmal('say.willkommen', () => {
-      if (!stand.get().geschafft['verliebte-zahlen']) luma.einmal('say.erstesHaus');
-    });
-  }, 650);
+    luma.einmal('say.willkommen', () => lernenZuLaufen());
+  }, neu ? 1500 : 650);
+}
+
+/**
+ * The only thing the game ever teaches, and it teaches it by asking.
+ *
+ * A glowing ring on the path a few steps away, and the line that matches
+ * whichever control this slot is actually set to. A six-year-old who
+ * cannot read a sentence understands a circle that wants standing in
+ * perfectly well, so the ring is the instruction and the words are for
+ * the grown-up in the room.
+ */
+function lernenZuLaufen(): void {
+  if (!dieWelt) return;
+  const wie = stand.get().steuerung === 'stick' ? 'say.daumen' : 'say.tippen';
+  if (stand.gehoert(wie)) { zeigeAufHaus(); return; }
+  stand.merkeGehoert(wie);
+  luma.zeige(wie);
+  // Seven tiles east along the path — far enough to be a walk, near
+  // enough to be on the same screen as the child standing still.
+  dieWelt.zeigeZiel(15 * 16 + 8, 22 * 16 + 8, () => zeigeAufHaus());
+}
+
+/** And then the door, unless they have already been through it. */
+function zeigeAufHaus(): void {
+  if (stand.get().geschafft['verliebte-zahlen']) return;
+  luma.einmal('say.erstesHaus');
 }
 
 /**

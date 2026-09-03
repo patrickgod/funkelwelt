@@ -122,6 +122,58 @@ export function portrait(): Px {
   return p;
 }
 
+// ------------------------------------------------------- the companion
+
+export const KW = 13;
+export const KH = 13;
+
+/**
+ * Luma as she is in the WORLD: a mote of light at the child's shoulder.
+ *
+ * Navi's job, and Navi's size. Patrick asked for "a cute little light
+ * bubble, tiny" and tiny is the whole design — she is thirteen pixels
+ * across against an eighteen-pixel adventurer, so she reads as a
+ * companion rather than as a second character. Anything bigger and the
+ * child is walking two people around.
+ *
+ * DRAWN IN CODE, not generated, and she is the clearest case for where
+ * that line falls: at thirteen pixels a generated sprite comes back as
+ * a smudge, and the whole of her is four pixels of core and a wing.
+ *
+ * `frame` 0..3 flutters the wings. Nothing else about her moves — the
+ * drifting is done by the world, which knows where the child is.
+ */
+export function kugel(frame: number): Px {
+  const p = new Px(KW, KH);
+  const c = 6;
+
+  // Wings first, behind. They beat on a four-frame cycle, and they are
+  // pale enough to read as light rather than as an insect.
+  const spanne = [4, 3, 2, 3][frame % 4];
+  for (const s of [-1, 1]) {
+    p.ellipse(c + s * 3, c - 2, 2, spanne, shade(P.foam, 1));
+    p.ellipse(c + s * 3, c - 3, 1, Math.max(1, spanne - 2), shade(P.foam, 3));
+  }
+
+  // The mote. Three steps of glow from the middle out, so she is a
+  // little sun rather than a dot: at this size the falloff IS the
+  // silhouette.
+  p.ellipse(c, c, 4, 4, shade(P.glow, 1));
+  p.ellipse(c, c, 3, 3, shade(P.glow, 2));
+  p.ellipse(c, c, 2, 2, shade(P.glow, 3));
+  p.rect(c - 1, c - 1, 2, 2, shade(P.glow, 4));
+  p.set(c - 1, c - 1, shade(P.plaster, 4));
+
+  // Four little rays, alternating with the wingbeat. Without them she
+  // is a bead; with them she is giving off light.
+  const lang = frame % 2 === 0 ? 6 : 5;
+  for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as [number, number][]) {
+    p.set(c + dx * (lang - 1), c + dy * (lang - 1), shade(P.glow, 2));
+    p.set(c + dx * (lang - 2), c + dy * (lang - 2), shade(P.glow, 3));
+  }
+  return p;
+}
+
 let zwischen: HTMLCanvasElement | null = null;
 
 /** Her portrait as a canvas at an integer scale, built once. */

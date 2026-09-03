@@ -290,7 +290,10 @@ async function laufe(taste, ms) {
   await page.waitForTimeout(700);
   await starten();
   await page.locator('.platz').first().tap();
-  await page.waitForTimeout(1400);
+  // 2400, not 1400. The world wakes up before she speaks — the lantern
+  // opens out of the dark over two and a bit seconds for a child who
+  // has never been here — and the greeting is deliberately behind it.
+  await page.waitForTimeout(2400);
   check('Luma says hello when a new adventurer arrives',
     await page.locator('.luma').count() === 1);
   // naturalWidth, not just "the element is there". An <img> whose file
@@ -326,7 +329,7 @@ async function laufe(taste, ms) {
   });
   await starten();
   await page.locator('.platz').first().tap();
-  await page.waitForTimeout(1400);
+  await page.waitForTimeout(2400);
   const stillA = (await slot()).ort;
   await page.keyboard.down('ArrowRight');
   await page.waitForTimeout(1200);
@@ -348,7 +351,7 @@ async function laufe(taste, ms) {
   });
   await starten();
   await page.locator('.platz').first().tap();
-  await page.waitForTimeout(1400);
+  await page.waitForTimeout(2400);
   await lumaWeg();
   check('tapping her sends her away', await page.locator('.luma').count() === 0);
 
@@ -467,7 +470,16 @@ await measureButtons('world');
 // events: down where the thumb lands, drag, hold, release.
 {
   await inDieWelt();
-  await stellAuf(14.5, 22.5);
+  // Tap-to-walk is the default now (AGENTS.md rule 13: tap is the
+  // primary interaction), so a check about the THUMBSTICK has to turn
+  // the thumbstick on rather than assume it.
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.steuerung = 'stick';
+    s.ort = { x: 14.5, y: 22.5 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
   await inDieWelt();
   const vor = (await slot()).ort;
   const cdp = await ctx.newCDPSession(page);

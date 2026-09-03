@@ -59,6 +59,12 @@ export interface Stand {
    * Thumbstick or tap-to-walk. Stored per slot rather than globally,
    * because two children on one iPad will not agree and neither of them
    * is wrong.
+   *
+   * TAP is the default, and that is AGENTS.md rule 13 rather than a
+   * preference: tap is the primary interaction in this game, a motor
+   * slip must never read as a wrong answer, and a thumbstick is a thing
+   * a child has to learn to hold before they can play. The stick is
+   * still two taps away for anyone who prefers it.
    */
   steuerung: 'stick' | 'tippen';
   /** How many times each dungeon has been cleared. */
@@ -87,7 +93,7 @@ function frisch(): Stand {
     staerke: {},
     ort: { x: 0, y: 0 },
     funken: [],
-    steuerung: 'stick',
+    steuerung: 'tippen',
     geschafft: {},
     ausruestung: [],
     gehoert: [],
@@ -138,7 +144,7 @@ export function laden(i: number): Stand {
         : basis.ort,
       funken: Array.isArray(roh.funken)
         ? roh.funken.filter((x) => typeof x === 'string') : [],
-      steuerung: roh.steuerung === 'tippen' ? 'tippen' : 'stick',
+      steuerung: roh.steuerung === 'stick' ? 'stick' : 'tippen',
       geschafft: roh.geschafft && typeof roh.geschafft === 'object' ? { ...roh.geschafft } : {},
       ausruestung: Array.isArray(roh.ausruestung)
         ? roh.ausruestung.filter((x) => typeof x === 'string') : [],
