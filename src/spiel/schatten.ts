@@ -55,7 +55,14 @@ export function schatten(frame: number, seed = 1, wach = 1): Px {
   p.ellipse(cx, cy, rx, ry, shade(P.plum, 1));
   p.ellipse(cx - 2, cy - 2, rx - 2, ry - 2, shade(P.plum, 2));
   p.ellipse(cx - 3, cy - 4, Math.max(2, rx - 5), Math.max(2, ry - 4), shade(P.plum, 3));
-  p.ellipse(cx + 3, cy + 3, Math.max(2, rx - 4), Math.max(2, ry - 5), shade(P.plum, 0));
+  // The shaded underside, kept LOW and WIDE.
+  //
+  // It was a smaller ellipse higher up, and on a round purple shape with
+  // two eyes above it that is not shading, it is an open mouth — which
+  // turned the one thing in this game that must not be a monster into a
+  // monster. Wide and near the bottom edge reads as the light not
+  // reaching underneath.
+  p.ellipse(cx + 1, cy + ry - 3, rx - 1, 3, shade(P.plum, 0));
 
   // A ragged fringe along the bottom, drifting with the frame. This is
   // the only thing that moves, and it is what makes it read as
@@ -69,10 +76,12 @@ export function schatten(frame: number, seed = 1, wach = 1): Px {
 
   // Two little horns of dark at the top, so the silhouette is not a
   // pebble. They droop as it is pushed back.
-  const hoch = Math.round(4 * gr);
+  const hoch = Math.round(5 * gr);
   for (const s of [-1, 1]) {
     for (let j = 0; j < hoch; j++) {
-      p.set(cx + s * (rx - 3) + Math.round(s * j * 0.4), cy - ry - j + 1, shade(P.plum, 1));
+      const bx = cx + s * (rx - 4) + Math.round(s * j * 0.5);
+      p.set(bx, cy - ry - j + 2, shade(P.plum, 2));
+      if (j < hoch - 1) p.set(bx - s, cy - ry - j + 2, shade(P.plum, 1));
     }
   }
 

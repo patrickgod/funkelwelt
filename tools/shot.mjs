@@ -160,6 +160,30 @@ if (want('welt-einstellungen')) {
   await page.waitForTimeout(300);
 }
 
+// Meeting a shadow. Seeded next to the nearest one and walked into it.
+if (want('schatten')) {
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.ort = { x: 18.5, y: 12.6 };
+    s.schatten = [];
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await page.reload();
+  await page.waitForTimeout(800);
+  await starten();
+  await page.locator('.platz').first().tap();
+  await page.waitForTimeout(2400);
+  await lumaWeg();
+  await shot('schatten-welt');
+  await page.keyboard.down('ArrowUp');
+  await page.waitForTimeout(700);
+  await page.keyboard.up('ArrowUp');
+  await page.waitForTimeout(1400);
+  await lumaWeg();
+  await shot('schatten');
+}
+
 // Into the house. Walking north out of the doorstep goes through the
 // door, which is how a child gets in as well.
 if (want('haus') || want('haus-blatt')) {

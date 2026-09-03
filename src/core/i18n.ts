@@ -59,6 +59,8 @@ const DE = {
   'runde.inDieWelt': 'Zurück in die Welt',
   'runde.weiter': 'Weiter',
   'runde.freunde': 'Verliebt!',
+  'runde.mut': 'Mut',
+  'runde.weg': 'Weg ist er!',
 
   // The steering is a QUESTION, not a preference: nobody knows which of
   // these a six-year-old gets on with, so both are built and the switch

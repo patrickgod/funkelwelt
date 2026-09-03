@@ -18,6 +18,7 @@ import * as sprites from './welt/sprites.js';
 import { el, tap, knopf } from './ui/dom.js';
 import * as runde from './ui/runde.js';
 import * as luma from './ui/luma.js';
+import * as begegnung from './ui/begegnung.js';
 
 const welt = document.getElementById('welt') as HTMLCanvasElement;
 const fxCanvas = document.getElementById('fx') as HTMLCanvasElement;
@@ -26,7 +27,7 @@ const ui = document.getElementById('ui') as HTMLDivElement;
 const ctx = welt.getContext('2d', { willReadFrequently: true })!;
 const fxCtx = fxCanvas.getContext('2d', { willReadFrequently: true })!;
 
-type Schirm = 'start' | 'titel' | 'editor' | 'welt' | 'haus';
+type Schirm = 'start' | 'titel' | 'editor' | 'welt' | 'haus' | 'schatten';
 let schirm: Schirm = 'titel';
 let zeit = 0;
 let gestartet = 0;
@@ -382,6 +383,7 @@ function weltBauen(): void {
   dieSteuerung = new Steuerung(welt);
   dieSteuerung.modus = stand.get().steuerung;
   dieWelt.anTuer = () => zeigeHaus();
+  dieWelt.anSchatten = (id) => zeigeSchatten(id);
   muenzenGezeigt = -1;
   hudBauen();
   // The world arrives dark and opens. Long the first time, because that
@@ -423,6 +425,34 @@ function lernenZuLaufen(): void {
 function zeigeAufHaus(): void {
   if (stand.get().geschafft['verliebte-zahlen']) return;
   luma.einmal('say.erstesHaus');
+}
+
+/**
+ * Meeting a shadow.
+ *
+ * The same shape as going into the house: the world is left standing so
+ * that coming back out is instant and the adventurer is still exactly
+ * where he chose to walk.
+ */
+function zeigeSchatten(id: string): void {
+  if (schirm !== 'welt' || !dieWelt) return;
+  luma.weg();
+  schirm = 'schatten';
+  dieWelt.ortSichern();
+  leeren();
+  fx.clear();
+  begegnung.starten(ui, id, (weg) => {
+    // Chased away, or simply walked out of. Either way nothing was lost
+    // — leaving costs nothing and the shadow is still there to come back
+    // to, which is the whole of "wir müssen uns nur kurz ausruhen".
+    if (weg && dieWelt) dieWelt.schattenWeg(id);
+    schirm = 'welt';
+    audio.whoosh(0.34, 900);
+    leeren();
+    fx.clear();
+    muenzenGezeigt = -1;
+    hudBauen();
+  });
 }
 
 /**
@@ -496,6 +526,7 @@ function hudBauen(): void {
 function weltVerlassen(): void {
   luma.weg();
   runde.beenden();
+  begegnung.beenden();
   if (dieWelt) dieWelt.ortSichern();
   if (dieSteuerung) dieSteuerung.loesen();
   dieWelt = null;

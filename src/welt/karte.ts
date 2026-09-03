@@ -37,20 +37,20 @@ export const ZEILEN: readonly string[] = [
   '##.T..T...T......TTT...TTTT,s~~~sTT.TT"TT#######',
   '##.TTT.....,...T.F..TT..Tt..s~~~sTTTTT.T..######',
   '##........T.,....T..T....,T"s~~~s.T"T.,.T.######',
-  '##...,.,.T.T.............,..s~~~s...T...T..#####',
+  '##...,.,.T.T........S....,..s~~~s...T...T..#####',
   '##............."".......o.*"s~~~s..........#####',
   '##.......,.,...,......=======bbb======......####',
   '##..F............t.,,.=....,s~~~s....=..."..####',
   '##.".......,.".,...,..=.."..s~~~s....=T....".###',
-  '##....".......,..o.,.,=.tt..s~~~s..".=.....".###',
-  '##.T,..,..............=.....s~~~s....=........##',
+  '##....".......,..oS,.,=.tt..s~~~s..".=.....".###',
+  '##.T,S.,..............=.....s~~~s..S.=........##',
   '##."............"....*=.....s~~~s....=......F.##',
   '##.,.".......,...,....="....s~~~s...*=,.".....##',
   '##...HHHHH......".....=...,,s~~~s"...=........##',
   '##o."HHHHH............=...sFs~~~sss."=.....t..##',
   '##"."HHHHH............=,.ss~~~~~~~ss.=........##',
   '##...HHHHH"........"..=*ss~~~~~~~~~ss=........##',
-  '##,..HHHHH..T.tT......=ss~~~~~~~~~~~s=.,......##',
+  '##,..HHHHH..T.tT......=ss~~~~~~~~~~~s=.,...S..##',
   '##.....D..............=s~~~~~~~~~~~~~=..."....##',
   '##.....=..^..*".."....=s~~~~~~~~~~~~~=.......F##',
   '##.....================s~~~~~~~~~~~~~=...,....##',
@@ -59,10 +59,10 @@ export const ZEILEN: readonly string[] = [
   '##T.t.....T...=T..T......ss~~~~~~~ss.=.......T##',
   '##.....T.t..T.=*,t..t.,...sssssssss..=.o########',
   '##TTTF...,,...=o...T...T.,....o.....*=..########',
-  '##..T.t...t...=..,T.T..T.,"........."=,.########',
+  '##..T.t.S.t...=..,T.T..T.,"........."=,.########',
   '##TTT.........=..T.......,..,....."..=..########',
   '##..T.........========================.#########',
-  '##..T.,".....tTt.TTo...,"....,....,...,#########',
+  '##..T.,".....tTt.TTo...,".S..,....,...,#########',
   '##.T.....F.....ot.TF......."...T.......#########',
   '##...T"..t."...,T,t.t......".....,F.."##########',
   '################################################',
@@ -139,6 +139,17 @@ export interface Funke {
 
 export const funken: Funke[] = [];
 
+/**
+ * A shadow, standing where the lights went out.
+ *
+ * NOT solid. KONZEPT.md is emphatic that an encounter is walked into on
+ * purpose rather than sprung out of the grass — its worry about the
+ * interruption tax is the reason Pokemon's random encounters are
+ * famously annoying — so a shadow is a thing you can see from across the
+ * meadow and decide about.
+ */
+export const schatten: Funke[] = [];
+
 /** Where a new adventurer starts, and where the one door is. */
 export let START = { x: 0, y: 0 };
 export let TUER = { tx: 0, ty: 0 };
@@ -199,6 +210,9 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
         case '*': stell('laterne', x, y, seed); break;
         case 'F':
           funken.push({ id: `f${x},${y}`, x: x * KACHEL + 8, y: y * KACHEL + 9 });
+          break;
+        case 'S':
+          schatten.push({ id: `s${x},${y}`, x: x * KACHEL + 8, y: (y + 1) * KACHEL });
           break;
         case 'D':
           TUER = { tx: x, ty: y };

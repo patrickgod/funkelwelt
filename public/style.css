@@ -655,6 +655,44 @@ button.gross {
 
 .pip.eben { animation: pip-fuellen 320ms ease-out; }
 
+/* --------------------------------------------------- meeting a shadow */
+
+/* Dusk, not danger. The house is warm plaster because the lights are on
+   in there; out here they are not, and the whole point of a shadow is
+   that it is DIM rather than threatening. Nothing on this screen is red. */
+.begegnung {
+  background: linear-gradient(180deg, #2f2a3c 0%, #1a1622 100%);
+}
+
+.begegnung .schatten canvas { image-rendering: pixelated; display: block; }
+.begegnung .zahl-gross { color: var(--kreide-hell); }
+.begegnung .karten button { color: var(--kreide); }
+.begegnung .zehnerfeld canvas { image-rendering: pixelated; display: block; }
+
+/* MUT.
+ *
+ * The one bar in this game and it only ever fills. There is deliberately
+ * no second bar anywhere near it: a courage meter beside a health meter
+ * is a health meter with extra steps, and the child would learn to read
+ * the wrong one. */
+.mut { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+
+.mut-name {
+  font-size: 20px;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  text-transform: uppercase;
+}
+
+.mut .balken {
+  width: min(64vw, 380px);
+  height: 22px;
+}
+
+.mut .fuellung {
+  background: linear-gradient(90deg, var(--gold-tief), var(--gold));
+}
+
 /* ------------------------------------------------------- the payout */
 
 .blatt {

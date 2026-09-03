@@ -46,6 +46,7 @@ import { held, heldSchatten, W as HELD_W, H as HELD_H,
   type Aussehen, type Richtung } from '../spiel/held.js';
 import { Steuerung, TOT, WEIT } from '../spiel/steuerung.js';
 import { kugel, KW as LUMA_W, KH as LUMA_H } from '../spiel/luma.js';
+import { schatten as schattenPx, schattenFleck, SW, SH } from '../spiel/schatten.js';
 import * as k from './kacheln.js';
 import * as karte from './karte.js';
 import * as sprites from './sprites.js';
@@ -149,6 +150,15 @@ export class Welt {
   private knaufBild: HTMLCanvasElement | null = null;
 
   private readonly lampen: { x: number; y: number }[] = [];
+  /** Shadows still standing, and the images of them. */
+  private readonly schattenBilder: HTMLCanvasElement[] = [];
+  private fleckBild: HTMLCanvasElement | null = null;
+  private readonly wegSchatten = new Set<string>();
+  /** So a shadow is met once, not sixty times a second. */
+  private amSchatten: string | null = null;
+
+  /** What happens when the adventurer walks into one. */
+  anSchatten: ((id: string) => void) | null = null;
   private readonly weg = new Set<string>();
 
   /** Tap-to-walk. */
@@ -219,6 +229,13 @@ export class Welt {
     this.scheibeLampe = [scheibe(LICHT_LAMPE), scheibe(LICHT_LAMPE_WEIT)];
     for (const d of karte.dinge) if (d.licht) this.lampen.push(d.licht);
     for (const id of stand.get().funken) this.weg.add(id);
+    for (const id of stand.get().schatten) this.wegSchatten.add(id);
+    // A shadow that has been chased away leaves a light where it stood,
+    // for ever. That is KONZEPT.md's progress bar — the world visibly
+    // gets brighter — and it is why this list is never cleared.
+    for (const sch of karte.schatten) {
+      if (this.wegSchatten.has(sch.id)) this.lampen.push({ x: sch.x, y: sch.y - 10 });
+    }
 
     const ort = stand.get().ort;
     if (ort.x > 0 && ort.y > 0 && karte.frei(ort.x * k.KACHEL, ort.y * k.KACHEL)) {
@@ -288,6 +305,8 @@ export class Welt {
     }
     for (let f = 0; f < 2; f++) this.funkeBild.push(k.funke(f).toCanvas());
     for (let f = 0; f < 4; f++) this.kugelBild.push(kugel(f).toCanvas());
+    for (let f = 0; f < 4; f++) this.schattenBilder.push(schattenPx(f, 7, 1).toCanvas());
+    this.fleckBild = schattenFleck(1).toCanvas();
     this.schattenBild = heldSchatten().toCanvas();
   }
 
@@ -484,6 +503,7 @@ export class Welt {
       dann();
     }
     this.funkenPruefen();
+    this.schattenPruefen();
     this.tuerPruefen();
   }
 
@@ -579,6 +599,43 @@ export class Welt {
         }
       }
     }
+  }
+
+  /**
+   * Walking into a shadow.
+   *
+   * Into, not near: the trigger is a small box you have to actually
+   * stand in, because KONZEPT.md's whole objection to random encounters
+   * is the interruption tax. A shadow you can see from across the
+   * meadow and choose to walk around is not a tax.
+   */
+  private schattenPruefen(): void {
+    let drin: string | null = null;
+    for (const sch of karte.schatten) {
+      if (this.wegSchatten.has(sch.id)) continue;
+      if (Math.abs(sch.x - this.hx) < 12 && Math.abs(sch.y - 6 - this.hy) < 12) {
+        drin = sch.id;
+        break;
+      }
+    }
+    if (drin === this.amSchatten) return;
+    this.amSchatten = drin;
+    if (!drin || !this.anSchatten) return;
+    const sch = karte.schatten.find((x) => x.id === drin)!;
+    const [sx, sy] = this.aufSchirm(sch.x, sch.y - 10);
+    fx.burst('staub', sx, sy, { n: 10, speed: 90, up: 0.4, gravity: 160, life: 0.6 });
+    audio.whoosh(0.34, 700);
+    const ruf = this.anSchatten;
+    setTimeout(() => ruf(drin), 420);
+  }
+
+  /** Chased away: it stops being drawn and starts being a light. */
+  schattenWeg(id: string): void {
+    if (this.wegSchatten.has(id)) return;
+    this.wegSchatten.add(id);
+    this.amSchatten = null;
+    const sch = karte.schatten.find((x) => x.id === id);
+    if (sch) this.lampen.push({ x: sch.x, y: sch.y - 10 });
   }
 
   /**
@@ -710,6 +767,22 @@ export class Welt {
         this.zielFunke = Math.floor(this.zeit * 2);
         fx.burst('funke', zx, zy, { n: 3, speed: 60, up: 1.1, life: 0.7 });
       }
+    }
+
+    // 4c. the shadows still standing
+    for (const sch of karte.schatten) {
+      if (this.wegSchatten.has(sch.id)) continue;
+      if (sch.x < this.camX - 32 || sch.x > this.camX + vw + 32) continue;
+      if (sch.y < this.camY - 40 || sch.y > this.camY + vh + 40) continue;
+      const b = this.schattenBilder[Math.floor(this.zeit * 3.6) % 4];
+      const bob = Math.round(Math.sin(this.zeit * 1.7 + sch.x) * 1.5);
+      if (this.fleckBild) {
+        const [fx2, fy2] = hin(sch.x - SW / 2, sch.y - 6);
+        ctx.drawImage(this.fleckBild, fx2, fy2,
+          this.fleckBild.width * S, this.fleckBild.height * S);
+      }
+      const [sx, sy] = hin(sch.x - SW / 2, sch.y - SH + bob);
+      ctx.drawImage(b, sx, sy, SW * S, SH * S);
     }
 
     // 5. everything standing on it, back to front, with the adventurer

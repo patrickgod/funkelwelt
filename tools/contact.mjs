@@ -135,5 +135,34 @@ for (const s of [2, 3, 4, 6]) {
 `);
 }
 
+// ---------------------------------------------------------- a shadow
+
+if (doIt('schatten')) {
+  await sheet('schatten', `
+import { schatten, SW, SH } from '../src/spiel/schatten.js';
+
+// Four frames across, and four stages of being pushed back down — which
+// is the only axis this creature has. It must read as DIM rather than
+// as dangerous at every one of them, and it must never read as hurt.
+const S = 6;
+const c = document.createElement('canvas');
+c.width = 40 + 4 * (SW * S + 20);
+c.height = 40 + 4 * (SH * S + 16);
+document.body.appendChild(c);
+const ctx = c.getContext('2d')!;
+ctx.imageSmoothingEnabled = false;
+ctx.fillStyle = '#2f2a3c';
+ctx.fillRect(0, 0, c.width, c.height);
+[1, 0.66, 0.33, 0.05].forEach((wach, row) => {
+  for (let f = 0; f < 4; f++) {
+    ctx.drawImage(schatten(f, 7, wach).toCanvas(),
+      20 + f * (SW * S + 20), 20 + row * (SH * S + 16), SW * S, SH * S);
+  }
+});
+
+(window as any).ready = true;
+`);
+}
+
 await browser.close();
 rmSync('.contact', { recursive: true, force: true });

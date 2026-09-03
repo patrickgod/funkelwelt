@@ -521,6 +521,121 @@ await measureButtons('world');
     ort.x - 14.5 > 1.2, `moved ${(ort.x - 14.5).toFixed(2)} tiles towards the tap`);
 }
 
+// ------------------------------------------------------------- shadows
+//
+// KONZEPT.md calls this the single most important decision in the
+// project, so it is the most heavily asserted screen in the suite:
+//
+//   A wrong answer must never cost the child anything.
+//
+// An RPG framing will keep trying to undo that, because taking something
+// away on a mistake is what RPGs do. These checks are what stops it
+// being undone by accident six months from now.
+
+{
+  await inDieWelt();
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.ort = { x: 18.5, y: 12.6 };
+    s.schatten = [];
+    s.muenzen = 20;
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await inDieWelt();
+  await laufe('ArrowUp', 700);
+  await page.waitForTimeout(1200);
+  await lumaWeg();
+
+  check('walking into a shadow meets it', await page.locator('.begegnung').count() === 1);
+  await measureButtons('shadow');
+  check('there is a Mut bar, and it starts empty',
+    await page.locator('.mut .fuellung').count() === 1
+    && (await page.locator('.mut .fuellung').evaluate((e) => e.style.width)) === '0%');
+
+  /** Answer, right or wrong. The numeral on screen is the question. */
+  async function antworte(richtig) {
+    const gezeigt = Number(await page.locator('.zahl-gross').first().textContent());
+    const will = String(10 - gezeigt);
+    const karten = page.locator('.karten button');
+    const n = await karten.count();
+    for (let i = 0; i < n; i++) {
+      const txt = (await karten.nth(i).textContent()).trim();
+      if (richtig === (txt === will)) { await karten.nth(i).tap(); return true; }
+    }
+    return false;
+  }
+
+  // THE CHECK THIS WHOLE DESIGN EXISTS FOR.
+  const vorMut = await page.locator('.mut .fuellung').evaluate((e) => e.style.width);
+  const vorSchatten = await page.locator('.begegnung .schatten canvas')
+    .evaluate((c) => `${c.width}x${c.height}`);
+  const vorGeld = (await slot()).muenzen;
+  await antworte(false);
+  await page.waitForTimeout(2600);
+  const nachMut = await page.locator('.mut .fuellung').evaluate((e) => e.style.width);
+  const nachSchatten = await page.locator('.begegnung .schatten canvas')
+    .evaluate((c) => `${c.width}x${c.height}`);
+  const s2 = await slot();
+  check('a wrong answer costs nothing at all — Mut does not move',
+    vorMut === nachMut, `${vorMut} -> ${nachMut}`);
+  check('  …the shadow does not advance',
+    vorSchatten === nachSchatten, `${vorSchatten} -> ${nachSchatten}`);
+  check('  …no coin is taken', s2.muenzen === vorGeld, `${vorGeld} -> ${s2.muenzen}`);
+  check('  …and nothing on the screen turns red',
+    await page.locator('.begegnung .rot, .begegnung .falsch, .begegnung .gefahr').count() === 0);
+
+  // And a right answer does move it.
+  await antworte(true);
+  await page.waitForTimeout(1100);
+  const mut1 = await page.locator('.mut .fuellung').evaluate((e) => e.style.width);
+  check('a right answer pushes the shadow back', mut1 !== '0%', `Mut ${mut1}`);
+
+  // Four more fills it, and full Mut ends the encounter at once.
+  for (let i = 0; i < 6; i++) {
+    if (await page.locator('.blatt').count()) break;
+    if (!await antworte(true)) break;
+    await page.waitForTimeout(1100);
+  }
+  check('full Mut chases it away', await page.locator('.blatt').count() === 1);
+  const s3 = await slot();
+  check('  …and it pays coins', s3.muenzen > vorGeld, `${vorGeld} -> ${s3.muenzen}`);
+  check('  …and never stars, which it did not teach',
+    s3.sterne.mathe === s2.sterne.mathe && s3.sterne.wort === s2.sterne.wort);
+  check('  …and it is written down as gone',
+    s3.schatten.length === 1, JSON.stringify(s3.schatten));
+
+  await page.locator('button', { hasText: 'Zurück in die Welt' }).first().tap();
+  await page.waitForTimeout(700);
+  check('and it comes back out into the world',
+    await page.locator('.hud').count() === 1);
+}
+
+// Leaving halfway costs nothing either: the shadow is still there and
+// nothing has been taken. Patrick's own instinct from the design
+// conversation — "wir müssen uns nur kurz ausruhen".
+{
+  await inDieWelt();
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.ort = { x: 18.5, y: 12.6 };
+    s.schatten = [];
+    s.muenzen = 20;
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await inDieWelt();
+  await laufe('ArrowUp', 700);
+  await page.waitForTimeout(1200);
+  await lumaWeg();
+  await page.locator('.begegnung button', { hasText: 'Zurück' }).first().tap();
+  await page.waitForTimeout(700);
+  const s4 = await slot();
+  check('walking out of an encounter takes nothing',
+    s4.muenzen === 20 && s4.schatten.length === 0,
+    `${s4.muenzen} coins, ${s4.schatten.length} chased`);
+}
+
 // A lightspark is picked up by walking into it and pays coins — never
 // stars, which are the record of what has been learned.
 {

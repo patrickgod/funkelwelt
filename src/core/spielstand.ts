@@ -56,6 +56,14 @@ export interface Stand {
    */
   funken: string[];
   /**
+   * Which shadows have been chased away.
+   *
+   * Each one leaves a light behind it, permanently, so this list is
+   * also how bright the world is. KONZEPT.md wanted progress that is
+   * visible without being numeric; this is it at world scale.
+   */
+  schatten: string[];
+  /**
    * Thumbstick or tap-to-walk. Stored per slot rather than globally,
    * because two children on one iPad will not agree and neither of them
    * is wrong.
@@ -93,6 +101,7 @@ function frisch(): Stand {
     staerke: {},
     ort: { x: 0, y: 0 },
     funken: [],
+    schatten: [],
     steuerung: 'tippen',
     geschafft: {},
     ausruestung: [],
@@ -144,6 +153,8 @@ export function laden(i: number): Stand {
         : basis.ort,
       funken: Array.isArray(roh.funken)
         ? roh.funken.filter((x) => typeof x === 'string') : [],
+      schatten: Array.isArray(roh.schatten)
+        ? roh.schatten.filter((x) => typeof x === 'string') : [],
       steuerung: roh.steuerung === 'stick' ? 'stick' : 'tippen',
       geschafft: roh.geschafft && typeof roh.geschafft === 'object' ? { ...roh.geschafft } : {},
       ausruestung: Array.isArray(roh.ausruestung)
@@ -258,6 +269,13 @@ export function staerkeVon(fakt: string): number {
 export function merken(fakt: string, richtig: boolean): void {
   const jetzt = stand.staerke[fakt] ?? 0;
   stand.staerke[fakt] = richtig ? Math.min(3, jetzt + 1) : Math.max(0, jetzt - 1);
+  sichern();
+}
+
+/** A shadow, chased away. Only ever added to; it never comes back. */
+export function schattenWeg(id: string): void {
+  if (stand.schatten.includes(id)) return;
+  stand.schatten.push(id);
   sichern();
 }
 
