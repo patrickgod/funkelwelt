@@ -159,6 +159,12 @@ export class Welt {
 
   /** What happens when the adventurer walks into one. */
   anSchatten: ((id: string) => void) | null = null;
+
+  /** Gates, and the pictures of them shut and open. */
+  private readonly torBild = new Map<string, HTMLCanvasElement>();
+  private amTor: string | null = null;
+  /** Said when the child pushes at a gate they cannot open yet. */
+  anTor: ((offen: boolean) => void) | null = null;
   private readonly weg = new Set<string>();
 
   /** Tap-to-walk. */
@@ -230,6 +236,11 @@ export class Welt {
     for (const d of karte.dinge) if (d.licht) this.lampen.push(d.licht);
     for (const id of stand.get().funken) this.weg.add(id);
     for (const id of stand.get().schatten) this.wegSchatten.add(id);
+    // Which gates are open is decided here, once, from what the child
+    // has actually learned. `karte.festAn` reads it every step.
+    for (const tor of karte.tore) {
+      if (stand.stufe(tor.fach) >= tor.stufe) karte.torOeffnen(tor.id);
+    }
     // A shadow that has been chased away leaves a light where it stood,
     // for ever. That is KONZEPT.md's progress bar — the world visibly
     // gets brighter — and it is why this list is never cleared.
@@ -504,6 +515,7 @@ export class Welt {
     }
     this.funkenPruefen();
     this.schattenPruefen();
+    this.torPruefen();
     this.tuerPruefen();
   }
 
@@ -599,6 +611,38 @@ export class Welt {
         }
       }
     }
+  }
+
+  /**
+   * Pushing at a gate.
+   *
+   * A shut gate is solid, so the child cannot walk into it — which means
+   * the only way to notice they are trying is that they are standing
+   * against it. That is what this looks for, and it is why the box is
+   * generous: a six-year-old aiming at a gap in a cliff does not aim
+   * precisely.
+   */
+  private torPruefen(): void {
+    let drin: string | null = null;
+    for (const tor of karte.tore) {
+      if (Math.abs(tor.mitte - this.hx) < 14 && Math.abs(tor.fuss - this.hy) < 22) {
+        drin = tor.id;
+        break;
+      }
+    }
+    if (drin === this.amTor) return;
+    this.amTor = drin;
+    if (!drin || !this.anTor) return;
+    const offen = karte.torIstOffen(drin);
+    const tor = karte.tore.find((t) => t.id === drin)!;
+    if (offen) {
+      const [sx, sy] = this.aufSchirm(tor.mitte, tor.fuss - 14);
+      fx.burst('stern', sx, sy, { n: 12, speed: 130, up: 0.8, life: 0.9 });
+      audio.sparkle(5);
+    } else {
+      audio.thunk();
+    }
+    this.anTor(offen);
   }
 
   /**
@@ -793,7 +837,13 @@ export class Welt {
       if (karte.dinge[i].fuss > this.hy) break;
       this.dingZeichnen(ctx, karte.dinge[i], vw, vh, hin, S);
     }
+    // Gates go in the same sort. The first version drew them all before
+    // the adventurer, and since a child pushing at a gate is standing
+    // ON it, the gate was entirely behind him at the one moment it
+    // matters.
+    this.toreZeichnen(ctx, hin, S, true);
     this.heldZeichnen(ctx, hin, S);
+    this.toreZeichnen(ctx, hin, S, false);
     this.lumaZeichnen(ctx, hin, S);
     for (; i < karte.dinge.length; i++) {
       this.dingZeichnen(ctx, karte.dinge[i], vw, vh, hin, S);
@@ -886,6 +936,25 @@ export class Welt {
     }
     const [px, py] = hin(x, y);
     ctx.drawImage(b, px, py, b.width * S, b.height * S);
+  }
+
+  /** The gates, on whichever side of the adventurer they belong. */
+  private toreZeichnen(
+    ctx: CanvasRenderingContext2D, hin: (x: number, y: number) => [number, number],
+    S: number, hinten: boolean,
+  ): void {
+    for (const tor of karte.tore) {
+      if ((tor.fuss <= this.hy) !== hinten) continue;
+      const offen = karte.torIstOffen(tor.id);
+      const key = `${tor.id}:${offen ? 1 : 0}`;
+      let b = this.torBild.get(key);
+      if (!b) {
+        b = k.tor(offen, tor.stufe).toCanvas();
+        this.torBild.set(key, b);
+      }
+      const [sx, sy] = hin(tor.mitte - b.width / 2, tor.fuss - b.height + 4);
+      ctx.drawImage(b, sx, sy, b.width * S, b.height * S);
+    }
   }
 
   /** Luma, and the three fading motes she leaves behind her. */

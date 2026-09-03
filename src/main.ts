@@ -384,6 +384,10 @@ function weltBauen(): void {
   dieSteuerung.modus = stand.get().steuerung;
   dieWelt.anTuer = () => zeigeHaus();
   dieWelt.anSchatten = (id) => zeigeSchatten(id);
+  // A shut gate explains itself once; an open one is celebrated once.
+  // Both go through `einmal`, so neither becomes something a child
+  // learns to walk through without listening.
+  dieWelt.anTor = (offen) => luma.einmal(offen ? 'say.torAuf' : 'say.nochZu');
   muenzenGezeigt = -1;
   hudBauen();
   // The world arrives dark and opens. Long the first time, because that

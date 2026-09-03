@@ -482,6 +482,59 @@ export function haus(): Px {
 }
 
 /**
+ * A gate.
+ *
+ * The moment the per-subject stars pay off, and the whole reason they
+ * are per subject: a child who loves numbers and finds letters hard
+ * opens the number gate, and that is honest about what is actually true
+ * of them.
+ *
+ * What it wants is drawn as STARS rather than written as a level.
+ * AGENTS.md rule 14 — no text is load-bearing — and a six-year-old who
+ * cannot read "ab Stufe 3" can count three stars perfectly well. When
+ * the gate opens they light up, which is the only feedback needed:
+ * the thing you were short of, you now have.
+ */
+export function tor(offen: boolean, sterne: number): Px {
+  const p = new Px(22, 30);
+  // Two stone posts, set into the cliff either side.
+  for (const x of [0, 17]) {
+    p.rect(x, 6, 5, 24, shade(P.stone, 2));
+    p.rect(x, 6, 2, 24, shade(P.stone, 3));
+    p.rect(x + 4, 6, 1, 24, shade(P.stone, 1));
+    p.rect(x, 4, 5, 3, shade(P.stone, 4));
+    p.rect(x, 6, 5, 1, shade(P.stone, 1));
+  }
+  if (offen) {
+    // The bar is swung up out of the way and the posts are lit. Nothing
+    // is broken, nothing is destroyed — it is simply open now.
+    p.rect(5, 5, 12, 2, shade(P.timber, 2));
+    p.rect(5, 5, 12, 1, shade(P.timber, 4));
+    for (let i = 0; i < sterne; i++) {
+      const sx = 4 + i * 5;
+      p.set(sx + 1, 13, shade(P.glow, 4));
+      p.line(sx, 13, sx + 2, 13, shade(P.glow, 3));
+      p.line(sx + 1, 12, sx + 1, 14, shade(P.glow, 3));
+    }
+  } else {
+    // Three bars across, and the stars it is waiting for.
+    for (const y of [10, 17, 24]) {
+      p.rect(4, y, 14, 3, shade(P.timber, 2));
+      p.rect(4, y, 14, 1, shade(P.timber, 3));
+      p.rect(4, y + 2, 14, 1, shade(P.timber, 0));
+    }
+    for (let i = 0; i < sterne; i++) {
+      const sx = 5 + i * 5;
+      p.line(sx, 14, sx + 2, 14, shade(P.stone, 4));
+      p.line(sx + 1, 13, sx + 1, 15, shade(P.stone, 4));
+      p.set(sx + 1, 14, shade(P.plaster, 4));
+    }
+  }
+  finish(p);
+  return p;
+}
+
+/**
  * A lightspark: one of the old lights, fallen and still burning, lying
  * in the grass waiting to be picked up.
  *

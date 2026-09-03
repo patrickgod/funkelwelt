@@ -521,6 +521,71 @@ await measureButtons('world');
     ort.x - 14.5 > 1.2, `moved ${(ort.x - 14.5).toFixed(2)} tiles towards the tap`);
 }
 
+// --------------------------------------------------------------- gates
+//
+// The moment the per-subject stars pay off, and the reason they are per
+// subject: a child who loves numbers opens the number gate. It is the
+// first time the game says "being good at something opened something",
+// so what it must never do is open early or stay shut late.
+
+async function beiTor(sterne) {
+  await inDieWelt();
+  await page.evaluate((st) => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.ort = { x: 43.5, y: 9.6 };
+    s.sterne = { mathe: st, wort: 0 };
+    localStorage.setItem(k, JSON.stringify(s));
+  }, sterne);
+  await inDieWelt();
+  // Luma explains the gate when he pushes at it, and she holds the world
+  // still while she does — so a check that just holds the key down
+  // measures the fairy. Both cases stopped at exactly the same spot,
+  // which was the giveaway.
+  await laufe('ArrowUp', 500);
+  await lumaWeg();
+  await laufe('ArrowUp', 2400);
+  await lumaWeg();
+  await page.locator('.hudKnopf').first().tap();
+  await page.waitForTimeout(400);
+  return (await slot()).ort;
+}
+
+{
+  // Level 1: shut. The gate is at row 7, so anything above it means in.
+  const zu = await beiTor(0);
+  check('a gate the child has not earned is shut',
+    zu.y > 7.6, `stopped at y ${zu.y.toFixed(2)}`);
+
+  // 32 stars is Mathe 3 — floor(sqrt(32/8)) + 1.
+  const auf = await beiTor(40);
+  check('and it opens when they have earned it',
+    auf.y < 7, `walked through to y ${auf.y.toFixed(2)}`);
+
+  // What is behind it has to be worth the walk, or the lesson lands as a
+  // locked door with nothing on the other side. Asserted by actually
+  // picking something up in there — "the list is not empty" would have
+  // passed on a save that had collected sparks somewhere else.
+  await inDieWelt();
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.ort = { x: 43.5, y: 5.5 };
+    s.sterne = { mathe: 40, wort: 0 };
+    s.funken = [];
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await inDieWelt();
+  await laufe('ArrowRight', 700);
+  await lumaWeg();
+  await laufe('ArrowUp', 500);
+  await page.locator('.hudKnopf').first().tap();
+  await page.waitForTimeout(400);
+  const drin = (await slot()).funken;
+  check('and there is something behind it worth the walk',
+    drin.length > 0, `picked up ${JSON.stringify(drin)}`);
+}
+
 // ------------------------------------------------------------- shadows
 //
 // KONZEPT.md calls this the single most important decision in the

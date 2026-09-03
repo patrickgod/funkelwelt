@@ -35,10 +35,10 @@ export const ZEILEN: readonly string[] = [
   '################################################',
   '##TTTT.T."TTTTTTTT.T...TTFTTs~~~s.TT.TT...TT..##',
   '##.T..T...T......TTT...TTTT,s~~~sTT.TT"TT#######',
-  '##.TTT.....,...T.F..TT..Tt..s~~~sTTTTT.T..######',
-  '##........T.,....T..T....,T"s~~~s.T"T.,.T.######',
-  '##...,.,.T.T........S....,..s~~~s...T...T..#####',
-  '##............."".......o.*"s~~~s..........#####',
+  '##.TTT.....,...T.F..TT..Tt..s~~~sTTTTT.T..#.F."#',
+  '##........T.,....T..T....,T"s~~~s.T"T.,.T.#,.*.#',
+  '##...,.,.T.T........S....,..s~~~s...T...T.#...F#',
+  '##............."".......o.*"s~~~s..........G####',
   '##.......,.,...,......=======bbb======......####',
   '##..F............t.,,.=....,s~~~s....=..."..####',
   '##.".......,.".,...,..=.."..s~~~s....=T....".###',
@@ -79,7 +79,7 @@ export const GRAS = 0, BLUMEN = 1, HOCHGRAS = 2, WEG = 3,
   BRUECKE = 4, SAND = 5, WASSER = 6, FELS = 7;
 
 /** Everything a hero cannot walk through. */
-const FEST_ZEICHEN = '#~TtoHf^*';
+const FEST_ZEICHEN = '#~TtoHf^*G';
 /** Everything that reads as water for the purpose of drawing an edge. */
 const NASS = '~b';
 /** Everything that reads as path for the purpose of drawing an edge. */
@@ -150,6 +150,37 @@ export const funken: Funke[] = [];
  */
 export const schatten: Funke[] = [];
 
+export interface Tor {
+  id: string;
+  tx: number;
+  ty: number;
+  /** Where its sprite stands, in world pixels. */
+  mitte: number;
+  fuss: number;
+  /** What it wants before it opens. */
+  fach: 'mathe' | 'wort';
+  stufe: number;
+}
+
+export const tore: Tor[] = [];
+
+/**
+ * Gates that have been opened, so `festAn` can let the child through.
+ *
+ * Held here rather than in the tile grid because whether a gate is shut
+ * is not a property of the map — it is a property of how much the child
+ * has learned, and it changes while they are standing in front of it.
+ */
+const offen = new Set<string>();
+
+export function torOeffnen(id: string): void {
+  offen.add(id);
+}
+
+export function torIstOffen(id: string): boolean {
+  return offen.has(id);
+}
+
 /** Where a new adventurer starts, and where the one door is. */
 export let START = { x: 0, y: 0 };
 export let TUER = { tx: 0, ty: 0 };
@@ -190,7 +221,7 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
         case '.': b = GRAS; break;
         case ',': b = BLUMEN; break;
         case '"': b = HOCHGRAS; break;
-        case '=': case 'D': b = WEG; break;
+        case '=': case 'D': case 'G': b = WEG; break;
         case 'b': b = BRUECKE; break;
         case 's': b = SAND; break;
         case '~': b = WASSER; break;
@@ -213,6 +244,13 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
           break;
         case 'S':
           schatten.push({ id: `s${x},${y}`, x: x * KACHEL + 8, y: (y + 1) * KACHEL });
+          break;
+        case 'G':
+          tore.push({
+            id: `g${x},${y}`, tx: x, ty: y,
+            mitte: x * KACHEL + 8, fuss: (y + 1) * KACHEL,
+            fach: 'mathe', stufe: 3,
+          });
           break;
         case 'D':
           TUER = { tx: x, ty: y };
@@ -249,7 +287,11 @@ export function bodenAn(tx: number, ty: number): number {
 
 export function festAn(tx: number, ty: number): boolean {
   if (tx < 0 || ty < 0 || tx >= KW || ty >= KH) return true;
-  return fest[ty * KW + tx] === 1;
+  if (fest[ty * KW + tx] !== 1) return false;
+  // A gate is solid until it is not. Everything else in `fest` is a
+  // fact about the map; this one is a fact about the child.
+  if (ZEILEN[ty][tx] === 'G' && offen.has(`g${tx},${ty}`)) return false;
+  return true;
 }
 
 /**

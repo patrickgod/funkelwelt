@@ -125,6 +125,8 @@ const DE = {
   'say.nochZu': 'Da hinten ist es noch zu dunkel. Werde erst ein bisschen stärker.',
   'say.schatten': 'Ein Schatten! Keine Sorge — er tut dir nichts. Zeig ihm, was du kannst.',
   'say.schattenWeg': 'Weg ist er. Das hast du gut gemacht.',
+  'say.torAuf':
+    'Schau, das Tor ist offen! Du hast genug gelernt, um da hineinzukommen.',
   'say.hilfe': 'Das ist knifflig, oder? Schau, ich zeig es dir.',
 
   // No slots, on purpose. Every one of these becomes a fixed MP3 at

@@ -160,6 +160,33 @@ if (want('welt-einstellungen')) {
   await page.waitForTimeout(300);
 }
 
+// The gate, shut and open, from the same spot — which is the whole
+// point of it: the world did not change, the child did.
+if (want('tor')) {
+  for (const [name, sterne] of [['tor-zu', 0], ['tor-auf', 40]]) {
+    await page.evaluate((st) => {
+      const k = 'funkelwelt.platz0.v1';
+      const s = JSON.parse(localStorage.getItem(k));
+      s.ort = { x: 43.5, y: 9.6 };
+      s.sterne = { mathe: st, wort: 0 };
+      s.gehoert = [];
+      localStorage.setItem(k, JSON.stringify(s));
+    }, sterne);
+    await page.reload();
+    await page.waitForTimeout(800);
+    await starten();
+    await page.locator('.platz').first().tap();
+    await page.waitForTimeout(2400);
+    await lumaWeg();
+    await page.keyboard.down('ArrowUp');
+    await page.waitForTimeout(420);
+    await page.keyboard.up('ArrowUp');
+    await page.waitForTimeout(900);
+    await shot(name);
+    await lumaWeg();
+  }
+}
+
 // Meeting a shadow. Seeded next to the nearest one and walked into it.
 if (want('schatten')) {
   await page.evaluate(() => {
