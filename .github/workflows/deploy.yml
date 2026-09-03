@@ -31,7 +31,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -58,8 +58,21 @@ jobs:
 
       # Loads the built files the way a child's browser will, at a real
       # iPad viewport with touch on, and plays a whole round with taps.
+      # Twelve, not five.
+      #
+      # Five was chosen when the suite took two minutes. The third house
+      # took it to five minutes and one second, so a run that printed
+      # `all good` was killed on the line after it and the deploy failed
+      # with a green suite in the log — the worst kind of red, because
+      # it says the game is broken when the game is fine.
+      #
+      # This number is a CEILING for a hang, not a budget. If the suite
+      # ever gets near it the answer is to make the suite faster, not to
+      # raise this again: every check in it drives a real browser through
+      # a real round, and there are only so many of those a person will
+      # wait for before they stop running it.
       - name: Verify it actually runs
-        timeout-minutes: 5
+        timeout-minutes: 12
         run: node tools/verify.mjs
 
       - uses: actions/upload-pages-artifact@v3
