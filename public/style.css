@@ -118,6 +118,23 @@ button:disabled { opacity: 0.45; }
 button.gold { background: var(--gold); }
 button.gefahr { background: var(--rot); color: var(--hell); }
 
+/* The chosen one of a pair.
+ *
+ * `:not(.probe)` because the colour swatches in the character editor
+ * have their own version of this below, and they must keep their own
+ * background — a swatch is a picture of the thing it chooses, so
+ * painting it gold would paint over the choice.
+ *
+ * Lifted rather than merely outlined, for the same reason as the
+ * swatches: an outline is not enough of a signal for a six-year-old
+ * choosing quickly. The settings shipped once with the class applied
+ * and nothing styling it, so every option looked equally unchosen. */
+button.gewaehlt:not(.probe) {
+  background: var(--gold);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 0 var(--ink);
+}
+
 /* ------------------------------------------------------- title screen */
 
 .bildschirm {

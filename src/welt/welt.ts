@@ -185,13 +185,28 @@ export class Welt {
    * guaranteed to be the same picture, which drawing it twice is not.
    */
   private bauen(): void {
-    for (let frame = 0; frame < 2; frame++) {
-      const m = new Px(karte.BREITE, karte.HOEHE);
-      for (let ty = 0; ty < karte.KH; ty++) {
-        for (let tx = 0; tx < karte.KW; tx++) {
-          m.draw(this.kachel(tx, ty, frame), tx * k.KACHEL, ty * k.KACHEL);
-        }
+    // Frame one of the ripple, whole.
+    const eins = new Px(karte.BREITE, karte.HOEHE);
+    for (let ty = 0; ty < karte.KH; ty++) {
+      for (let tx = 0; tx < karte.KW; tx++) {
+        eins.draw(this.kachel(tx, ty, 0), tx * k.KACHEL, ty * k.KACHEL);
       }
+    }
+    // Frame two is the same region with the water redrawn — a copy plus
+    // two hundred tiles rather than seventeen hundred. Building both
+    // from scratch measured 430 ms to open the world on a desktop, and
+    // whatever that is on a five-year-old iPad it is the child staring
+    // at a title screen that has stopped responding.
+    const zwei = new Px(karte.BREITE, karte.HOEHE);
+    zwei.data.set(eins.data);
+    for (let ty = 0; ty < karte.KH; ty++) {
+      for (let tx = 0; tx < karte.KW; tx++) {
+        const b = karte.bodenAn(tx, ty);
+        if (b !== karte.WASSER && b !== karte.BRUECKE) continue;
+        zwei.draw(this.kachel(tx, ty, 1), tx * k.KACHEL, ty * k.KACHEL);
+      }
+    }
+    for (const m of [eins, zwei]) {
       this.stufen[2].push(m.toCanvas());
       m.remap((c) => atNight(c, -1));
       this.stufen[1].push(m.toCanvas());
@@ -604,8 +619,11 @@ function ring(r: number): HTMLCanvasElement {
     for (let x = 0; x < n; x++) {
       const d = Math.hypot(x - c, y - c);
       if (d > r) continue;
-      if (d > r - 2) p.blend(x, y, '#f8f0dc', 0.55);
-      else if (((x + y) & 1) === 0) p.blend(x, y, '#241d2b', 0.16);
+      // A three-pixel rim at three quarters. The first version was two
+      // pixels at 0.55 and was very nearly invisible on grass, which
+      // for the one control the child is holding is not a small thing.
+      if (d > r - 3) p.blend(x, y, '#f8f0dc', 0.78);
+      else if (((x + y) & 1) === 0) p.blend(x, y, '#241d2b', 0.20);
     }
   }
   return p.toCanvas();

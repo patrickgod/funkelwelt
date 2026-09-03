@@ -14,29 +14,42 @@ it.** A risk you have not built is a risk you are still carrying.
   lantern. Two passes; the first was a potato in a bowl cut.
 * Three save slots, Zelda-style, with a character editor.
 * Verification suite, deploy to GitHub Pages, contact sheets.
+* **The walkable world.** An authored region of 48×36 tiles, written as
+  thirty-six lines of text so a person can edit it. Meadow, path, a
+  stream with a bridge, a pond, two woods, cliffs. The camera follows on
+  whole pixels. The lantern lights a stepped disc around the adventurer
+  and the lamp posts light the path, so the region is drawn three times
+  at three brightnesses and shown through a dithered mask — the fiction
+  doing a job in the level design rather than in a cutscene. Ten
+  lightsparks off the path, picked up by walking into them, paying coins
+  and never stars. **Both** steerings, with the switch two taps away
+  inside the world, because HANDOVER.md's first open question is which
+  one a six-year-old prefers and nobody knows.
+
+  Opening the world measures 155 ms and walking costs 0.81 ms of script
+  per frame — on a desktop under software rendering, which bounds the
+  work rather than predicting the device.
+
+  **The bar it has not cleared yet:** a grown-up walks around for two
+  minutes with nothing else in the game and does not get bored. Nobody
+  has run that test, and the person whose opinion decides it is six.
 
 ## Next, in order
 
-### 1. The walkable world — the biggest risk in the project
+### 1. Play it, before building anything on it
 
-KONZEPT.md says it plainly: *if the walking is not fun on its own, it is
-a corridor between quizzes and worse than a menu.* So this gets built
-and played before anything is built on top of it.
+The whole reason the world came first was to find out whether walking
+around is worth doing. That question is still open — it just has
+something to answer it with now.
 
-* A tile world: grass, path, water, trees, cliffs. Same closed palette.
-* Top-down, the same three-quarter view the character is drawn for.
-* **Touch steering.** Almost certainly a virtual stick that appears
-  where the thumb lands, on the left half of the screen — a fixed stick
-  in a corner is a thing a child has to find first. Tapping to walk to a
-  spot is the alternative and is worth trying; decide by playing both.
-* Camera follows, snapped to whole pixels, never a fractional offset.
-* **Authored, not procedural.** A world a child can learn by heart is
-  worth more than one that is different every time. Hyrule is the same
-  Hyrule for everybody.
-
-**How to know it works:** a grown-up walks around for two minutes with
-nothing else in the game and does not get bored. If that fails, the
-whole design needs revisiting and it is much cheaper to find out now.
+* Two minutes with the son, on the iPad, with nothing else in the game.
+* **Settle the steering.** Thumbstick or tap-to-walk. Let him try both
+  in ninety seconds and take the answer, whichever it is; then the
+  loser can be deleted.
+* Is the region the right size? "Small enough to learn by heart" is the
+  goal and 48×36 is a guess at it.
+* Does he try the door? It is the most obvious thing on screen and it
+  currently does nothing but chime.
 
 ### 2. One house, and the questions from LernInseln
 

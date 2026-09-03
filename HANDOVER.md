@@ -48,10 +48,12 @@ ones. They are chased away, never killed. Nothing is ever taken away.
 ## Where the code is
 
 ```
-src/core/     palette, pixel buffer, storage, save slots, audio, fx, i18n
-src/spiel/    held.ts — the adventurer, drawn in code
-src/main.ts   title screen, character editor, and a stub for the world
-tools/        build, verify, shot, contact, icons
+src/core/     palette, pixel buffer, storage, save slots, audio, fx, i18n, icons
+src/spiel/    held.ts — the adventurer; steuerung.ts — both steerings
+src/welt/     karte.ts — the region as text; kacheln.ts — every tile and
+              thing, drawn in code; welt.ts — camera, lantern, walking
+src/main.ts   title screen, character editor, world screen and its HUD
+tools/        build, verify, shot, contact, icons, devlog, messen
 ```
 
 Everything is drawn in code on a closed palette. Nothing is an image
@@ -66,6 +68,7 @@ node tools/shot.mjs      # screenshots into shots/
 node tools/contact.mjs held   # the adventurer, every direction and frame
 node tools/iconsheet.mjs      # the home-screen icon at the sizes iOS draws
 node tools/devlog.mjs         # reassemble DEVLOG.md from devlog/*/article.md
+node tools/messen.mjs         # what it costs to open the world and to walk
 ```
 
 Pushing to `master` deploys to <https://patrickgod.github.io/funkelwelt/>
@@ -73,21 +76,50 @@ if the suite passes.
 
 ## What is built
 
-Title screen with three save slots, and a character editor with live
-preview. That is all. It is deployed and playable on an iPad, and it
-is deliberately where the project stops until the world exists.
+Title screen with three save slots, a character editor with live
+preview, and **a walkable world**.
+
+The region is authored — thirty-six lines of text in `src/welt/karte.ts`
+— because a world a child can learn by heart is worth more than one
+that is different every time. Meadow, a path that loops rather than
+dead-ends, a stream with a bridge, a pond, two woods, cliffs, and the
+house whose door is the next piece of work.
+
+The lantern is the thing to understand before changing any of it. The
+region is composited into buffers at three brightnesses, and the bright
+ones are shown through a dithered disc around the adventurer and around
+every lamp post. That is the whole fiction of the game — a child arrives
+with a lantern and learns the world bright again — doing a job in the
+level design rather than in a cutscene, and it is why the path being lit
+tells a child where to go without a word of text.
+
+Ten **lightsparks** lie off the path. You pick one up by walking into
+it and it pays coins. It must never pay stars: stars are the record of
+what has been learned and walking is not learning. There is a test that
+says so.
+
+Measured, not estimated: opening the world takes 155 ms and walking
+costs 0.81 ms of script per frame — on a desktop under software
+rendering, so read it as a bound on the work rather than as a frame rate
+on an iPad. `node tools/messen.mjs` takes it again.
 
 ## What to do next
 
-**Build the walkable world and play it.** PLAN.md item 1, and the
-reason it is item 1 is written there: if the walking is not fun on its
-own, it is a corridor between quizzes and worse than a menu — and that
-is much cheaper to discover now than after four dungeons are built on
-top of it.
+**Play it.** PLAN.md item 1. The whole reason the world was built before
+anything else is the question *is walking around worth doing*, and that
+question is still open — it just has something to answer it with now.
+Two minutes on the iPad with nothing else in the game. If it fails, the
+design needs revisiting and this is much cheaper than finding out after
+four dungeons are built on top.
 
-Then port `src/games/*` from LernInseln wholesale. The teaching is
-already built and already tested. This project is a new *frame* around
-it, not a new app.
+**Settle the steering while he has it in his hands.** Both are built and
+the switch is two taps away inside the world, in the settings behind the
+cog. Ninety seconds, take whichever answer comes back, and then delete
+the other one.
+
+Then the house: port `src/games/*` from LernInseln wholesale. The
+teaching is already built and already tested. This project is a new
+*frame* around it, not a new app.
 
 ## Things worth knowing before you start
 
@@ -116,11 +148,29 @@ wrong turns in, and numbers are measurements rather than estimates.
 
 Ask; do not assume.
 
-1. **Touch steering.** Virtual stick under the thumb, or tap-to-walk?
-   Worth building both and letting his son decide in ninety seconds.
-2. **Luma's artwork.** He wants to make her with Gemini. What size, and
+1. **Touch steering — now answerable.** Both are built and switchable
+   in-game, so this is no longer a question to ask but a thing to watch
+   for ninety seconds. Whichever loses should then be deleted rather
+   than kept "in case".
+2. **How big is the first region?** Still open. 48×36 tiles, about nine
+   iPad screens, is this repo's answer until Patrick gives a better one
+   — and it is a guess, not a measurement. Walking the whole thing is
+   the way to judge it.
+3. **The door.** There is a lit doorway on the path and walking into it
+   gets a chime and nothing else, because inventing a room behind it
+   would be worse than leaving it shut. A child will try it in the first
+   ten seconds. Is a warm chime enough of an answer for a week, or does
+   it need to be visibly closed?
+4. **Luma's artwork.** He wants to make her with Gemini. What size, and
    how many expressions — one, or happy/thinking/pleased?
-3. **How big is the first region?** Small enough to learn by heart is
-   the design goal, but "small" has not been given a number.
-4. **Does the son want to be the character, or someone else?** It
+5. **Does the son want to be the character, or someone else?** It
    changes how the editor should be framed.
+
+## One thing noticed and left alone
+
+The ochre tunic (`KLEID[3]`) sits almost exactly on the value of one of
+the four skin tones, so that combination reads as a blob rather than as
+a person. It has been there since the editor was built and it is
+visible on the contact sheet's bottom row. Fixing it means darkening a
+ramp that saved characters are already wearing, which is a decision
+about existing slots rather than a tidy-up, so it was left for Patrick.

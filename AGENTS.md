@@ -29,7 +29,14 @@ a rule without its reason gets followed literally and wrongly.
    be seen** — alone at 8× on white is how you get a fox the size of a
    cottage.
 4. **A new test must be seen to fail before it is trusted to pass.** Run
-   it against deliberately broken code first.
+   it against deliberately broken code first — and **commit before you
+   sabotage.** The practice creates a "put it back" step, and
+   `git checkout -- src/` is both "put it back" and "throw away
+   everything not committed". It ate twenty minutes of the world screen.
+   Watch out for the other trap in the same loop, too: a sabotage that
+   leaves an unused constant fails the typecheck, `dist/` is not
+   rebuilt, and the suite reports that the previous bundle is fine.
+   See rule 1; it very nearly worked.
 5. **Measure before fixing.** On LernInseln two confident theories about
    a frame-time regression died before anybody instrumented anything;
    the real answer was that the check was measuring the harness. On
@@ -119,7 +126,14 @@ node tools/contact.mjs held      every direction and walk frame, one sheet
 node tools/iconsheet.mjs         the icon at the sizes iOS draws it
 node tools/icons.mjs             regenerate those icons
 node tools/devlog.mjs            reassemble DEVLOG.md from devlog/*/article.md
+node tools/messen.mjs            what opening the world and walking cost
 ```
+
+`messen.mjs` is deliberately NOT part of `verify.mjs`. A headless
+Chromium on a desktop under software rendering is not an iPad, and
+LernInseln already shipped a frame-time check that turned out to be
+measuring the harness. Read its numbers as a bound on the work the app
+does, never as a frame rate a child would see.
 
 `DEVLOG.md` is **generated**. Edit `devlog/<entry>/article.md` and rerun
 the tool; two hand-maintained copies of the same prose are one copy and

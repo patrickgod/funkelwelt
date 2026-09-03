@@ -73,21 +73,30 @@ export class Px {
    * is why it looks authored rather than filtered.
    */
   remap(fn: (hex: string) => string): void {
+    // Keyed on the packed integer, not on the hex string.
+    //
+    // The first version built `#rrggbb` for every pixel in order to look
+    // it up, which is three toString(16).padStart calls and a template
+    // literal per pixel — and this is called on a whole 768x576 region,
+    // four times, every time a child opens the world. Building the
+    // string only on a cache MISS took the map buffers from the
+    // dominant cost of opening the world to a rounding error. The
+    // callback still speaks hex, because that is what the palette
+    // speaks.
     const hex = (n: number): string => n.toString(16).padStart(2, '0');
-    const seen = new Map<string, [number, number, number]>();
+    const seen = new Map<number, number>();
     for (let i = 0; i < this.data.length; i += 4) {
       if (this.data[i + 3] < 8) continue;
-      const key = `#${hex(this.data[i])}${hex(this.data[i + 1])}${hex(this.data[i + 2])}`;
+      const key = (this.data[i] << 16) | (this.data[i + 1] << 8) | this.data[i + 2];
       let out = seen.get(key);
-      if (!out) {
-        const c = fn(key);
-        const n = parseInt(c.slice(1), 16);
-        out = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+      if (out === undefined) {
+        const c = fn(`#${hex(this.data[i])}${hex(this.data[i + 1])}${hex(this.data[i + 2])}`);
+        out = parseInt(c.slice(1), 16);
         seen.set(key, out);
       }
-      this.data[i] = out[0];
-      this.data[i + 1] = out[1];
-      this.data[i + 2] = out[2];
+      this.data[i] = (out >> 16) & 255;
+      this.data[i + 1] = (out >> 8) & 255;
+      this.data[i + 2] = out & 255;
     }
   }
 

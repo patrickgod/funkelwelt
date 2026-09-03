@@ -95,6 +95,96 @@ then box-filtering down means every output pixel averages a whole block.
 Generalises: **integer factors or an area average; never nearest
 neighbour at a fractional factor.**
 
+## A character walking around inside a barrel
+
+**Signature:** a sprite that is correct standing still and wrong the
+moment it moves.
+
+The adventurer's profile had both legs at the same height, in the same
+colour, three pixels apart — so at speed they merged into one brown
+block as wide as the body. The lantern hung at hip height directly over
+the back leg, and in a side view the back leg *is* the walk cycle.
+
+Everything about this had been signed off from a contact sheet, and the
+contact sheet was not wrong: a standing profile with two legs in the
+same place is exactly right. It only fails in motion.
+
+The fix was legs swinging forward and back rather than up and down, the
+far one two steps darker so it reads as behind, and the lantern raised
+to chest height and held out in front on a visible arm.
+
+Generalises: **a grid of poses cannot review a walk cycle.** Judge
+anything that moves where it will be seen, at the size it will be seen,
+doing the thing it will be doing. Rule 3 already says "at the size and
+on the background it will actually be seen"; this adds *and doing what
+it will actually be doing*.
+
+## One step down the ramp is not a lantern
+
+**Signature:** an effect that is provably happening and reads as nothing.
+
+The region is composited twice, a step apart, and the bright copy shown
+through a disc around the adventurer. Sampling the finished frame gave
+`84,133,68` beside him and `63,108,58` out in the dark — a real
+difference, about twenty per cent, and completely invisible.
+
+One step gives two states and no falloff, and the lit disc covered most
+of the screen, so there was nothing on screen to compare against. Three
+copies and two rings — dark, half, full — and it reads as a lantern.
+
+Generalises: **the eye needs the falloff more than it needs the depth**,
+and "I cannot see it" and "it is not happening" are different bugs.
+Sampling the actual pixels of the actual frame told them apart in eight
+lines and saved debugging a compositing path that was already correct.
+
+## 430 milliseconds that were not where the theory said
+
+**Signature:** the confident optimisation moves the number by a tenth.
+
+Opening the world took 430 ms. The obvious culprit was compositing 1728
+tiles twice over for the two frames of water ripple, so the second frame
+became a copy of the first with only the water redrawn. That is a real
+saving and it bought 49 ms.
+
+The actual cost was `Px.remap`, which keyed its colour cache on the hex
+string — building `#rrggbb` for 442,368 pixels, four times, on every
+entry to the world. Keying on the packed integer and building the string
+only on a cache miss: **155 ms**, same picture, pixel for pixel.
+
+Generalises: rule 5 again, and the corollary that matters more than the
+rule — **a fix that does not move the number is information.** It is
+only information if there was a number before it.
+
+## The class that nothing styled
+
+**Signature:** a chooser where nothing looks chosen.
+
+The settings panel toggled `.gewaehlt` on the selected button, and the
+only rule for that class in the stylesheet was `.probe.gewaehlt`, for
+the character editor's swatches. So every option rendered identically
+and the panel silently offered no feedback at all.
+
+Generalises: **a class name is not a contract.** When a behaviour is
+"toggle a class", the check is that something on screen changed —
+which here meant looking at a screenshot of the panel, where it was
+obvious in a second and invisible in the code.
+
+## Committing before deliberately breaking things
+
+**Signature:** twenty minutes of work gone, and the tool that ate it was
+the cleanup step.
+
+Rule 4 says a new test must be seen to fail before it is trusted to
+pass, so the collision test, the thumbstick, the pathfinder, the
+position save, the settings write and the HUD were each broken on
+purpose and the suite run against them. The way back was
+`git checkout -- src/`, which put the sabotage back — along with six
+files of uncommitted work.
+
+Generalises: **sabotage runs need a commit in front of them.** The
+practice creates a "put it back" step, and "put it back" and "throw away
+everything I have not committed" are the same command.
+
 ## Four icon promises turned into four assertions
 
 Every failure mode of a home-screen icon is silent: a missing file (iOS
