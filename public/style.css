@@ -325,6 +325,11 @@ button.gewaehlt:not(.probe) {
 
 .beutel .zahl { font-size: 28px; color: var(--gold); min-width: 34px; }
 
+/* The purse takes the same nudge as the one on the payout sheet when a
+   coin lands in it. Same animation, one definition — a second one that
+   drifted would be a purse that behaved differently in two places. */
+.beutel.stups { animation: stups 220ms ease-out; }
+
 .icon { image-rendering: pixelated; display: block; }
 
 /* The settings, over the world rather than instead of it. */

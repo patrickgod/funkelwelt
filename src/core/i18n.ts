@@ -80,8 +80,16 @@ const DE = {
   // makes children stop listening, and she is the only character in the
   // game who explains anything — so what she says has to be worth
   // waiting for.
+  // "das erste KIND", not "die Erste" or "der Erste".
+  //
+  // Patrick caught this one. Every other line in this table is already
+  // genderless, and the character editor deliberately offers every
+  // outfit to every child — so the single line that assumed a girl was
+  // also the only line that would have told a boy the game had him
+  // wrong. Neuter by way of the noun is the cheapest fix in German and
+  // it costs nothing to read aloud.
   'say.willkommen':
-    'Da bist du ja! Ich bin Luma. Die Welt ist dunkel geworden, und du bist die Erste seit langem, die eine Laterne trägt.',
+    'Da bist du ja! Ich bin Luma. Die Welt ist dunkel geworden, und du bist das erste Kind seit langem, das eine Laterne trägt.',
   'say.erstesHaus':
     'Siehst du das Haus dort drüben? Da drinnen wohnen die verliebten Zahlen. Geh ruhig hinein.',
   'say.imHaus':

@@ -59,6 +59,18 @@ interface Lauf {
   beschaeftigt: boolean;
   daneben: number;
   /**
+   * Which pairs to ten were already solid when this round STARTED.
+   *
+   * Captured here and not at the end, which is where it was first
+   * written and where it could never have worked: `stand.merken` runs as
+   * each question is answered, so by the time the payout is calculated
+   * the pair has already been known for several minutes and "what is
+   * new" is always empty. The celebration was unreachable, and it looked
+   * completely correct — it was only found by trying to take a
+   * screenshot of it.
+   */
+  paareVorher: number[];
+  /**
    * Whether Luma has turned up to help.
    *
    * KONZEPT.md: a child who is struggling does not lose — the encounter
@@ -114,6 +126,7 @@ export function starten(ui: HTMLElement, haus: Haus, zurueck: () => void): void 
     beschaeftigt: false,
     daneben: 0,
     hilft: false,
+    paareVorher: bekanntePaare(),
   };
   wurzel = ui;
   frageZeichnen();
@@ -344,7 +357,7 @@ function fertig(): void {
   const muenzenVorher = stand.get().muenzen;
   const stufeVorher = stand.stufe(fach);
   const fortschrittVorher = stand.stufenFortschritt(fach);
-  const paareVorher = bekanntePaare();
+  const paareVorher = lauf.paareVorher;
 
   const alle = lauf.richtig === lauf.fragen.length;
   const sterne = lauf.richtig;
@@ -407,7 +420,7 @@ function paarZeigen(n: number, danach: () => void): void {
 
   const zeile = el('div', 'paar-zeile');
   zeile.appendChild(el('span', 'paar-zahl', String(n)));
-  zeile.appendChild(iconCanvas('herz', 68));
+  zeile.appendChild(iconCanvas('herz', 102));
   zeile.appendChild(el('span', 'paar-zahl', String(10 - n)));
   blatt.appendChild(zeile);
 

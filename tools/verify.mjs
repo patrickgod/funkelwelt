@@ -270,8 +270,15 @@ async function laufe(taste, ms) {
   // naturalWidth, not just "the element is there". An <img> whose file
   // is missing is still an <img>, and a check that counts elements would
   // pass on a broken portrait — which is the whole failure this is for.
-  check('and she is a picture that actually loaded',
-    await page.locator('.luma-gemalt').evaluate((i) => i.naturalWidth) > 100);
+  // Counted before it is measured, because a broken portrait REPLACES
+  // itself with the coded fallback — so `.luma-gemalt` is simply gone
+  // and an evaluate on it hangs for thirty seconds instead of failing.
+  // A check that times out is a check nobody reads the output of.
+  const breit = await page.locator('.luma-gemalt').count()
+    ? await page.locator('.luma-gemalt').evaluate((i) => i.naturalWidth)
+    : 0;
+  check('and she is a picture that actually loaded', breit > 100,
+    breit ? `${breit}px wide` : 'the painting did not load; the coded fallback took over');
 
   // The world holds still while she is talking.
   //

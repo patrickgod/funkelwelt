@@ -156,6 +156,8 @@ export class Welt {
 
   /** So the door reacts once per visit rather than sixty times a second. */
   private inTuer = false;
+  /** Seconds since the last puff of dust off the adventurer's feet. */
+  private seitStaub = 0;
 
   /**
    * What happens when the adventurer steps into the doorway.
@@ -166,6 +168,11 @@ export class Welt {
    * into a door and gets nothing at all decides the door is scenery.
    */
   anTuer: (() => void) | null = null;
+
+  /** Where the purse is on screen, so a coin knows where to fly. */
+  anBeutel: (() => { x: number; y: number } | null) | null = null;
+  /** Nudge the purse when one lands. */
+  beutelStups: (() => void) | null = null;
 
   constructor(aussehen: Aussehen) {
     this.aussehen = aussehen;
@@ -358,6 +365,20 @@ export class Welt {
       const vorX = this.hx, vorY = this.hy;
       this.bewege(v.x * TEMPO * dt, v.y * TEMPO * dt);
       this.schrittZeit += dt;
+      // Dust off the feet, twice a second while walking.
+      //
+      // The cheapest juice in the whole game and the one that does the
+      // most: without it the adventurer is a picture being moved across
+      // a picture, and with it he is somebody walking on ground. It only
+      // ever fires as a RESPONSE to the child moving him, which is the
+      // line fx.ts draws — nothing in this game starts on its own.
+      this.seitStaub += dt;
+      if (this.seitStaub > 0.42) {
+        this.seitStaub = 0;
+        const [sx, sy] = this.aufSchirm(this.hx, this.hy - 1);
+        fx.burst('staub', sx, sy,
+          { n: 2, speed: 26, up: 0.15, gravity: 90, life: 0.34 });
+      }
       // A route that is getting nowhere is a route the hero cannot walk.
       // Better to stop than to grind against a rock for a minute.
       if (this.route) {
@@ -427,6 +448,21 @@ export class Welt {
       fx.burst('funke', sx, sy, { n: 14, speed: 150, up: 0.5, life: 0.7 });
       fx.burst('stern', sx, sy, { n: 4, speed: 90, up: 0.8, life: 0.9 });
       audio.sparkle(4);
+      // And three coins fly to the purse, so the number going up is
+      // something the child WATCHES arrive rather than something they
+      // notice later. The playtest that started this project found that
+      // collecting worked; this is the part of collecting that worked.
+      if (this.anBeutel) {
+        const ziel = this.anBeutel();
+        if (ziel) {
+          for (let i = 0; i < 3; i++) {
+            fx.fly('funke', { x: sx, y: sy }, ziel, 0.12 + i * 0.09, () => {
+              audio.ping(i);
+              if (this.beutelStups) this.beutelStups();
+            });
+          }
+        }
+      }
     }
   }
 
@@ -446,7 +482,13 @@ export class Welt {
     if (!drin) return;
     const [sx, sy] = this.aufSchirm(this.hx, this.hy - 10);
     fx.burst('funke', sx, sy, { n: 16, speed: 130, up: 0.9, life: 0.8 });
-    audio.thunk();
+    fx.burst('staub', sx, sy + 8, { n: 8, speed: 70, up: 0.1, gravity: 200, life: 0.5 });
+    // Three pixels. A door being stepped through is the one moment in
+    // the world with any weight to it, and fx.ts is explicit that a
+    // shake is for the good things only, where it reads as weight
+    // rather than as alarm.
+    fx.shake(3, 0.26);
+    audio.land();
     audio.sparkle(3);
     // The sparks first, then the house. Going straight in swallows the
     // reaction to the tap, and the half second is what makes stepping
@@ -541,10 +583,16 @@ export class Welt {
   private maskeMalen(vw: number, vh: number, ring: 0 | 1): void {
     const mc = this.maskeCtx;
     mc.clearRect(0, 0, vw, vh);
-    const rh = ring === 0 ? LICHT_HELD : LICHT_HELD_WEIT;
+    // The lantern breathes. Two slow sines that do not share a period,
+    // so it never settles into a pulse a child could count — a light
+    // that throbs regularly is a warning light, and this one is a
+    // flame. One world pixel of wander is enough to see and not enough
+    // to notice.
+    const flackern = Math.sin(this.zeit * 2.3) * 0.6 + Math.sin(this.zeit * 5.1) * 0.4;
+    const rh = (ring === 0 ? LICHT_HELD : LICHT_HELD_WEIT);
     mc.drawImage(this.scheibeHeld[ring],
-      Math.round(this.hx - this.camX - rh),
-      Math.round(this.hy - 8 - this.camY - rh));
+      Math.round(this.hx - this.camX - rh + flackern),
+      Math.round(this.hy - 8 - this.camY - rh + flackern * 0.7));
     const rl = ring === 0 ? LICHT_LAMPE : LICHT_LAMPE_WEIT;
     for (const l of this.lampen) {
       if (l.x < this.camX - rl || l.x > this.camX + vw + rl) continue;

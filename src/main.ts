@@ -88,6 +88,8 @@ function heldBild(a: Aussehen, dir: Richtung, frame: number, scale: number): HTM
 function zeigeTitel(): void {
   schirm = 'titel';
   leeren();
+  titelHelden.length = 0;
+  titelFrame = -1;
   const s = el('div', 'bildschirm');
   s.appendChild(el('h1', 'titel', t('spiel.name')));
   s.appendChild(el('p', 'unter', t('spiel.unter')));
@@ -96,7 +98,13 @@ function zeigeTitel(): void {
   stand.alle().forEach((st, i) => {
     const karte = el('button', 'platz');
     if (st.name) {
-      karte.appendChild(heldBild(st.aussehen, 'unten', 0, 4));
+      // Walking on the spot rather than standing still. A title screen
+      // of three motionless portraits is a menu; three children shifting
+      // their weight is a game waiting for somebody.
+      const buehne = el('div', 'platzHeld');
+      buehne.appendChild(heldBild(st.aussehen, 'unten', 0, 4));
+      karte.appendChild(buehne);
+      titelHelden.push({ el: buehne, a: st.aussehen });
       karte.appendChild(el('div', 'pname', st.name));
       const m = stand.stufe;
       // Read the slot without opening it: `stufe` works on the open
@@ -312,6 +320,10 @@ function zeigeEditorMit(platz: number, a: Aussehen, name: string): void {
 /** Set by the editor so the animation loop can repaint the preview. */
 let vorschau: (() => void) | null = null;
 
+/** The occupied slots on the title screen, so they can walk on the spot. */
+const titelHelden: { el: HTMLElement; a: Aussehen }[] = [];
+let titelFrame = -1;
+
 // ------------------------------------------------------------- the world
 
 function zeigeWelt(): void {
@@ -356,12 +368,14 @@ function zeigeWelt(): void {
 function zeigeHaus(): void {
   if (schirm !== 'welt' || !dieWelt) return;
   luma.weg();
+  audio.whoosh(0.3, 1200);
   schirm = 'haus';
   dieWelt.ortSichern();
   leeren();
   fx.clear();
   runde.starten(ui, runde.HAUS_VERLIEBTE_ZAHLEN, () => {
     schirm = 'welt';
+    audio.whoosh(0.34, 900);
     leeren();
     fx.clear();
     muenzenGezeigt = -1;
@@ -394,6 +408,19 @@ function hudBauen(): void {
 
   hud.append(raus, beutel, zahn);
   ui.appendChild(hud);
+
+  // The world tells the coins where to go. It knows a spark was picked
+  // up; only the interface knows where the purse ended up on screen.
+  if (dieWelt) {
+    dieWelt.anBeutel = () => {
+      const r = beutel.getBoundingClientRect();
+      return r.width ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : null;
+    };
+    dieWelt.beutelStups = () => {
+      beutel.classList.add('stups');
+      setTimeout(() => beutel.classList.remove('stups'), 220);
+    };
+  }
 }
 
 function weltVerlassen(): void {
@@ -489,6 +516,17 @@ function frame(now: number): void {
   app.style.transform = off.x || off.y ? `translate(${off.x}px, ${off.y}px)` : '';
 
   if (schirm === 'editor' && vorschau) vorschau();
+
+  if (schirm === 'titel' && titelHelden.length) {
+    // Six frames a second, and only when the frame actually changes —
+    // rebuilding three canvases sixty times a second to show a
+    // three-frame walk is fifty-four wasted rebuilds.
+    const f = [0, 1, 0, 2][Math.floor(zeit * 6) % 4];
+    if (f !== titelFrame) {
+      titelFrame = f;
+      for (const h of titelHelden) h.el.replaceChildren(heldBild(h.a, 'unten', f, 4));
+    }
+  }
 
   if (schirm === 'welt' && dieWelt && dieSteuerung) {
     // While she is talking the world holds still. She turns up two or

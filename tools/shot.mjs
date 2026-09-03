@@ -195,18 +195,31 @@ async function spieleRunde() {
 // right answer away, which is the only way to reach this screen
 // on purpose rather than after a fortnight of play.
 if (want('haus-paar')) {
-  await page.evaluate(() => {
-    const k = 'funkelwelt.platz0.v1';
-    const s = JSON.parse(localStorage.getItem(k));
-    s.staerke = {};
-    for (let n = 0; n <= 10; n++) s.staerke[`vz:${n}`] = 3;
-    s.staerke['vz:2'] = 2;
-    s.ort = { x: 7.5, y: 22.4 };
-    localStorage.setItem(k, JSON.stringify(s));
-  });
   for (let versuch = 0; versuch < 6; versuch++) {
+    // Seeded fresh EVERY attempt. Seeding once and looping was enough
+    // when this ran on its own and not enough in a full run, because the
+    // round before it had already moved every strength — which is the
+    // same shape of bug as a check that asserts an absolute.
+    // Seeded AFTER the reload, not before it.
+    //
+    // Before it, the previous round's page is still alive and the
+    // world's five-second autosave writes the whole in-memory save back
+    // over the seed. The symptom was a pair that completed — vz:2 went
+    // from 2 to 3 — and a celebration that never fired, because the
+    // round had started from a save where it was already 3.
     await page.reload();
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(700);
+    await page.evaluate(() => {
+      const k = 'funkelwelt.platz0.v1';
+      const s = JSON.parse(localStorage.getItem(k));
+      s.staerke = {};
+      for (let n = 0; n <= 10; n++) s.staerke[`vz:${n}`] = 3;
+      s.staerke['vz:2'] = 2;
+      s.ort = { x: 7.5, y: 22.4 };
+      localStorage.setItem(k, JSON.stringify(s));
+    });
+    await page.reload();
+    await page.waitForTimeout(700);
     await page.locator('.platz').first().tap();
     await page.waitForTimeout(1200);
     await lumaWeg();
@@ -221,13 +234,6 @@ if (want('haus-paar')) {
       await shot('haus-paar');
       break;
     }
-    await page.evaluate(() => {
-      const k = 'funkelwelt.platz0.v1';
-      const s = JSON.parse(localStorage.getItem(k));
-      s.staerke['vz:2'] = 2;
-      s.ort = { x: 7.5, y: 22.4 };
-      localStorage.setItem(k, JSON.stringify(s));
-    });
   }
 }
 
