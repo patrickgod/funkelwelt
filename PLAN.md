@@ -244,6 +244,30 @@ it.** A risk you have not built is a risk you are still carrying.
   from what is on the screen — the partner to ten, the gap in the row,
   the sum, the arrow — and all four report 10 of 10.
 
+* **Shadows ask anything, and there are five of them.** The encounter
+  screen had its own hard-coded ten-frame, so a shadow could only ever
+  ask verliebte Zahlen — a rendering limit that had become a design
+  decision nobody chose. The prompt renderer is shared now
+  (`src/ui/frage.ts`), and the list of what a shadow may ask is read
+  from GAMES so a new house cannot be built without the shadows
+  learning it.
+
+  Five creatures, differing in SILHOUETTE first and colour second,
+  because at thirty pixels a shape reads across the meadow and a hue
+  does not. All five keep the original rules: no teeth, no claws, no
+  spikes, no red, and they shrink rather than being hurt.
+
+* **The gates are two tiles wide.** They were one, and the adventurer's
+  foot box is eleven pixels on a sixteen-pixel tile — getting through
+  meant threading a six-pixel window. Reported from play, and the
+  arithmetic agreed.
+
+* **The heart matrix is always shown**, and the houses are violet. Both
+  from play: the ten-frame used to vanish once a fact was strong, which
+  reads as a broken screen rather than as a fading scaffold; and the
+  encounter's dark ground suits the pale-blue frame and pink hearts far
+  better than the tan did.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick
@@ -324,7 +348,94 @@ Still open, and still the questions the world was built early to answer:
 * **Does Luma get in the way?** Three misses is a number nobody has
   tested.
 
-### 3. The thing the design has not answered: coming back
+### 3. Tap to CHOOSE a thing, then walk to it
+
+Patrick: *"wir sollten häuser, karren, gegner etc mit antippen aktiv
+auswählen. unser character läuft dann hin und die aktion tritt ein.
+einfach nur hinlaufen kann frustrieren sein, wenn es nicht funktioniert
+oder man unabsichtlich gegner oder karren auslöst."*
+
+The most important item on this list, and the one that changes the most.
+Right now everything triggers on TOUCH: walk over a door and you are in
+a round, brush a shadow and you are in an encounter. That is fine when
+you meant it and it is a trap when you did not — and the child cannot
+tell the two apart, because the world gives no way to say "I am going
+over there, not into that".
+
+The shape of it:
+
+* Tapping a house, the cart or a shadow SELECTS it — a ring, a lift, a
+  small sound. `zielFuerTipp` already resolves a tap on a house to its
+  door, so the routing half exists.
+* He walks there, and the action fires ON ARRIVAL — only for the thing
+  that was chosen.
+* Walking across a door or past a shadow with nothing selected does
+  NOTHING. That is the whole point.
+* Held-finger steering keeps working and selects nothing, so a child
+  can cross the meadow through the middle of everything.
+
+The `zeigeZiel` ring already exists for the tutorial and is the obvious
+thing to reuse for "this is what you picked".
+
+### 4. Three strikes, and never show the answer
+
+Patrick: *"wenn etwas falsch ist, sollten wir nicht die richtige lösung
+verraten. einfach kurz rot aufleuchten und nochmal probieren lassen.
+erst bei 3 'strikes' beginnt das haus von vorne."*
+
+This reverses two things that are currently written down as rules, so
+they should be reversed deliberately rather than quietly:
+
+* `showOnMiss` exists on every question and draws the correct answer as
+  a picture. It goes.
+* AGENTS.md rule 11 says damage goes one way and a red card is damage;
+  `style.css` says in as many words that a miss does not go red. Both
+  change.
+
+**The concern, stated once and then dropped:** the reason for those
+rules was that a child who is wrong should not be punished for it, and
+three strikes restarting the house is a real cost. What makes it
+reasonable is the retry — a wrong answer is no longer an ending, it is
+"try again", which most children read as friendlier than being shown the
+answer and moved on. That is Patrick's call and it is a defensible one.
+
+Worth keeping while implementing: the flash should be SHORT and the
+retry immediate, the three strikes should be visible as they accumulate
+(so restarting is never a surprise), and Luma's after-three-misses help
+should probably become the third strike rather than sit alongside it.
+
+### 5. The cart: more things, fewer coins
+
+Patrick: *"es braucht aber mehr items und weniger münzen beim spielen,
+sonst sind alle items recht schnell freigeschaltet/gekauft."*
+
+Measured, not guessed: a round pays coins, a lightspark pays 3 (5 with
+the hat), a chased shadow pays 4. The four things cost 24, 20, 30 and
+16 — ninety in total, which is roughly one afternoon.
+
+The rule that must survive the rebalance is `src/ui/laden.ts`'s: every
+item is better than nothing and none is better than another, so there is
+no wrong purchase. That gets harder with more items, not easier — a
+long list is the shop that failed the playtest this project came from.
+Eight to ten is probably the ceiling.
+
+### 6. Say when a gate opens
+
+Patrick: *"wir sollten auch erklären wann sich ein tor öffnet. die idee
+des nötigen levels um tore öffnen zu können finde ich super."*
+
+The gate already draws what it wants as stars, which is rule 14 working.
+What is missing is the connection: a child at a shut gate does not know
+that the stars come from the houses. Luma is the explainer, and this is
+exactly her job — once, at the first gate, in a sentence.
+
+### 7. How you get to the next world
+
+**You do not. It does not exist yet.** Asked and answered: the second
+region is Deutsch and it is item 8. Until it is built there is one
+world, and the waypoints have nothing to connect.
+
+### 8. The thing the design has not answered: coming back
 
 Patrick: *"Wir müssen im Konzept halt einen Weg finden wie man immer
 wieder dieselben Themen übt und z.B. die verliebten Zahlen nicht enden
@@ -351,7 +462,7 @@ and **none should be built before Patrick picks one**:
   "come back when you are stronger" building, and `buildRound` already
   takes as many generators as you give it.
 
-### 4. The second world: Deutsch
+### 9. The second world: Deutsch
 
 Patrick: *"und dann in der nächsten welt die silben? lesen und
 schreiben, und kombinationen wie Lea, lulu, Mama, Oma, etc. aber eben
@@ -377,12 +488,12 @@ carries the `schreiben` kind, waiting.
 unreferenced, along with `woerter()` in `tools/genvoice.mjs`. One line
 brings the recordings back.
 
-### 5. Waypoints
+### 10. Waypoints
 
 Patrick's, and now they have a job: two worlds means walking between
 them. Build them when the second world exists and not before.
 
-### 6. Anything else about a second region
+### 11. Anything else about a second region
 
 The gate proves the mechanism on twelve tiles. What it opens onto should
 eventually be somewhere, not a walled garden — and the honest note is

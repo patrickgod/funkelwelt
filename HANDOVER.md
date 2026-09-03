@@ -192,6 +192,22 @@ anybody found out.
 The same goes for `node tools/contact.mjs fahrzeuge`. Three of those
 five first drafts failed too.
 
+**A shadow asks whatever the meadow teaches.** The prompt renderer
+lives in `src/ui/frage.ts` and every screen that asks a question uses
+it. It used to live inside the round screen, which is why the encounter
+had its own hard-coded ten-frame and could only ask one thing — if you
+add a prompt kind, put it there and both screens learn it at once.
+
+There are five kinds of creature and they differ in silhouette before
+colour. Read the top of `src/spiel/schatten.ts` before drawing a sixth,
+and run `node tools/contact.mjs schatten` after: the rules that make
+these not-monsters are not decoration, and a creature that reads as
+dangerous breaks the one sentence the whole design rests on.
+
+**Contact sheets are `shots/blatt-*.png`.** They used to share names
+with `tools/shot.mjs` output, and a world shot silently overwrote a
+sheet that had just been reviewed.
+
 A **cart** stands beside the path out of the house with four things on
 it. Read `src/ui/laden.ts` before changing it: every rule in there is a
 reaction to the shop that failed the playtest which created this
