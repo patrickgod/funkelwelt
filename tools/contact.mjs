@@ -100,5 +100,40 @@ looks.forEach((lk, i) => {
 `);
 }
 
+// ------------------------------------------------------------- Luma
+
+if (doIt('luma')) {
+  await sheet('luma', `
+import { portrait, PW, PH } from '../src/spiel/luma.js';
+
+// She is judged at the size she is actually seen — the dialogue box
+// draws her at 3x — and on the colour of the box she sits in, which is
+// nearly black. A fairy made of light looks completely different on a
+// dark ground from how she looks on grass, and the dark ground is the
+// only one that will ever happen.
+const c = document.createElement('canvas');
+c.width = 40 + (2 + 3 + 4 + 6) * PW + 4 * 24;
+c.height = 60 + PH * 6;
+document.body.appendChild(c);
+const ctx = c.getContext('2d')!;
+ctx.imageSmoothingEnabled = false;
+ctx.fillStyle = '#1a1622';
+ctx.fillRect(0, 0, c.width, c.height);
+ctx.font = 'bold 15px sans-serif';
+ctx.textAlign = 'center';
+ctx.fillStyle = '#f8f0dc';
+
+const px = portrait().toCanvas();
+let x = 20;
+for (const s of [2, 3, 4, 6]) {
+  ctx.drawImage(px, x, 40, PW * s, PH * s);
+  ctx.fillText(String(s) + 'x', x + (PW * s) / 2, 26);
+  x += PW * s + 24;
+}
+
+(window as any).ready = true;
+`);
+}
+
 await browser.close();
 rmSync('.contact', { recursive: true, force: true });

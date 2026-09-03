@@ -30,6 +30,7 @@ import { tenFrameCanvas } from '../core/tenframe.js';
 import { buildRound, rundenLaenge, bekanntePaare } from '../games/games.js';
 import type { Prompt, Question } from '../games/types.js';
 import { el, tap, knopf, zentrumVon } from './dom.js';
+import * as luma from './luma.js';
 
 export interface Haus {
   /** Save-slot key, so a house can count how often it has been cleared. */
@@ -56,6 +57,18 @@ interface Lauf {
   richtig: number;
   /** Locked while an answer animates, so a double tap cannot answer twice. */
   beschaeftigt: boolean;
+  daneben: number;
+  /**
+   * Whether Luma has turned up to help.
+   *
+   * KONZEPT.md: a child who is struggling does not lose — the encounter
+   * simply takes longer, and after a few Luma turns up and helps. What
+   * "helps" means here is that the ten-frame comes BACK for the rest of
+   * the round even on facts the child had got to the remembering band,
+   * which is concrete-before-abstract being re-offered rather than a
+   * hint being given. Nothing is taken away and nothing is marked.
+   */
+  hilft: boolean;
 }
 
 let lauf: Lauf | null = null;
@@ -99,16 +112,15 @@ export function starten(ui: HTMLElement, haus: Haus, zurueck: () => void): void 
     i: 0,
     richtig: 0,
     beschaeftigt: false,
+    daneben: 0,
+    hilft: false,
   };
   wurzel = ui;
-  // Said once per slot, not once per round. Luma repeating herself
+  frageZeichnen();
+  // Said once per adventurer, not once per round. Luma repeating herself
   // every three minutes is exactly the "must not talk too much" that
   // KONZEPT.md worries about.
-  if (!stand.gehoert('say.imHaus')) {
-    stand.merkeGehoert('say.imHaus');
-    audio.sagen('say.imHaus');
-  }
-  frageZeichnen();
+  luma.einmal('say.imHaus');
 }
 
 export function beenden(): void {
@@ -123,6 +135,12 @@ function frageZeichnen(): void {
   if (!lauf || !wurzel) return;
   wurzel.replaceChildren();
   const q = lauf.fragen[lauf.i];
+
+  // Luma is helping: the frame comes back, even on a fact the child had
+  // got past needing it. Concrete before abstract, offered again.
+  if (lauf.hilft && q.prompt.kind === 'tenframe' && q.prompt.n < 0) {
+    q.prompt.n = Number(q.fact.slice(3));
+  }
 
   const s = el('div', 'runde');
 
@@ -267,6 +285,7 @@ function antwort(idx: number, btn: HTMLButtonElement, buehne: HTMLElement, karte
   }
 
   // A miss. Nothing is taken away, nothing turns red, no buzzer.
+  lauf.daneben++;
   btn.classList.add('daneben');
   audio.chimeSoft();
   const gewaehlt = Number(btn.textContent);
@@ -287,7 +306,15 @@ function antwort(idx: number, btn: HTMLButtonElement, buehne: HTMLElement, karte
     // the answer was; a voice saying it again would be a grown-up
     // pointing at it.
     audio.sagEinesVon(['say.schauMal1', 'say.schauMal2', 'say.schauMal3']);
-    setTimeout(weiter, 1400);
+    // Three misses and Luma turns up. Once per round at most: she is
+    // help, and help that arrives every time a child slips is somebody
+    // standing over them.
+    if (lauf && lauf.daneben === 3 && !lauf.hilft) {
+      lauf.hilft = true;
+      setTimeout(() => luma.zeige('say.hilfe', weiter), 900);
+    } else {
+      setTimeout(weiter, 1400);
+    }
   }, 700);
 }
 
@@ -333,11 +360,80 @@ function fertig(): void {
   const aufgestiegen = stufeNachher > stufeVorher;
   const neuePaare = bekanntePaare().filter((n) => !paareVorher.includes(n));
 
+  fx.clear();
+
+  // A pair coming good outranks the payout, so it is shown FIRST.
+  //
+  // This is the thing the whole app is actually for. Stars and coins are
+  // a round being finished; two numbers becoming friends in BOTH
+  // directions is a child having learned something they will still know
+  // next year, and it happens perhaps a dozen times in the life of the
+  // save. It gets the bigger screen.
+  if (neuePaare.length) {
+    paarZeigen(neuePaare[0], () => blattZeigen(haus, fach, alle, sterne, muenzen,
+      sterneVorher, muenzenVorher, fortschrittVorher, aufgestiegen));
+    lauf = null;
+    return;
+  }
+
   audio.chimeRound();
   audio.sagEinesVon(['say.gutGemacht1', 'say.gutGemacht2', 'say.gutGemacht3']);
-  fx.clear();
   fx.rain(window.innerWidth, alle ? 46 : 26);
+  blattZeigen(haus, fach, alle, sterne, muenzen,
+    sterneVorher, muenzenVorher, fortschrittVorher, aufgestiegen);
+  lauf = null;
+}
 
+/**
+ * Two numbers have become friends.
+ *
+ * Shown as a PICTURE, and it has to be: the line Luma speaks over it
+ * cannot contain the numbers, because every line she says is a fixed
+ * MP3 generated at build time. That constraint turned out to be the
+ * right design anyway — AGENTS.md rule 14 says no text may be
+ * load-bearing, and "7 and 3" spoken aloud would have been exactly that.
+ * So the two numerals sit either side of a heart, and underneath them
+ * the ten-frame shows the fact itself, in the same hearts the child has
+ * been looking at for ten questions.
+ */
+function paarZeigen(n: number, danach: () => void): void {
+  if (!wurzel) return;
+  audio.chimeRound();
+  fx.rain(window.innerWidth, 40);
+
+  wurzel.replaceChildren();
+  const blatt = el('div', 'blatt paar');
+  blatt.appendChild(el('h2', undefined, t('runde.freunde')));
+
+  const zeile = el('div', 'paar-zeile');
+  zeile.appendChild(el('span', 'paar-zahl', String(n)));
+  zeile.appendChild(iconCanvas('herz', 68));
+  zeile.appendChild(el('span', 'paar-zahl', String(10 - n)));
+  blatt.appendChild(zeile);
+
+  const feld = el('div', 'zehnerfeld');
+  feld.appendChild(tenFrameCanvas({ n, extra: 10 - n, shape: 'herz' }, rahmenSkala()));
+  blatt.appendChild(feld);
+
+  blatt.appendChild(knopf(t('runde.weiter'), () => { luma.weg(); danach(); }, 'gold'));
+  wurzel.appendChild(blatt);
+
+  requestAnimationFrame(() => {
+    const c = zentrumVon(zeile);
+    fx.burst('herz', c.x, c.y, { n: 22, speed: 210, up: 0.8, life: 1.2 });
+    audio.sparkle(6);
+    setTimeout(() => luma.zeige('say.neuesPaar'), 500);
+  });
+}
+
+function blattZeigen(
+  haus: Haus, fach: stand.Fach, alle: boolean,
+  sterne: number, muenzen: number,
+  sterneVorher: number, muenzenVorher: number,
+  fortschrittVorher: number, aufgestiegen: boolean,
+): void {
+  if (!wurzel) return;
+  void alle;
   wurzel.replaceChildren();
   const blatt = el('div', 'blatt');
   blatt.appendChild(el('h2', undefined, t('runde.fertig')));
@@ -372,7 +468,7 @@ function fertig(): void {
   // stronger happens to you, and it happens where you can see it.
   const leiste = el('div', 'stufe');
   leiste.appendChild(el('div', 'stufe-name',
-    `${t(fach === 'mathe' ? 'fach.mathe' : 'fach.wort')} ${stufeNachher}`));
+    `${t(fach === 'mathe' ? 'fach.mathe' : 'fach.wort')} ${stand.stufe(fach)}`));
   const balken = el('div', 'balken');
   const fuell = el('div', 'fuellung');
   fuell.style.width = `${Math.round(fortschrittVorher * 100)}%`;
@@ -391,7 +487,6 @@ function fertig(): void {
   reihe.appendChild(knopf(t('runde.inDieWelt'), () => verlassen(), 'gold'));
   blatt.appendChild(reihe);
   wurzel.appendChild(blatt);
-  lauf = null;
 
   // Now that the sheet is in the document it has a position, so the
   // flight can be aimed.
@@ -410,17 +505,10 @@ function fertig(): void {
           leiste.classList.add('neu');
           audio.sparkle(6);
           fx.shake(4, 0.3);
-          audio.sagen('say.neueStufe');
+          luma.zeige('say.neueStufe');
         }, 620);
       }
     }, 900);
-    if (neuePaare.length) {
-      setTimeout(() => {
-        audio.sparkle(6);
-        fx.burst('herz', window.innerWidth / 2, window.innerHeight / 2,
-          { n: 18, speed: 190, up: 0.8, life: 1.1 });
-      }, 1500);
-    }
   });
 }
 

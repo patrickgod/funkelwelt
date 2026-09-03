@@ -12,7 +12,7 @@
 import { P, INK, shade } from './palette.js';
 import { Px } from './px.js';
 
-export type Icon = 'stern' | 'bonbon' | 'muenze' | 'zurueck' | 'zahnrad';
+export type Icon = 'stern' | 'bonbon' | 'muenze' | 'zurueck' | 'zahnrad' | 'herz';
 
 /** A five-pointed star, filled by scanline so the points stay sharp. */
 function stern(): Px {
@@ -141,8 +141,46 @@ function zahnrad(): Px {
   return p;
 }
 
+/**
+ * A heart, for the moment two numbers become friends.
+ *
+ * The same bitmap the ten-frame uses for its counters in the Haus der
+ * verliebten Zahlen, so the celebration is made of the same shape the
+ * child has been looking at for ten questions. Drawing a second,
+ * prettier heart here would be a different object arriving to explain
+ * the first one.
+ */
+function herz(): Px {
+  const S = 17;
+  const p = new Px(S, S);
+  const M = [
+    '.###...###.',
+    '###########',
+    '###########',
+    '###########',
+    '###########',
+    '.#########.',
+    '..#######..',
+    '...#####...',
+    '....###....',
+    '.....#.....',
+  ];
+  for (let j = 0; j < M.length; j++) {
+    for (let i = 0; i < M[j].length; i++) {
+      if (M[j][i] !== '#') continue;
+      const dx = i - 5, dy = j - 4;
+      p.set(i + 3, j + 3, shade(P.blossom, dx + dy <= -5 ? 4 : dx + dy >= 5 ? 1 : 2));
+    }
+  }
+  p.set(5, 5, shade(P.blossom, 4));
+  p.set(6, 5, shade(P.blossom, 4));
+  p.set(5, 6, shade(P.blossom, 4));
+  p.outline(INK);
+  return p;
+}
+
 const ZEICHNER: Record<Icon, () => Px> = {
-  stern, bonbon, muenze, zurueck, zahnrad,
+  stern, bonbon, muenze, zurueck, zahnrad, herz,
 };
 
 const cache = new Map<string, HTMLCanvasElement>();

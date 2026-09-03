@@ -65,7 +65,7 @@ const PORT = 8395;
 const MIME = {
   '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css',
   '.png': 'image/png', '.json': 'application/json', '.map': 'application/json',
-  '.mp3': 'audio/mpeg', '.webmanifest': 'application/manifest+json',
+  '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.webmanifest': 'application/manifest+json',
 };
 
 const server = createServer(async (req, res) => {
@@ -211,12 +211,28 @@ async function stellAuf(x, y) {
   }, [x, y]);
 }
 
+/**
+ * Tap Luma away, however many lines she has queued.
+ *
+ * She holds the world still while she talks, on purpose, so every check
+ * below that measures walking has to get past her first. Without this
+ * they would all fail and all of them would be measuring the fairy.
+ */
+async function lumaWeg() {
+  for (let i = 0; i < 4; i++) {
+    if (await page.locator('.luma').count() === 0) return;
+    await page.locator('.luma').tap();
+    await page.waitForTimeout(420);
+  }
+}
+
 /** Open slot one and wait for the region to be composited. */
 async function inDieWelt() {
   await page.goto(BASE);
   await page.waitForTimeout(700);
   await page.locator('.platz').first().tap();
-  await page.waitForTimeout(1200);
+  await page.waitForTimeout(1300);
+  await lumaWeg();
 }
 
 /** Walk with the keyboard, then leave — leaving is what saves the spot. */
@@ -225,6 +241,89 @@ async function laufe(taste, ms) {
   await page.waitForTimeout(ms);
   await page.keyboard.up(taste);
   await page.waitForTimeout(200);
+}
+
+// ---------------------------------------------------------------- Luma
+//
+// She is the only character who explains anything, and every rule about
+// her is a rule about NOT showing her: once per adventurer, never twice,
+// and the world holds still while she talks so that a child watching her
+// is not also walking into a pond.
+
+{
+  // A genuinely fresh adventurer. The character editor above already
+  // walked into the world once, which is where she said hello and where
+  // she was written down as having said it — so testing "she greets a
+  // new child" from here means clearing what this slot has heard.
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.gehoert = [];
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await page.goto(BASE);
+  await page.waitForTimeout(700);
+  await page.locator('.platz').first().tap();
+  await page.waitForTimeout(1400);
+  check('Luma says hello when a new adventurer arrives',
+    await page.locator('.luma').count() === 1);
+  // naturalWidth, not just "the element is there". An <img> whose file
+  // is missing is still an <img>, and a check that counts elements would
+  // pass on a broken portrait — which is the whole failure this is for.
+  check('and she is a picture that actually loaded',
+    await page.locator('.luma-gemalt').evaluate((i) => i.naturalWidth) > 100);
+
+  // The world holds still while she is talking.
+  //
+  // Measured through a saved coordinate that is KNOWN to be non-zero,
+  // and the reason is a mistake made twice already today: the first
+  // version of this compared 0,0 with 0,0 on a slot that had never
+  // saved a position, and passed for a reason that had nothing to do
+  // with Luma. Seeding the spot first is what makes the comparison mean
+  // something — and the same keypress moves him 3.5 tiles when she is
+  // not there, which the very next check demonstrates.
+  await stellAuf(14.5, 22.5);
+  await page.goto(BASE);
+  await page.waitForTimeout(700);
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.gehoert = [];
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await page.locator('.platz').first().tap();
+  await page.waitForTimeout(1400);
+  const stillA = (await slot()).ort;
+  await page.keyboard.down('ArrowRight');
+  await page.waitForTimeout(1200);
+  await page.keyboard.up('ArrowRight');
+  await page.locator('.hudKnopf').first().tap();
+  await page.waitForTimeout(400);
+  const stillB = (await slot()).ort;
+  check('the world holds still while she talks',
+    stillA.x > 1 && Math.abs(stillA.x - stillB.x) < 0.05,
+    `${stillA.x.toFixed(2)} -> ${stillB.x.toFixed(2)}`);
+
+  await page.goto(BASE);
+  await page.waitForTimeout(700);
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.gehoert = [];
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await page.locator('.platz').first().tap();
+  await page.waitForTimeout(1400);
+  await lumaWeg();
+  check('tapping her sends her away', await page.locator('.luma').count() === 0);
+
+  // And she never says the same thing twice to the same child.
+  await page.goto(BASE);
+  await page.waitForTimeout(700);
+  await page.locator('.platz').first().tap();
+  await page.waitForTimeout(1600);
+  check('she says each line once per adventurer, and then never again',
+    await page.locator('.luma').count() === 0);
 }
 
 await inDieWelt();

@@ -16,6 +16,7 @@ import { Steuerung } from './spiel/steuerung.js';
 import { Welt } from './welt/welt.js';
 import { el, tap, knopf } from './ui/dom.js';
 import * as runde from './ui/runde.js';
+import * as luma from './ui/luma.js';
 
 const welt = document.getElementById('welt') as HTMLCanvasElement;
 const fxCanvas = document.getElementById('fx') as HTMLCanvasElement;
@@ -328,14 +329,18 @@ function zeigeWelt(): void {
   dieWelt.anTuer = () => zeigeHaus();
   muenzenGezeigt = -1;
   hudBauen();
-  // Luma says hello once per adventurer, and then never again. She is
-  // the only character in the game who explains anything, so what she
-  // says has to be worth waiting for — and a line repeated on every
-  // entry is a line a child learns to sit through.
-  if (!stand.gehoert('say.willkommen')) {
-    stand.merkeGehoert('say.willkommen');
-    setTimeout(() => audio.sagen('say.willkommen'), 700);
-  }
+  // Luma says hello once per adventurer, and then hands over to the one
+  // line that tells a child where to go. Neither of them knows about the
+  // other: the welcome simply says what happens when it is finished.
+  //
+  // And the house line is skipped entirely for a child who has already
+  // been inside, because "geh ruhig hinein" to somebody on their fourth
+  // visit is a fairy who has not been paying attention.
+  setTimeout(() => {
+    luma.einmal('say.willkommen', () => {
+      if (!stand.get().geschafft['verliebte-zahlen']) luma.einmal('say.erstesHaus');
+    });
+  }, 650);
 }
 
 /**
@@ -350,6 +355,7 @@ function zeigeWelt(): void {
  */
 function zeigeHaus(): void {
   if (schirm !== 'welt' || !dieWelt) return;
+  luma.weg();
   schirm = 'haus';
   dieWelt.ortSichern();
   leeren();
@@ -391,6 +397,7 @@ function hudBauen(): void {
 }
 
 function weltVerlassen(): void {
+  luma.weg();
   runde.beenden();
   if (dieWelt) dieWelt.ortSichern();
   if (dieSteuerung) dieSteuerung.loesen();
@@ -484,7 +491,11 @@ function frame(now: number): void {
   if (schirm === 'editor' && vorschau) vorschau();
 
   if (schirm === 'welt' && dieWelt && dieSteuerung) {
-    dieWelt.schritt(dt, dieSteuerung);
+    // While she is talking the world holds still. She turns up two or
+    // three times in a session and never mid-stride, and a character
+    // who wanders off behind the person explaining something is a
+    // character the child is watching instead of listening.
+    if (!luma.sichtbar()) dieWelt.schritt(dt, dieSteuerung);
     dieWelt.zeichnen(ctx, dieSteuerung);
     const m = stand.get().muenzen;
     if (muenzZahl && m !== muenzenGezeigt) {

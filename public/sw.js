@@ -19,6 +19,10 @@ const SHELL = [
   './main.js',
   './style.css',
   './manifest.webmanifest',
+  // Luma's portrait. In the shell rather than cached on first fetch,
+  // because the first thing that happens in a new adventure is her
+  // saying hello, and a child on a train would get an empty box.
+  './assets/luma/luma.webp',
 ];
 
 self.addEventListener('install', (e) => {

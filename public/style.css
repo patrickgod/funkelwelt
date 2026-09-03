@@ -330,6 +330,98 @@ button.gewaehlt:not(.probe) {
 /* The settings, over the world rather than instead of it. */
 .bildschirm.dunkel { background: rgba(26, 22, 34, 0.93); }
 
+/* --------------------------------------------------------------- Luma */
+
+/* Portrait bottom-left, text box beside it. JRPG framing, because it is
+ * a shape every child recognises from every game they will ever play,
+ * and because it puts her at the bottom where a thumb already is.
+ *
+ * The whole thing is one button. A six-year-old aiming at a small "next"
+ * arrow is a six-year-old tapping the world behind it. */
+.luma {
+  position: absolute;
+  left: calc(var(--safe-l) + 14px);
+  right: calc(var(--safe-r) + 14px);
+  bottom: calc(var(--safe-b) + 14px);
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  text-align: left;
+  animation: luma-rein 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* The base button rules press down on tap. She is not a control being
+   pressed, she is a person being listened to. */
+.luma:active { transform: none; box-shadow: none; background: none; }
+
+.luma-bild { flex: 0 0 auto; display: block; }
+
+/* The coded fallback is pixel art and must not be smoothed. The painting
+   is a painting and must not be pixelated — it is the one image in this
+   game that is neither drawn in code nor on the closed palette, and
+   telling the browser to nearest-neighbour it would be the one way to
+   make that look like a mistake rather than a decision. */
+.luma-bild canvas { image-rendering: pixelated; display: block; }
+
+.luma-gemalt {
+  display: block;
+  width: clamp(104px, 19vh, 172px);
+  height: clamp(104px, 19vh, 172px);
+  border: 4px solid var(--ink);
+  border-radius: 20px;
+  box-shadow: 0 6px 0 var(--ink);
+  background: var(--nacht);
+  object-fit: cover;
+}
+
+.luma-text {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  min-height: 104px;
+  padding: 16px 22px;
+  border: 4px solid var(--ink);
+  border-radius: 20px;
+  background: rgba(26, 22, 34, 0.94);
+  box-shadow: 0 6px 0 var(--ink);
+  color: var(--hell);
+  font-size: clamp(19px, 2.5vw, 28px);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+/* A chevron, pointing on. The back arrow, turned round — one drawing,
+   two jobs, and they cannot drift apart. */
+.luma-weiter {
+  flex: 0 0 auto;
+  align-self: center;
+  padding-right: 6px;
+  opacity: 0.9;
+  filter: drop-shadow(0 0 6px rgba(232, 180, 71, 0.5));
+  animation: luma-tippen 1400ms ease-in-out infinite;
+}
+
+.luma-weiter canvas {
+  image-rendering: pixelated;
+  display: block;
+  transform: scaleX(-1);
+}
+
+@keyframes luma-rein {
+  from { transform: translateY(40px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes luma-tippen {
+  0%, 100% { transform: translateX(0); }
+  50%      { transform: translateX(5px); }
+}
+
 /* ------------------------------------------------------------ a round */
 
 /* Inside the house.
@@ -531,6 +623,24 @@ button.gewaehlt:not(.probe) {
   text-shadow: 0 4px 0 var(--ink);
   text-align: center;
 }
+
+/* Two numbers, a heart, and the fact underneath in the same counters
+   the child has been looking at for ten questions. */
+.paar-zeile {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 4vw, 42px);
+}
+
+.paar-zahl {
+  font-size: clamp(64px, 13vh, 132px);
+  line-height: 1;
+  color: var(--gold);
+  text-shadow: 0 6px 0 var(--ink);
+}
+
+.paar-zeile canvas { image-rendering: pixelated; display: block; }
+.blatt.paar h2 { color: var(--rosa); }
 
 .blatt .wo {
   margin: -8px 0 0;

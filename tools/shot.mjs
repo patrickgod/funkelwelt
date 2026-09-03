@@ -17,7 +17,7 @@ const PORT = 8396;
 const MIME = {
   '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css',
   '.png': 'image/png', '.json': 'application/json', '.map': 'application/json',
-  '.mp3': 'audio/mpeg', '.webmanifest': 'application/manifest+json',
+  '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.webmanifest': 'application/manifest+json',
 };
 
 const server = createServer(async (req, res) => {
@@ -87,12 +87,27 @@ if (!(await page.locator('.namensfeld').inputValue())) {
   await page.waitForTimeout(250);
 }
 await page.locator('button', { hasText: 'Los geht es' }).first().tap();
-await page.waitForTimeout(1400);
+await page.waitForTimeout(1500);
+
+// Luma, saying hello. She is the first thing that happens in a new
+// adventure, so she is shot before she is dismissed.
+if (want('welt-luma')) await shot('welt-luma');
+
+/** Tap her away, however many lines she has queued up. */
+async function lumaWeg() {
+  for (let i = 0; i < 4; i++) {
+    if (await page.locator('.luma').count() === 0) break;
+    await page.locator('.luma').tap();
+    await page.waitForTimeout(450);
+  }
+}
+await lumaWeg();
 if (want('welt')) await shot('welt');
 
 // Walked east along the path, so the shot shows the lamps and the
 // bridge rather than the doorstep the game opens on.
 if (want('welt-weg') || want('welt-stick') || want('welt-einstellungen')) {
+  await lumaWeg();
   await page.keyboard.down('ArrowRight');
   await page.waitForTimeout(4200);
   await page.keyboard.up('ArrowRight');
@@ -139,19 +154,80 @@ if (want('haus') || want('haus-blatt')) {
   await page.waitForTimeout(900);
   if (want('haus')) await shot('haus');
 
-  // Answer the whole round, so the payout sheet can be seen. The right
-  // card is whichever one the app itself says is right — the shot tool
-  // must not reimplement the arithmetic, or it will agree with a bug.
-  if (want('haus-blatt')) {
-    for (let i = 0; i < 12; i++) {
-      const n = await page.locator('.karten button').count();
-      if (n === 0) break;
-      await page.locator('.karten button').first().tap();
-      await page.waitForTimeout(2300);
-      if (await page.locator('.blatt').count()) break;
+  if (want('haus-blatt') || want('haus-paar')) {
+    await spieleRunde();
+    await page.waitForTimeout(1800);
+    if (want('haus-blatt') && await page.locator('.blatt').count()) await shot('haus-blatt');
+  }
+}
+
+/**
+ * Play a whole round, correctly.
+ *
+ * The numeral on screen IS the question in this house, so reading it and
+ * tapping ten-minus-it answers correctly every time. `verify.mjs`
+ * deliberately does NOT do this — a check that reimplements the
+ * arithmetic is a check that agrees with a bug — but a screenshot tool
+ * is not checking anything, it is trying to reach a screen, and a
+ * payout sheet from ten right answers is a better picture than one from
+ * two.
+ */
+async function spieleRunde() {
+  for (let i = 0; i < 14; i++) {
+    if (await page.locator('.blatt').count()) break;
+    if (await page.locator('.luma').count()) {
+      await page.locator('.luma').tap();
+      await page.waitForTimeout(400);
+      continue;
     }
-    await page.waitForTimeout(1600);
-    await shot('haus-blatt');
+    const karten = page.locator('.karten button');
+    if (await karten.count() === 0) break;
+    const gezeigt = await page.locator('.zahl-gross').first().textContent();
+    const will = String(10 - Number(gezeigt));
+    const treffer = karten.filter({ hasText: new RegExp(`^${will}$`) });
+    if (await treffer.count()) await treffer.first().tap();
+    else await karten.first().tap();
+    await page.waitForTimeout(1400);
+  }
+}
+
+// Two numbers becoming friends. Seeded so that one pair is a single
+// right answer away, which is the only way to reach this screen
+// on purpose rather than after a fortnight of play.
+if (want('haus-paar')) {
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.staerke = {};
+    for (let n = 0; n <= 10; n++) s.staerke[`vz:${n}`] = 3;
+    s.staerke['vz:2'] = 2;
+    s.ort = { x: 7.5, y: 22.4 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  for (let versuch = 0; versuch < 6; versuch++) {
+    await page.reload();
+    await page.waitForTimeout(800);
+    await page.locator('.platz').first().tap();
+    await page.waitForTimeout(1200);
+    await lumaWeg();
+    await page.keyboard.down('ArrowUp');
+    await page.waitForTimeout(900);
+    await page.keyboard.up('ArrowUp');
+    await page.waitForTimeout(900);
+    await spieleRunde();
+    await page.waitForTimeout(700);
+    if (await page.locator('.blatt.paar').count()) {
+      await page.waitForTimeout(900);
+      await shot('haus-paar');
+      break;
+    }
+    await page.evaluate(() => {
+      const k = 'funkelwelt.platz0.v1';
+      const s = JSON.parse(localStorage.getItem(k));
+      s.staerke['vz:2'] = 2;
+      s.ort = { x: 7.5, y: 22.4 };
+      localStorage.setItem(k, JSON.stringify(s));
+    });
   }
 }
 

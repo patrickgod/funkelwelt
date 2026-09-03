@@ -56,6 +56,8 @@ const DE = {
   'runde.fertig': 'Geschafft!',
   'runde.nochmal': 'Noch mal',
   'runde.inDieWelt': 'Zurück in die Welt',
+  'runde.weiter': 'Weiter',
+  'runde.freunde': 'Verliebt!',
 
   // The steering is a QUESTION, not a preference: nobody knows which of
   // these a six-year-old gets on with, so both are built and the switch
@@ -106,6 +108,13 @@ const DE = {
   'say.schatten': 'Ein Schatten! Keine Sorge — er tut dir nichts. Zeig ihm, was du kannst.',
   'say.schattenWeg': 'Weg ist er. Das hast du gut gemacht.',
   'say.hilfe': 'Das ist knifflig, oder? Schau, ich zeig es dir.',
+
+  // No slots, on purpose. Every one of these becomes a fixed MP3 at
+  // build time, so a line with a number in it could never be spoken —
+  // and the two numbers are shown as a PICTURE instead, which is what
+  // rule 14 wanted in the first place.
+  'say.neuesPaar':
+    'Schau! Diese beiden haben sich gefunden. Die vergisst du jetzt nicht mehr.',
 } as const;
 
 export type Key = keyof typeof DE;
