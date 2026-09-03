@@ -17,7 +17,13 @@ a rule without its reason gets followed literally and wrongly.
 1. **The build typechecks.** `tsc --noEmit` gates every build. Never
    bypass it, never ship around it. Note that a failing typecheck means
    `dist/` was not rebuilt — twice on LernInseln a measurement was taken
-   against a stale bundle and believed.
+   against a stale bundle and believed, and then twice more here in one
+   afternoon, the second time against a bundle that still held the
+   PREVIOUS experiment and so produced a plausible mixture of passes and
+   failures. This is no longer prose: `tools/verify.mjs` refuses to
+   start if anything under `src/` or `public/` is newer than
+   `dist/main.js`. A rule that has failed to stop something four times
+   is a wish; this one is an assertion now.
 2. **Verify by looking, not by assuming.** Screenshots and measurements
    over reasoning about what the code should do. Five bugs on LernInseln
    typechecked, ran clean, and were obvious the moment somebody took a

@@ -48,12 +48,16 @@ ones. They are chased away, never killed. Nothing is ever taken away.
 ## Where the code is
 
 ```
-src/core/     palette, pixel buffer, storage, save slots, audio, fx, i18n, icons
+src/core/     palette, pixel buffer, storage, save slots, audio, fx,
+              i18n, icons, tenframe
 src/spiel/    held.ts — the adventurer; steuerung.ts — both steerings
 src/welt/     karte.ts — the region as text; kacheln.ts — every tile and
               thing, drawn in code; welt.ts — camera, lantern, walking
+src/games/    the question generators, lifted from LernInseln
+src/ui/       runde.ts — a round inside a house; dom.ts — the helpers
 src/main.ts   title screen, character editor, world screen and its HUD
-tools/        build, verify, shot, contact, icons, devlog, messen
+tools/        build, verify, shot, contact, icons, devlog, messen,
+              genvoice
 ```
 
 Everything is drawn in code on a closed palette. Nothing is an image
@@ -69,6 +73,7 @@ node tools/contact.mjs held   # the adventurer, every direction and frame
 node tools/iconsheet.mjs      # the home-screen icon at the sizes iOS draws
 node tools/devlog.mjs         # reassemble DEVLOG.md from devlog/*/article.md
 node tools/messen.mjs         # what it costs to open the world and to walk
+node tools/genvoice.mjs       # Luma's lines, from i18n.ts, at build time
 ```
 
 Pushing to `master` deploys to <https://patrickgod.github.io/funkelwelt/>
@@ -83,7 +88,7 @@ The region is authored — thirty-six lines of text in `src/welt/karte.ts`
 — because a world a child can learn by heart is worth more than one
 that is different every time. Meadow, a path that loops rather than
 dead-ends, a stream with a bridge, a pond, two woods, cliffs, and the
-house whose door is the next piece of work.
+house whose lit door opens.
 
 The lantern is the thing to understand before changing any of it. The
 region is composited into buffers at three brightnesses, and the bright
@@ -98,6 +103,22 @@ it and it pays coins. It must never pay stars: stars are the record of
 what has been learned and walking is not learning. There is a test that
 says so.
 
+The lit door opens **Das Haus der verliebten Zahlen** — ten questions,
+the partners to ten, with the ten-frame and the four number generators
+carried over from LernInseln unchanged. Coming out pays **Mathe-Sterne**
+and **Münzen** and the level bar moves. Only that screen pays stars.
+
+The letters, syllables, shapes and writing houses are still in
+LernInseln on purpose: each drags its own word list, word pictures or
+writing font, and nobody can look at a house with no door. Every one of
+them implements the same `Game` interface in `src/games/types.ts` and
+will drop in unchanged when a door exists for it.
+
+Luma speaks. `node tools/genvoice.mjs` reads every `say.*` line out of
+`src/core/i18n.ts` and writes MP3s into `assets/voice/`; the running app
+has never heard of ElevenLabs, and the suite still checks that. A line
+that is not in the string table cannot be spoken.
+
 Measured, not estimated: opening the world takes 155 ms and walking
 costs 0.81 ms of script per frame — on a desktop under software
 rendering, so read it as a bound on the work rather than as a frame rate
@@ -105,21 +126,19 @@ on an iPad. `node tools/messen.mjs` takes it again.
 
 ## What to do next
 
-**Play it.** PLAN.md item 1. The whole reason the world was built before
-anything else is the question *is walking around worth doing*, and that
-question is still open — it just has something to answer it with now.
-Two minutes on the iPad with nothing else in the game. If it fails, the
-design needs revisiting and this is much cheaper than finding out after
-four dungeons are built on top.
+**Play it.** PLAN.md item 1, and it is now the whole loop rather than
+half of it: walk, find the door, answer ten things, come out stronger,
+watch the bar move. The question the world was built early to answer —
+*is walking around worth doing* — is still open, and it finally has
+something to answer it with. If it fails, the design needs revisiting
+and this is much cheaper than finding out after four dungeons.
 
 **Settle the steering while he has it in his hands.** Both are built and
 the switch is two taps away inside the world, in the settings behind the
 cog. Ninety seconds, take whichever answer comes back, and then delete
 the other one.
 
-Then the house: port `src/games/*` from LernInseln wholesale. The
-teaching is already built and already tested. This project is a new
-*frame* around it, not a new app.
+Then Luma, PLAN.md item 2 — she has a voice already and no face.
 
 ## Things worth knowing before you start
 
@@ -129,16 +148,17 @@ teaching is already built and already tested. This project is a new
 * The Bash heredoc in this environment eats backslashes and breaks on
   apostrophes. Anything with a regex or an English possessive goes
   through a file write, not a heredoc.
-* A failing `tsc --noEmit` means `dist/` was **not** rebuilt. Twice on
-  the last project a measurement was taken against a stale bundle and
-  believed.
+* A failing `tsc --noEmit` means `dist/` was **not** rebuilt. That has
+  now cost four measurements across two projects, so `npm run verify`
+  refuses to start against a `dist/` older than `src/`. Believe the
+  guard, not the green run.
 * The ElevenLabs key is at `c:/development/fallennights2d/.env` and
   needs the `text_to_speech` permission, which it now has.
 
 ## The written record
 
-`README.md` is the front door. `DEVLOG.md` is the diary — two entries so
-far, the second of which explains why this project exists — and it is
+`README.md` is the front door. `DEVLOG.md` is the diary — four entries
+so far, the second of which explains why this project exists — and it is
 **generated** from `devlog/*/article.md`, so edit those and rerun
 `node tools/devlog.mjs`. `DEVLOG-STYLE.md` is the house style and is
 worth reading before adding an entry: three strands always, keep the

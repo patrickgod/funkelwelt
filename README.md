@@ -59,6 +59,7 @@ node tools/iconsheet.mjs      # the home-screen icon at the sizes iOS draws
 node tools/icons.mjs          # regenerate those icons
 node tools/devlog.mjs         # reassemble DEVLOG.md from devlog/*/article.md
 node tools/messen.mjs         # what it costs to open the world and to walk
+node tools/genvoice.mjs       # Luma's lines, from i18n.ts, at build time
 ```
 
 Pushing to `master` deploys to GitHub Pages if the suite passes.
@@ -80,8 +81,8 @@ rather than a promise in a document.
 
 ## State
 
-Title screen, three Zelda-style save slots, a character editor, and a
-walkable world.
+Title screen, three Zelda-style save slots, a character editor, a
+walkable world, and the first house.
 
 The world came before anything else on purpose, because it is the
 project's biggest risk: if the walking is not fun on its own then the
@@ -91,8 +92,8 @@ cheaper to find out now than after four dungeons are built on top.
 It is one authored region — thirty-six lines of text in
 `src/welt/karte.ts`, not a generator, because a world a child can learn
 by heart is worth more than one that is different every time. A path
-that loops, a stream with a bridge, a pond, two woods, and a house whose
-door is the next piece of work.
+that loops, a stream with a bridge, a pond, two woods, and a house with
+a lit door.
 
 The lantern is literal: the region is drawn at three brightnesses and
 the bright ones show only through a dithered disc around the adventurer
@@ -105,5 +106,21 @@ thumb lands, and tap-to-walk — with the switch two taps away inside the
 world. Nobody knows which one a six-year-old prefers, and the person who
 can settle it is six.
 
-**What has not happened yet:** anyone walking around in it for two
-minutes and reporting whether it was worth doing.
+Walking into the lit door opens **Das Haus der verliebten Zahlen**: ten
+questions on the partners to ten, with the ten-frame and the question
+generators carried over from LernInseln unchanged rather than rewritten.
+Coming out pays **Mathe-Sterne** and **Münzen**, and the level bar moves.
+
+Stars are per subject and are the record of what has been *learned*.
+They only go up and are never spent, so a gate that later wants Mathe 3
+is a gate the child opened by knowing something. Coins are the spendable
+half, and the lightsparks in the grass pay those. Walking about earns
+coins; only the house earns stars. That line is a test rather than an
+intention.
+
+Luma speaks, in one voice, generated at build time. The running app has
+never heard of ElevenLabs and still makes no network calls at all.
+
+**What has not happened yet:** anyone actually playing it. The loop is
+whole — walk, find the door, answer ten things, come out stronger — and
+the person it is for has not seen any of it.

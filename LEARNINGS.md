@@ -169,6 +169,69 @@ Generalises: **a class name is not a contract.** When a behaviour is
 which here meant looking at a screenshot of the panel, where it was
 obvious in a second and invisible in the code.
 
+## A check that quietly changed what it was measuring
+
+**Signature:** a check that has passed all week fails the moment a
+feature lands next to it — and it is the check that is wrong.
+
+*A wall is a wall — the house stops you at the doorstep* walked north
+out of the doorway and asserted the adventurer had not got far. The
+moment the door started opening it stopped measuring the wall and
+started measuring the door. It failed noisily, aborting the run, because
+the next line tapped a button on a screen that no longer existed.
+
+That is the GOOD outcome and it is the argument for asserting on a saved
+coordinate rather than on a screenshot: a visual check would have kept
+passing while meaning nothing. The check now walks west into the side of
+the house, and the comment above it says why it moved.
+
+Generalises: **when a feature lands, re-read the checks that touch the
+same square metre of the game.** One of them is probably now testing
+something else.
+
+## A check that asserted zero was asserting something about the suite
+
+**Signature:** an assertion of an absolute — zero, empty, exactly one.
+
+*And it pays coins rather than stars* asserted three coins and zero
+stars after picking up a lightspark. Zero was true until a house round
+ran earlier in the same suite, and then it failed correctly for the
+wrong reason: the check had never been testing *sparks do not pay
+stars*, it had been testing *nothing else in this file earned any*.
+
+It measures a difference now — stars before, stars after, unchanged.
+
+Generalises: **"zero" is almost always a lazy spelling of "unchanged by
+this", and the two agree right up until they do not.**
+
+## The stale bundle, twice more, one of them mixed
+
+**Signature:** a suite result that looks real and is about code that is
+not on disk.
+
+AGENTS.md rule 1 has said since day one that a failing typecheck means
+`dist/` was not rebuilt, and cited two occasions on the previous project.
+It then happened twice in one afternoon here, both during sabotage runs.
+
+The first was the textbook version: an unused constant failed the
+typecheck, `dist/` kept the last build, and the suite reported that
+everything was fine.
+
+The second was worse. Same failed build, but `dist/` was holding the
+PREVIOUS sabotage — so the suite reported a mixture of passes and
+failures, all of it plausible and none of it about the code on disk. A
+mixed result looks like a real result; an all-green one at least invites
+suspicion.
+
+`tools/verify.mjs` now refuses to start if anything under `src/` or
+`public/` is newer than `dist/main.js`.
+
+Generalises: **a written rule that has failed to stop something twice is
+not a rule, it is a wish.** Turn it into an assertion. This project had
+already done that for "you cannot lose", for "nothing leaves the device"
+and for "every button is 64 pixels", and had left the one about its own
+build process as prose.
+
 ## Committing before deliberately breaking things
 
 **Signature:** twenty minutes of work gone, and the tool that ate it was

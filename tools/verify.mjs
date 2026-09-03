@@ -18,9 +18,48 @@
 
 import { chromium, devices } from 'playwright';
 import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 import { inflateSync } from 'node:zlib';
+
+/**
+ * Refuse to test a bundle that is older than the source it came from.
+ *
+ * AGENTS.md rule 1 says a failing typecheck means `dist/` was not
+ * rebuilt, and warns that twice on LernInseln a measurement was taken
+ * against a stale bundle and believed. It has now happened twice more
+ * here in one afternoon, both times during a sabotage run — and the
+ * second time was the nasty one: the build failed, `dist/` still held
+ * the PREVIOUS sabotage, and the suite reported a mixture of passes and
+ * failures that looked like a real result.
+ *
+ * A rule in a document did not stop it. This does. It is eight lines and
+ * it runs before the browser starts.
+ */
+async function neuesteQuelle(dir) {
+  let neuste = 0;
+  for (const name of await readdir(dir, { withFileTypes: true })) {
+    const p = join(dir, name.name);
+    if (name.isDirectory()) neuste = Math.max(neuste, await neuesteQuelle(p));
+    else neuste = Math.max(neuste, (await stat(p)).mtimeMs);
+  }
+  return neuste;
+}
+{
+  const gebaut = await stat('dist/main.js').catch(() => null);
+  if (!gebaut) {
+    console.log('  FAIL  dist/main.js does not exist — run `npm run build`');
+    process.exit(1);
+  }
+  const quelle = Math.max(await neuesteQuelle('src'), await neuesteQuelle('public'));
+  if (quelle > gebaut.mtimeMs) {
+    const alt = Math.round((quelle - gebaut.mtimeMs) / 1000);
+    console.log(`  FAIL  dist/ is ${alt}s older than src/ — the build did not run,`);
+    console.log('        so everything below would be measuring the previous one.');
+    console.log('        Almost always a failing typecheck. Run `npm run build`.');
+    process.exit(1);
+  }
+}
 
 const PORT = 8395;
 const MIME = {
