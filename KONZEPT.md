@@ -174,6 +174,67 @@ that failed.
 learned, and they only grow. Same rule as the other project and for the
 same reason: nothing that measures a child may ever go down.
 
+## What Hack'n'Slash is actually about, and what it changes here
+
+Patrick raised Double Fine's *Hack'n'Slash* — the Zelda-like where your
+sword is a USB stick, and you stab an enemy to open an editor on its
+own variables and change them.
+
+The gimmick is not the lesson. The lesson is:
+
+> **The subject is the VERB.** You do not answer questions about
+> variables. You change variables, and the world changes. The learning
+> is not a toll gate in front of the game — it is the interaction
+> itself.
+
+Held against the design above, that is uncomfortable, and it should be.
+"Walk into a shadow, a quiz appears, right answers push it back" is much
+better than an endless runner bolted onto a maths test — but the
+arithmetic is still a **toll**, not a **tool**. The child pays to
+proceed.
+
+The Hack'n'Slash version puts the numbers in the world as objects:
+
+* A bridge has seven planks and needs ten. You carry the **3** from
+  somewhere else and drop it in. A number bond becomes a physical act.
+* A gate shows **6 + ?**. The 4 is somewhere on the map.
+* A shadow is made of a number. Split it into the two that make ten and
+  it comes apart.
+* A dark lantern wants a word. Carry **Ma** to it and then **ma**, and
+  it lights up saying *Mama*.
+
+### And the reason it cannot be the whole game
+
+The honest objection, and it is a real one: **puzzles build
+understanding, and understanding is not the goal.**
+
+DESIGN.md was explicit about this on the other project, and it was
+right: the target is *automatic* recall of the pairs to ten. A child who
+has to work out that 6 needs 4 will still be working it out when the
+class has moved to two-digit addition. Automaticity comes from
+repetition, and a puzzle you solve once is not repetition. A pure
+Hack'n'Slash design would be more interesting and would teach less.
+
+It is also, practically, a generator problem: LernInseln's question
+machinery produces unlimited well-scheduled practice. Authored puzzles
+produce eleven.
+
+### So: both, in different places
+
+Which is exactly how Zelda is built, and worth stealing wholesale.
+
+| where | what | what it is for |
+|---|---|---|
+| **Overworld** | number-objects you carry and combine, gates that want a pair, lanterns that want a syllable | **using** what you know — understanding, delight, the reason to walk |
+| **Dungeon** | the LernInseln generators, spaced repetition, the ten-frame | **building** what you know — the drill that makes recall automatic |
+
+In Zelda the dungeon gives you an item and the overworld is where you
+use it. Here the house teaches you a fact and the world is where it
+turns out to be worth knowing. That is the same structure, and it is
+the answer to Patrick's question about ANTON: their games are a
+different activity bolted beside the learning, and this one is the same
+activity twice, from two directions.
+
 ## The shape of a session
 
 1. You are on the map with your character.

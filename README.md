@@ -1,0 +1,85 @@
+# Funkelwelt
+
+A small role-playing game for a six- or seven-year-old, in which the
+fighting is arithmetic and nothing is ever lost.
+
+**Play it:** <https://patrickgod.github.io/funkelwelt/> — an iPad, in
+Safari, added to the home screen. It works with no signal and it talks
+to nobody.
+
+---
+
+The world has gone quiet and dim. A child arrives with a lantern and
+learns it bright again: shadows are pushed back by knowing things, the
+lights come back on, and the map gets bigger.
+
+It is German first-grade material — the pairs that make ten, syllables,
+letters, handwriting — inside a game that is actually a game. The
+previous project, **[LernInseln](https://patrickgod.github.io/lerninseln/)**,
+is where the teaching was built and tested; this one is a new frame
+around it. Why there is a new frame at all is the second devlog entry.
+
+## The rule everything else bends around
+
+**Damage goes one way. A wrong answer never costs the child anything.**
+
+There is no health bar, no timer, no streak, no red X and no way to
+lose. Right answers push the shadow back; wrong answers do nothing, show
+the answer as a picture, and move on. There is **Mut** — courage — and it
+only ever fills.
+
+An RPG framing will keep trying to undo this, because that is what RPGs
+do. Applied to a maths question, "get it wrong and take damage" says
+*not knowing this hurts you*, which is the exact lesson that makes a
+child decide at seven that they are bad at maths.
+
+## Reading order
+
+| | |
+|---|---|
+| **[KONZEPT.md](KONZEPT.md)** | what the game is, and the argument for every part of it |
+| **[AGENTS.md](AGENTS.md)** | how to work in this repo — rules, each with the scar that earned it |
+| **[PLAN.md](PLAN.md)** | what is next, in order, and why that order |
+| **[HANDOVER.md](HANDOVER.md)** | the ninety-second brief for picking it up cold |
+| **[DEVLOG.md](DEVLOG.md)** | the diary, including the project before this one |
+
+## Running it
+
+```
+npm install
+npm run build      # typechecks, then bundles into dist/
+npm run serve      # http://localhost:8323
+npm run verify     # the suite: iPad viewport, real taps, offline, icons
+```
+
+```
+node tools/shot.mjs           # screenshots into shots/
+node tools/contact.mjs held   # every direction and walk frame, on one sheet
+node tools/iconsheet.mjs      # the home-screen icon at the sizes iOS draws
+node tools/icons.mjs          # regenerate those icons
+node tools/devlog.mjs         # reassemble DEVLOG.md from devlog/*/article.md
+```
+
+Pushing to `master` deploys to GitHub Pages if the suite passes.
+
+## How it is built
+
+TypeScript, no framework, esbuild. Canvas for the world, plain DOM for
+menus, because the DOM is better at buttons and canvas is better at
+pixels. `localStorage` only, keyed, because there are three save slots.
+
+**Every pixel is drawn in code** on a closed palette — no image files
+except the generated home-screen icons. Shading means stepping along a
+ramp, never multiplying a colour; the light comes from the upper left,
+always.
+
+Nothing leaves the device: no network calls, no analytics, no fonts from
+a CDN, not even an error reporter. That is a check in `tools/verify.mjs`
+rather than a promise in a document.
+
+## State
+
+Title screen, three Zelda-style save slots, and a character editor. That
+is all, and it stops there on purpose: the next thing built is the
+walkable world, because if the walking is not fun on its own then it is
+a corridor between quizzes, and that is much cheaper to find out now.
