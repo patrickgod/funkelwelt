@@ -212,5 +212,56 @@ NAMEN.forEach((n, i) => {
 `);
 }
 
+// ------------------------------------------------ links und rechts
+
+if (doIt('fahrzeuge')) {
+  await sheet('fahrzeuge', `
+import { FAHRZEUGE, fahrzeug, pfeil, FW, FH } from '../src/games/fahrzeuge.js';
+
+// Both directions of all five, side by side, at the size they are
+// tapped and at the size a doubting adult wants.
+//
+// The pairs are stacked so the mirror can be checked at a glance: a
+// vehicle that reads as going right in one row and as nothing in
+// particular in the other is a vehicle whose direction lives entirely
+// in the speed lines, and this whole exercise is about the direction.
+const SCALE = 5;
+const CELL_W = FW * SCALE + 20, CELL_H = FH * SCALE + 22;
+
+const c = document.createElement('canvas');
+c.width = 20 + FAHRZEUGE.length * CELL_W;
+c.height = 40 + 2 * CELL_H + 40 + 34 * 4;
+document.body.appendChild(c);
+const ctx = c.getContext('2d')!;
+ctx.imageSmoothingEnabled = false;
+// On the tan of the round screen, which is the only ground these are
+// ever seen on — not on grass, and not on a dark panel.
+ctx.fillStyle = '#e8dcc0';
+ctx.fillRect(0, 0, c.width, c.height);
+ctx.font = 'bold 15px sans-serif';
+ctx.textAlign = 'center';
+
+FAHRZEUGE.forEach((f, i) => {
+  const x = 10 + i * CELL_W;
+  ctx.fillStyle = '#2a2030';
+  ctx.fillText(f, x + (FW * SCALE) / 2, 22);
+  ['rechts', 'links'].forEach((nach, row) => {
+    ctx.drawImage(fahrzeug(f, nach).toCanvas(),
+      x, 32 + row * CELL_H, FW * SCALE, FH * SCALE);
+  });
+});
+
+// And the two arrows the question is asked with.
+const ay = 40 + 2 * CELL_H;
+ctx.fillStyle = '#2a2030';
+ctx.fillText('die Frage', 10 + CELL_W, ay + 16);
+['rechts', 'links'].forEach((nach, i) => {
+  ctx.drawImage(pfeil(nach).toCanvas(), 20 + i * 34 * 5, ay + 26, 34 * 4, 34 * 4);
+});
+
+(window as any).ready = true;
+`);
+}
+
 await browser.close();
 rmSync('.contact', { recursive: true, force: true });
