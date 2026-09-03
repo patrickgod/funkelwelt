@@ -373,3 +373,41 @@ black square on the device).
 All four checks were watched failing first, per rule 4: a wrong `sizes`,
 a deleted file, one transparent pixel, and a removed 180 link. Two
 minutes, and the alternative is finding out on someone else's iPad.
+
+## The suite must not be defeated by its own corpse
+
+**Signature:** a sabotage run printed nothing at all — not a pass, not a
+failure, no summary line. Twice.
+
+The first time, the staleness guard caught it and said so plainly:
+
+```
+FAIL  dist/ is 474s older than src/ — the build did not run,
+      so everything below would be measuring the previous one.
+```
+
+`npm run verify` does not build. Every sabotage in the loop had been
+edited into `src/` and then measured against the *previous* bundle. The
+guard existed precisely because that had already shipped a wrong
+conclusion once, and this time it turned a silent false result into a
+loud one. **A sabotage loop must have the build inside it**, not beside
+it — `npm run build && npm run verify`, every iteration.
+
+The second time was worse, because it was the suite eating itself. A run
+hit the ten-minute wall and was killed; the static server it had started
+outlived it and kept holding port 8395; the next run died on
+`EADDRINUSE` with a raw Node stack trace where its output should have
+been. The tool that says whether the game works was broken by its own
+previous corpse.
+
+Fixed by deleting the constant: `server.listen(0)` and read the port
+back off `server.address()`. There was never a reason for the number to
+be fixed — nothing else needs to find this server, it exists for ninety
+seconds and dies.
+
+Generalises twice over. **A fixed port in a tool that nothing else
+connects to is a shared global for no benefit.** And more usefully:
+**when you grep a run's output for specific checks, grep for the
+summary line too.** Both of these looked, at a glance, like a clean run
+that simply had nothing to say — and "no output" reads as "fine" to a
+tired eye at exactly the moment it means "this measured nothing".

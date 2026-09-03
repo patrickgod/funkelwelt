@@ -155,11 +155,16 @@ purchase. That is the direct answer to the shop that failed the playtest
 which created this project: it had twenty-seven things and a blank
 meadow to arrange them in.
 
-A gate in the cliffs wants three stars in **Zahlen** before it opens.
-It shows what it wants as three stars rather than as a number, because
-the child cannot read one — and when they have earned it, the stars
-light up and the way is clear. Same spot, same child; the difference is
-what they learned.
+Two gates in the cliffs, and they want different things: one wants three
+stars in **Zahlen**, the other two in **Wörter**. Each shows what it
+wants as stars rather than as a number, because the child cannot read
+one — and when they have earned it the stars light up and the way is
+clear. Same spot, same child; the difference is what they learned.
+
+The gates want *different* things on purpose. Numbers do not open the
+word gate, however many of them you have. A child who is quick with
+letters and slow with sums has a door of their own to walk through, and
+gets there first.
 
 **What has not happened yet:** anyone actually playing it. The loop is
 whole — walk, find the door, answer ten things, come out stronger — and

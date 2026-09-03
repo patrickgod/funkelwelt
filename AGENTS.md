@@ -42,7 +42,12 @@ a rule without its reason gets followed literally and wrongly.
    Watch out for the other trap in the same loop, too: a sabotage that
    leaves an unused constant fails the typecheck, `dist/` is not
    rebuilt, and the suite reports that the previous bundle is fine.
-   See rule 1; it very nearly worked.
+   See rule 1; it very nearly worked. So **put the build inside the
+   loop** — `npm run build && npm run verify`, every iteration, because
+   `verify` does not build — and when you grep the output for the
+   checks you care about, **grep for the summary line as well**. A run
+   that died before reaching them prints nothing, and nothing looks
+   exactly like a quiet pass.
 5. **Measure before fixing.** On LernInseln two confident theories about
    a frame-time regression died before anybody instrumented anything;
    the real answer was that the check was measuring the harness. On

@@ -168,12 +168,23 @@ project, and the important one is that a child cannot spend badly. Four
 things, one screen, nothing placed, and every effect visible in the
 world rather than as a number.
 
-A **gate** in the north-east cliff wants Mathe level 3, and behind it is
-a pocket that is sealed on every other side. It shows what it wants as
-three stars rather than as a number — rule 14 — and they light when it
-opens. This is the one place the per-subject stars actually pay off, so
-`tools/verify.mjs` asserts both directions: it must not open early and
-must not stay shut late.
+**Two gates**, each into a pocket sealed on every other side. The one in
+the north-east cliff wants Mathe 3; the one in the south-east cliff
+wants Wörter 2. Each shows what it wants as stars rather than as a
+number — rule 14 — and they light when it opens.
+
+This is where the per-subject stars stop being a design note and become
+a fact, so read the three checks in `tools/verify.mjs` before changing
+anything here. The one that carries the weight is not that the gate
+opens; it is that **two hundred Mathe-Sterne do not open the Wörter
+gate**. Without it the two subjects are one currency with two labels,
+and a child who is strong at numbers is quietly handed everything.
+
+The gates are told apart by COLOUR, not by shape: gold for numbers, blue
+for words, in the dim markings as well as the lit ones. Shape alone was
+tried and failed a screenshot taken from where a child actually stands —
+at gate size the difference between a four- and a five-pointed mark is
+two pixels.
 
 Seven **shadows** stand in the dim corners off the path. Not solid: you
 see one from across the meadow and decide about it. Meeting one is the
@@ -233,9 +244,10 @@ the switch is two taps away inside the world, in the settings behind the
 cog. Ninety seconds, take whichever answer comes back, and then delete
 the other one.
 
-Then PLAN.md item 2: the shadows. The loop it completes — walk into one
-on purpose, push it back by knowing things, Mut fills and never empties —
-is the last piece of the design that has never been built.
+Everything else in PLAN.md is addition rather than risk: more of
+LernInseln's houses (each one a door, a generator and a prompt kind,
+all of them already written), and eventually a second region. None of
+it should start before somebody has played this one.
 
 ## Things worth knowing before you start
 

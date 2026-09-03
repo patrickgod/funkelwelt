@@ -131,6 +131,27 @@ it.** A risk you have not built is a risk you are still carrying.
   nothing at all, which made the shop's one promise — every effect is
   visible — false for the single item whose entire point is being seen.
 
+* **The second gate, and two kinds of star.** A pocket in the south-east
+  cliff whose gate wants **Wörter 2**, which is what makes the stars
+  per-subject rather than one currency with two labels. A child who loves
+  letters and finds numbers hard opens a different door from one who is
+  the other way round, and neither of them is behind.
+
+  The assertion the design rests on is not that the gate opens — it is
+  that the *other* subject does not open it. Two hundred Mathe-Sterne,
+  and the Wörter gate stays shut. Sabotaged both ways: pointing the gate
+  at the wrong subject breaks exactly the two subject-discriminating
+  checks and leaves the 0/0 one green, which is the shape a real bug
+  would have.
+
+  Two readability fixes came out of looking at it rather than testing
+  it. The round screen's star now comes from `sternIcon(fach)` — gold
+  and five-pointed for numbers, blue and four-pointed for words — and
+  the gates' SHUT markings are drawn in their subject's own dim colour.
+  Shape alone had failed: at gate size the difference between a four-
+  and a five-pointed mark is two pixels, so from where a child actually
+  stands the two gates were the same door twice.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick
@@ -210,23 +231,13 @@ something to answer it with now.
 ten things, come out stronger, watch the bar move — with no combat and
 no fairy, and that is enough to be worth a real playtest.
 
-### 3. A second gate, for the other subject
-
-The Mathe gate proves the mechanism. A second one wanting **Wort 2**
-would prove the point of the design: a child who loves letters and finds
-numbers hard opens a different door from one who is the other way round,
-and neither of them is behind.
-
-Cheap now that both houses exist — a gate, a pocket, and one more entry
-in `karte.tore`.
-
-### 4. More of LernInseln's houses
+### 3. More of LernInseln's houses
 
 Still over there and all of them code: the first words, the rhymes, the
 shapes, the patterns, and the two writing houses (which also need the
 tracing surface). Each is a door, a generator and a prompt kind.
 
-### 5. A second region
+### 4. A second region
 
 The gate proves the mechanism on twelve tiles. What it opens onto should
 eventually be somewhere, not a walled garden — and the honest note is

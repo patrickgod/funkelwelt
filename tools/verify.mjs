@@ -61,7 +61,6 @@ async function neuesteQuelle(dir) {
   }
 }
 
-const PORT = 8395;
 const MIME = {
   '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css',
   '.png': 'image/png', '.json': 'application/json', '.map': 'application/json',
@@ -79,7 +78,16 @@ const server = createServer(async (req, res) => {
     res.writeHead(404); res.end('not found');
   }
 });
-await new Promise((r) => server.listen(PORT, r));
+// Port 0: the OS picks a free one.
+//
+// This was a fixed 8395 until a run timed out and left the server
+// holding it, and the next run died on EADDRINUSE with a raw Node stack
+// trace — no failing check, no explanation, just a listen error where
+// the suite's output should be. The suite is the thing that says whether
+// the game works; it must not be the thing that breaks first, and it
+// must never be defeated by its own previous corpse.
+await new Promise((r) => server.listen(0, r));
+const PORT = server.address().port;
 const BASE = `http://localhost:${PORT}/`;
 
 let failures = 0;
