@@ -63,7 +63,13 @@ export const HAUS_VERLIEBTE_ZAHLEN: Haus = {
  */
 export const HAUS_ERSTE_LAUTE: Haus = {
   id: 'anlaute',
-  spiel: 'anlaute',
+  // Anlaute and Silben together, alternating. Both are phonologische
+  // Bewusstheit — hearing the shape of a spoken word — and German first
+  // grade teaches them side by side rather than as two subjects, so one
+  // house asking both is the ordinary arrangement and not a shortcut.
+  // The word is HIDDEN for the first-sound question and SHOWN for the
+  // syllable one, which the prompt already carries per question.
+  spiel: ['anlaute', 'silben'],
   name: 'haus.ersteLaute',
   fach: 'wort',
 };
@@ -89,6 +95,32 @@ export const HAUS_FORMEN: Haus = {
   id: 'formen',
   spiel: ['formen', 'muster'],
   name: 'haus.formen',
+  fach: 'mathe',
+};
+
+/**
+ * Das Haus der Rechenmeister.
+ *
+ * The step up from the pairs that make ten, and it stands next door to
+ * that house on purpose: the beginner's door and the harder one are
+ * neighbours in the same corner of the meadow, told apart by their
+ * plaques rather than by a sign a child would have to read.
+ *
+ * Three generators, all of them within twenty and all of them ported
+ * from Lernkiste with their didactics intact: plus and minus to ten
+ * (with some of it running backwards, because a child who can do 6+3
+ * and not 9-3 has learned a procedure rather than a fact), the number
+ * line with a gap in the middle, and the doubles.
+ *
+ * Nothing gates this door. A child who is not ready walks in, finds it
+ * hard, and walks out — and neither the walking out nor a wrong answer
+ * costs them anything, which is the whole reason it is safe to leave it
+ * open.
+ */
+export const HAUS_RECHENMEISTER: Haus = {
+  id: 'rechenmeister',
+  spiel: ['rechenmeister', 'zahlenreihe', 'zwillinge'],
+  name: 'haus.rechenmeister',
   fach: 'mathe',
 };
 

@@ -20,6 +20,7 @@ import * as runde from './ui/runde.js';
 import * as luma from './ui/luma.js';
 import * as begegnung from './ui/begegnung.js';
 import * as laden from './ui/laden.js';
+import type { Tuer } from './welt/karte.js';
 
 const welt = document.getElementById('welt') as HTMLCanvasElement;
 const fxCanvas = document.getElementById('fx') as HTMLCanvasElement;
@@ -489,7 +490,7 @@ function zeigeSchatten(id: string): void {
  * is answering — including the arrow keys, which would otherwise walk
  * him about behind the round screen.
  */
-function zeigeHaus(tuer: 'mathe' | 'wort' | 'formen'): void {
+function zeigeHaus(tuer: Tuer): void {
   if (schirm !== 'welt' || !dieWelt) return;
   luma.weg();
   audio.whoosh(0.3, 1200);
@@ -499,6 +500,7 @@ function zeigeHaus(tuer: 'mathe' | 'wort' | 'formen'): void {
   fx.clear();
   const haus = tuer === 'wort' ? runde.HAUS_ERSTE_LAUTE
     : tuer === 'formen' ? runde.HAUS_FORMEN
+    : tuer === 'rechnen' ? runde.HAUS_RECHENMEISTER
     : runde.HAUS_VERLIEBTE_ZAHLEN;
   runde.starten(ui, haus, () => {
     schirm = 'welt';

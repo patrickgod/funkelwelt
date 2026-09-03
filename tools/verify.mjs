@@ -19,6 +19,7 @@
 import { chromium, devices } from 'playwright';
 import { createServer } from 'node:http';
 import { readFile, readdir, stat } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { extname, join } from 'node:path';
 import { inflateSync } from 'node:zlib';
 
@@ -786,6 +787,92 @@ async function beiTor(sterne, wort = 0) {
   const drin = (await slot()).funken;
   check('and there is something behind it worth the walk',
     drin.length > 0, `picked up ${JSON.stringify(drin)}`);
+}
+
+// ------------------------------------------ every generator has a door
+//
+// Four generators shipped to a child's iPad with nothing able to reach
+// them: `zahlenreihe`, `rechenmeister`, `zwillinge` and `silben` sat in
+// GAMES for weeks, bundled, unreachable, and contradicting the comment
+// at the top of the file they lived in.
+//
+// It is a SOURCE-level property, so it is checked at source level. The
+// parse is deliberately brittle in the loud direction: if either list
+// comes back empty the check fails rather than passing on nothing,
+// because a check that quietly measures zero things is worse than no
+// check at all.
+
+{
+  const gamesSrc = readFileSync('src/games/games.ts', 'utf8');
+  const hausSrc = readFileSync('src/ui/runde.ts', 'utf8');
+
+  const record = gamesSrc.slice(gamesSrc.indexOf('export const GAMES'));
+  const generatoren = [...record.slice(0, record.indexOf('};'))
+    .matchAll(/^\s*'([a-z-]+)':/gm)].map((m) => m[1]);
+
+  const verdrahtet = new Set(
+    [...hausSrc.matchAll(/spiel:\s*(\[[^\]]*\]|'[a-z-]+')/g)]
+      .flatMap((m) => [...m[1].matchAll(/'([a-z-]+)'/g)].map((x) => x[1])));
+
+  check('the generator list and the house list both parsed',
+    generatoren.length > 0 && verdrahtet.size > 0,
+    `${generatoren.length} generators, ${verdrahtet.size} wired`);
+
+  const verwaist = generatoren.filter((g) => !verdrahtet.has(g));
+  check('every generator that ships has a door a child can walk through',
+    verwaist.length === 0,
+    verwaist.length ? `no door: ${verwaist.join(', ')}` : generatoren.join(', '));
+}
+
+// ------------------------------------- Das Haus der Rechenmeister
+//
+// The fourth door, and the step up from the pairs that make ten. It
+// stands next to that house on purpose, which makes the plaques the
+// only thing telling them apart.
+
+{
+  await inDieWelt();
+  await stellAuf(7.5, 13.4);
+  await inDieWelt();
+  await laufe('ArrowUp', 900);
+  await page.waitForTimeout(900);
+  check('the fourth door opens Das Haus der Rechenmeister',
+    await page.locator('.runde').count() === 1);
+
+  const arten = new Set();
+  let gestellt = 0;
+  for (let i = 0; i < 16; i++) {
+    if (await page.locator('.blatt').count()) break;
+    await lumaWeg();
+    const karten = page.locator('.karten button');
+    if (await karten.count() === 0) break;
+    gestellt++;
+    // Which of the three generators asked this one. All three draw a
+    // different picture, which is the point of putting them in one
+    // house: a round here is not ten of the same thing.
+    // `.rechnung` is drawn by BOTH the sums and the doubles, so the
+    // doubles have to be recognised first by their two ten-frames —
+    // otherwise every doubles question counts as a sum and a round of
+    // ten doubles would pass as "not ten of the same thing".
+    if (await page.locator('.doppelfeld').count()) arten.add('doppel');
+    else if (await page.locator('.zahlenreihe').count()) arten.add('reihe');
+    else if (await page.locator('.rechnung').count()) arten.add('rechnung');
+    await karten.first().tap();
+    await page.waitForTimeout(2400);
+  }
+  check('a round here is not ten of the same thing',
+    arten.size >= 2, `asked: ${[...arten].join(', ') || 'nothing recognised'}`);
+  check('answering ten of them finishes the round',
+    await page.locator('.blatt').count() === 1, `answered ${gestellt}`);
+
+  await page.waitForTimeout(1800);
+  const sr = await slot();
+  check('Das Haus der Rechenmeister pays Mathe-Sterne', sr.sterne.mathe > 0);
+  check('the house counts how often it has been cleared',
+    sr.geschafft['rechenmeister'] === 1, JSON.stringify(sr.geschafft));
+
+  await page.locator('button', { hasText: 'Zurück in die Welt' }).first().tap();
+  await page.waitForTimeout(600);
 }
 
 // -------------------------------------------------- Das Haus der Formen

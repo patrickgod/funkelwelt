@@ -168,5 +168,49 @@ ctx.fillRect(0, 0, c.width, c.height);
 `);
 }
 
+// --------------------------------------------------- the door plaques
+
+if (doIt('tafel')) {
+  await sheet('tafel', `
+import { tafel } from '../src/welt/kacheln.js';
+
+// All four side by side, on grass, at the scale the world draws them
+// AND at the scale a child sees them from the path. Rule 3: a sprite is
+// judged on the background it will actually be seen on.
+//
+// This sheet exists because the fourth plaque shipped as a gold blob.
+// A plus and a minus were drawn on a board sixteen pixels wide, the
+// antialiasing filled the notches between the arms, and nobody would
+// have noticed until a screenshot of the whole world was cropped.
+const W = 18, H = 26;
+const NAMEN = ['Zahlen', 'Laute', 'Formen', 'Rechnen'];
+const SKALEN = [3, 6];
+
+const c = document.createElement('canvas');
+c.width = 40 + 4 * (W * 6 + 24);
+c.height = 60 + (H * 3 + H * 6) + 40;
+document.body.appendChild(c);
+const ctx = c.getContext('2d')!;
+ctx.imageSmoothingEnabled = false;
+ctx.fillStyle = '#548544';
+ctx.fillRect(0, 0, c.width, c.height);
+ctx.font = 'bold 15px sans-serif';
+ctx.textAlign = 'center';
+
+NAMEN.forEach((n, i) => {
+  const x = 20 + i * (W * 6 + 24);
+  ctx.fillStyle = '#f8f0dc';
+  ctx.fillText(n, x + (W * 6) / 2, 22);
+  let y = 34;
+  for (const s of SKALEN) {
+    ctx.drawImage(tafel(i).toCanvas(), x, y, W * s, H * s);
+    y += H * s + 14;
+  }
+});
+
+(window as any).ready = true;
+`);
+}
+
 await browser.close();
 rmSync('.contact', { recursive: true, force: true });

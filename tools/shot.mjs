@@ -183,6 +183,36 @@ if (want('laute')) {
   await shot('laute');
 }
 
+// Das Haus der Rechenmeister: the approach, with its plaque and the
+// plaque of the pairs house two screens south, and one question from
+// each of its three generators.
+if (want('rechnen')) {
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.ort = { x: 7.5, y: 13.4 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await page.reload();
+  await page.waitForTimeout(800);
+  await starten();
+  await page.locator('.platz').first().tap();
+  await page.waitForTimeout(2400);
+  await lumaWeg();
+  await shot('rechnen-welt');
+  await page.keyboard.down('ArrowUp');
+  await page.waitForTimeout(700);
+  await page.keyboard.up('ArrowUp');
+  await page.waitForTimeout(1600);
+  await lumaWeg();
+  for (let i = 0; i < 3; i++) {
+    await shot(`rechnen-${i + 1}`);
+    await page.locator('.karten button').first().tap();
+    await page.waitForTimeout(2100);
+    await lumaWeg();
+  }
+}
+
 // Das Haus der Formen: the approach with the plaque, then both kinds of
 // question inside. The pattern one is the reason to look — it is the
 // only exercise in the game that needs neither sound nor reading, and

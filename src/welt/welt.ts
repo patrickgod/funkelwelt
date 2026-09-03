@@ -179,7 +179,7 @@ export class Welt {
   private festGefahren = 0;
 
   /** So the door reacts once per visit rather than sixty times a second. */
-  private inTuer: 'mathe' | 'wort' | 'formen' | null = null;
+  private inTuer: karte.Tuer | null = null;
 
   /**
    * Waking up: how far open the lantern is, 0 to 1.
@@ -228,7 +228,7 @@ export class Welt {
    * answers — a chime and a burst of sparks — because a child who walks
    * into a door and gets nothing at all decides the door is scenery.
    */
-  anTuer: ((tuer: 'mathe' | 'wort' | 'formen') => void) | null = null;
+  anTuer: ((tuer: karte.Tuer) => void) | null = null;
 
   /** Where the purse is on screen, so a coin knows where to fly. */
   anBeutel: (() => { x: number; y: number } | null) | null = null;
@@ -363,7 +363,7 @@ export class Welt {
     if (gen) return gen;
     // A plaque has exactly three faces and they are chosen by the map,
     // not by a seed — variant 3 would be a blank board beside a door.
-    if (art === 'tafel') return 3;
+    if (art === 'tafel') return 4;
     return art === 'haus' || art === 'schild' || art === 'laterne' ? 1 : 8;
   }
 

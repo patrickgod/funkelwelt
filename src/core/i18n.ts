@@ -53,6 +53,7 @@ const DE = {
   'haus.verliebteZahlen': 'Das Haus der verliebten Zahlen',
   'haus.ersteLaute': 'Das Haus der ersten Laute',
   'haus.formen': 'Das Haus der Formen',
+  'haus.rechenmeister': 'Das Haus der Rechenmeister',
 
   // -------------------------------------------------------- a round
   'runde.raus': 'Zurück',

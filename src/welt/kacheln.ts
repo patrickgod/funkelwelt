@@ -645,29 +645,62 @@ export function tafel(art: number): Px {
   p.rect(1, 14, 16, 2, shade(P.plaster, 1));
 
   if (art === 0) {
-    // A ten-frame with four filled — the picture the numbers house
-    // asks every one of its questions with.
-    const rahmen = shade(P.timber, 1);
-    p.rect(3, 5, 12, 8, rahmen);
-    p.rect(4, 6, 10, 6, shade(P.plaster, 4));
-    p.line(9, 6, 9, 11, rahmen);
-    for (let i = 0; i < 4; i++) {
-      const cx = 5 + (i % 2) * 5, cy = 7 + Math.floor(i / 2) * 3;
-      p.rect(cx, cy, 2, 2, shade(P.glow, 2));
-      p.set(cx, cy, shade(P.glow, 3));
+    // Six counting dots, not a ten-frame.
+    //
+    // A ten-frame needs ten cells and a divider, and on a board sixteen
+    // pixels wide that is a rectangle with some specks in it — the
+    // contact sheet showed a white box with two blobs. Dots big enough
+    // to count survive; the ten-frame lives inside the house, at the
+    // size it needs.
+    const hell = shade(P.glow, 3);
+    const kern = shade(P.glow, 2);
+    for (let i = 0; i < 6; i++) {
+      const cx = 3 + (i % 3) * 5, cy = 5 + Math.floor(i / 3) * 5;
+      p.rect(cx, cy, 4, 4, kern);
+      p.rect(cx, cy, 2, 2, hell);
     }
   } else if (art === 1) {
-    // An ear. The listening house asks with a picture and a voice, and
-    // the ear is already the button a child taps to hear it again.
-    const haut = shade(P.skin, 1);
-    // An ellipse rather than a rectangle with the corners knocked off:
-    // `set` writes a colour and there is no way to write "nothing", so
-    // the shape has to be drawn round in the first place.
-    p.ellipse(9, 9, 4, 5, haut);
-    const tief = shade(P.skin, 0);
-    p.rect(8, 6, 3, 5, tief);
-    p.rect(9, 7, 1, 3, shade(P.timber, 0));
-    p.rect(7, 11, 3, 2, tief);
+    // Sound coming out, not an ear.
+    //
+    // The ear works at sixty-eight pixels, where it is the button a
+    // child taps to hear a word again. At sixteen it was a brown smudge
+    // — the contact sheet made that unarguable in one look — because an
+    // ear is all internal detail and there is no room for any of it.
+    //
+    // A source and two arcs has almost no internal detail at all, which
+    // is why it survives: it is the shape every volume control in the
+    // world uses, and a child who has used a tablet has seen it.
+    const ton = shade(P.chalk, 2);
+    const hell = shade(P.chalk, 3);
+    p.rect(3, 6, 3, 6, ton);
+    p.rect(6, 4, 2, 10, ton);
+    for (const [x, r] of [[9, 3], [12, 5]] as const) {
+      for (let dy = -r; dy <= r; dy++) {
+        const dx = Math.round(Math.sqrt(Math.max(0, r * r - dy * dy)) * 0.42);
+        p.rect(x + dx - 1, 9 + dy, 2, 1, hell);
+      }
+    }
+  } else if (art === 3) {
+    // A plus and a minus. Not letters, and not a sum either — a sum
+    // would be a question on a signboard, and a child who cannot do it
+    // yet would read the door as "not for you". These are the two marks
+    // the house is full of, and nothing more.
+    //
+    // ONE plus, filling the board, and no minus beside it.
+    //
+    // `schild()` already carries this lesson twenty lines further up —
+    // "The first version had a little house AND an arrow on a board
+    // fifteen pixels wide, and at the size it is actually seen the two
+    // merged into a smudge" — and this plaque made the same mistake in
+    // the same building. A plus and a minus sharing sixteen pixels left
+    // four-pixel arms with two-pixel notches, and the antialiasing in
+    // `finish` filled the notches: from the path it was a gold diamond.
+    //
+    // Alone, the plus gets eleven pixels and four-pixel notches, which
+    // survive. Both strokes are odd so they share one centre pixel.
+    const zeichen = shade(P.glow, 1);
+    p.rect(3, 7, 11, 3, zeichen);
+    p.rect(7, 3, 3, 11, zeichen);
   } else {
     // A circle and a triangle, in the colours the shapes house gives
     // them and keeps giving them — a child still learning the word

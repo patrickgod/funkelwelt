@@ -38,12 +38,12 @@ export const ZEILEN: readonly string[] = [
   '##.TTT.....,...T.F..TT..Tt..s~~~sTTTTT.T..#.F."#',
   '##........T.,....T..T....,T"s~~~s.T"T.,.T.#,.*.#',
   '##...,.,.T.T........S....,..s~~~s...T...T.#...F#',
-  '##............."".......o.*"s~~~s..........G####',
-  '##.......,.,...,......=======bbb======......####',
-  '##..F............t.,,.=....,s~~~s....=..."..####',
-  '##.".......,.".,...,..=.."..s~~~s....=T....".###',
-  '##....".......,..oS,.,=.tt..s~~~s..".=.....".###',
-  '##.T,S.,.......WWWWW..=.....s~~~s..S.=........##',
+  '##...NNNNN....."".......o.*"s~~~s..........G####',
+  '##...NNNNN.,...,......=======bbb======......####',
+  '##..FNNNNN.......t.,,.=....,s~~~s....=..."..####',
+  '##.".NNNNN.,.".,...,..=.."..s~~~s....=T....".###',
+  '##...NNNNN....,..oS,.,=.tt..s~~~s..".=.....".###',
+  '##.T,S.n.4.*...WWWWW..=.....s~~~s..S.=........##',
   '##."...........WWWWW.*=.....s~~~s....=MMMMM.F.##',
   '##.,.".......,.WWWWW..="....s~~~s...*=MMMMM...##',
   '##...HHHHH.....WWWWW..=...,,s~~~s"...=MMMMM...##',
@@ -79,7 +79,7 @@ export const GRAS = 0, BLUMEN = 1, HOCHGRAS = 2, WEG = 3,
   BRUECKE = 4, SAND = 5, WASSER = 6, FELS = 7;
 
 /** Everything a hero cannot walk through. */
-const FEST_ZEICHEN = '#~TtoHf^*GgKWM123';
+const FEST_ZEICHEN = '#~TtoHf^*GgKWMN1234';
 /** Everything that reads as water for the purpose of drawing an edge. */
 const NASS = '~b';
 /** Everything that reads as path for the purpose of drawing an edge. */
@@ -105,6 +105,9 @@ function amWasser(x: number, y: number): boolean {
 }
 
 // ------------------------------------------------------------ the things
+
+/** Which door he is standing in, if any. */
+export type Tuer = 'mathe' | 'wort' | 'formen' | 'rechnen';
 
 export type Art =
   | 'baum' | 'busch' | 'stein' | 'haus' | 'zaun' | 'schild' | 'laterne' | 'tafel';
@@ -194,6 +197,9 @@ export let TUER_WORT = { tx: -1, ty: -1 };
 /** Das Haus der Formen. */
 export let TUER_FORMEN = { tx: -1, ty: -1 };
 
+/** Das Haus der Rechenmeister. */
+export let TUER_RECHNEN = { tx: -1, ty: -1 };
+
 function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void {
   const mitte = tx * KACHEL + (tiles * KACHEL) / 2;
   const fuss = (ty + 1) * KACHEL;
@@ -219,6 +225,7 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
   let hausX0 = KW, hausX1 = -1, hausY1 = -1;
   let wortX0 = KW, wortX1 = -1, wortY1 = -1;
   let formX0 = KW, formX1 = -1, formY1 = -1;
+  let rechX0 = KW, rechX1 = -1, rechY1 = -1;
 
   for (let y = 0; y < KH; y++) {
     for (let x = 0; x < KW; x++) {
@@ -232,7 +239,7 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
         case '.': b = GRAS; break;
         case ',': b = BLUMEN; break;
         case '"': b = HOCHGRAS; break;
-        case '=': case 'D': case 'E': case 'm':
+        case '=': case 'D': case 'E': case 'm': case 'n':
         case 'G': case 'g': b = WEG; break;
         case 'b': b = BRUECKE; break;
         case 's': b = SAND; break;
@@ -287,6 +294,9 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
         case 'm':
           TUER_FORMEN = { tx: x, ty: y };
           break;
+        case 'n':
+          TUER_RECHNEN = { tx: x, ty: y };
+          break;
         // The plaques beside the three doors. Not decoration: the house
         // sprite is the same building three times, so without these the
         // only way to find the shapes house is to walk into two wrong
@@ -294,10 +304,16 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
         case '1': stell('tafel', x, y, 0); break;
         case '2': stell('tafel', x, y, 1); break;
         case '3': stell('tafel', x, y, 2); break;
+        case '4': stell('tafel', x, y, 3); break;
         case 'W':
           wortX0 = Math.min(wortX0, x);
           wortX1 = Math.max(wortX1, x);
           wortY1 = Math.max(wortY1, y);
+          break;
+        case 'N':
+          rechX0 = Math.min(rechX0, x);
+          rechX1 = Math.max(rechX1, x);
+          rechY1 = Math.max(rechY1, y);
           break;
         case 'M':
           formX0 = Math.min(formX0, x);
@@ -318,6 +334,7 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
   stell('haus', hausX0, hausY1, 1, hausX1 - hausX0 + 1);
   if (wortX1 >= 0) stell('haus', wortX0, wortY1, 2, wortX1 - wortX0 + 1);
   if (formX1 >= 0) stell('haus', formX0, formY1, 3, formX1 - formX0 + 1);
+  if (rechX1 >= 0) stell('haus', rechX0, rechY1, 4, rechX1 - rechX0 + 1);
 
   // Back to front. Sorted once here rather than every frame: the world
   // is authored and nothing in it ever moves, so the order it is drawn
@@ -464,10 +481,11 @@ export function route(vx: number, vy: number, zx: number, zy: number): { x: numb
  * award a Wort-Stern, so "Wörter 1" sat on the title screen for ever
  * and half the design was a promise.
  */
-export function inTuer(x: number, y: number): 'mathe' | 'wort' | 'formen' | null {
+export function inTuer(x: number, y: number): Tuer | null {
   const tx = Math.floor(x / KACHEL), ty = Math.floor(y / KACHEL);
   if (tx === TUER.tx && ty === TUER.ty) return 'mathe';
   if (tx === TUER_WORT.tx && ty === TUER_WORT.ty) return 'wort';
   if (tx === TUER_FORMEN.tx && ty === TUER_FORMEN.ty) return 'formen';
+  if (tx === TUER_RECHNEN.tx && ty === TUER_RECHNEN.ty) return 'rechnen';
   return null;
 }
