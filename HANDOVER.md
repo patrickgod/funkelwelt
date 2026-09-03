@@ -150,16 +150,42 @@ taken away and nothing marked.
 And when a pair to ten comes good in **both** directions, that outranks
 the payout and is shown first. That is the thing the whole app is for.
 
-There are **two houses**. The lit door west opens *Das Haus der
-verliebten Zahlen* and pays Mathe-Sterne; the door east opens *Das Haus
-der ersten Laute* and pays Wort-Sterne. The second one is what makes the
-per-subject stars mean anything — before it existed nothing could award
-a Wort-Stern at all.
+There are **three houses**. The lit door west opens *Das Haus der
+verliebten Zahlen* and pays Mathe-Sterne; the door in the middle opens
+*Das Haus der ersten Laute* and pays Wort-Sterne; the door east, off the
+north-south path, opens *Das Haus der Formen* and pays Mathe-Sterne
+again. The second one is what makes the per-subject stars mean anything
+— before it existed nothing could award a Wort-Stern at all.
+
+The shapes house paying MATHE-Sterne is deliberate and is the sort of
+thing to argue with before changing. Shapes and patterns sit in the same
+strand of the curriculum as counting, so a child who finds adding hard
+and sees shapes instantly has a second road to the star that opens the
+Zahlen gate. Giving them a third currency would have told them that the
+thing they are good at is a different, lesser subject.
+
+It is also the only house that works with the sound switched off, which
+makes it the one to point a parent at in a waiting room. That is not
+luck — Lernkiste asked its shape question with a voice and an empty
+stage, and it had to be redrawn as a silhouette to survive rule 15.
+
+A house may name SEVERAL generators (`Haus.spiel` takes a list), and the
+shapes house does: find-the-shape, continue-the-row, alternating by
+position. If you add a house like that, read the note on `answerOf` in
+`src/games/games.ts` first — it falls back to marking the first card
+correct, which is right for a child and very good at hiding this exact
+class of bug from you.
 
 The language house asks with a PICTURE and a spoken word, never with the
 written word, and the picture is not decoration: rule 15 says the sound
 is switchable off in two taps, and an exercise that stops working when a
 parent uses that switch in a waiting room is a broken exercise.
+
+Each door has a small **plaque** beside it saying what is done inside —
+a ten-frame, an ear, a circle and a triangle, and no letters on any of
+them. They are not decoration: `haus.png` is one generated sprite used
+for all three doors, so without them the only way to find the shapes
+house is to walk into two wrong ones and remember which.
 
 A **cart** stands beside the path out of the house with four things on
 it. Read `src/ui/laden.ts` before changing it: every rule in there is a

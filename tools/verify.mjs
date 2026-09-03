@@ -817,12 +817,13 @@ async function beiTor(sterne, wort = 0) {
     await page.locator('.formfrage canvas').count() === 1);
 
   let sahForm = await page.locator('.formfrage canvas').count() > 0;
-  let sahMuster = false;
-  let geprueft = false;
+  let sahMuster = 0;
+  let richtig = 0;
   let gestellt = 0;
 
-  for (let i = 0; i < 14; i++) {
+  for (let i = 0; i < 16; i++) {
     if (await page.locator('.blatt').count()) break;
+    await lumaWeg();
     const karten = page.locator('.karten button');
     const n = await karten.count();
     if (n === 0) break;
@@ -832,46 +833,48 @@ async function beiTor(sterne, wort = 0) {
       .evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')));
 
     if (reihe.length) {
-      sahMuster = true;
       // Continue the row by finding the unit that repeats. This is the
-      // definition of a pattern rather than a copy of the generator:
-      // the shortest length whose repeat reproduces every cell.
+      // DEFINITION of a pattern rather than a copy of the generator:
+      // the shortest length whose repeat reproduces every cell, which
+      // is what the child is doing when they read along it.
       let unit = reihe.length;
       for (let u = 1; u <= reihe.length; u++) {
         if (reihe.every((f, k) => f === reihe[k % u])) { unit = u; break; }
       }
       const weiter = reihe[reihe.length % unit];
-
-      if (!geprueft) {
-        const labels = await karten.evaluateAll(
-          (els) => els.map((e) => e.getAttribute('aria-label')));
-        const idx = labels.indexOf(weiter);
+      const labels = await karten.evaluateAll(
+        (els) => els.map((e) => e.getAttribute('aria-label')));
+      const idx = labels.indexOf(weiter);
+      if (idx < 0) {
         check('the pattern the child can read is on one of the cards',
-          idx >= 0, `row ${reihe.join(',')} → ${weiter}; cards ${labels.join(',')}`);
-        if (idx >= 0) {
-          await karten.nth(idx).tap();
-          await page.waitForTimeout(500);
-          // THE ONE THAT MATTERS. If the round resolved this question
-          // with the shapes rule instead of the pattern rule, the card
-          // a child would correctly choose is marked wrong.
-          check('and answering a pattern question by reading the row is RIGHT',
-            await page.locator('.karten button.richtig').count() === 1,
-            `tapped ${weiter}`);
-          geprueft = true;
-          await page.waitForTimeout(1900);
-          continue;
-        }
+          false, `row ${reihe.join(',')} → ${weiter}; cards ${labels.join(',')}`);
+      } else {
+        sahMuster++;
+        await karten.nth(idx).tap();
+        await page.waitForTimeout(600);
+        if (await page.locator('.karten button.richtig').count() === 1) richtig++;
       }
-    } else if (await page.locator('.formfrage canvas').count()) {
-      sahForm = true;
+      await page.waitForTimeout(2200);
+      continue;
     }
 
+    if (await page.locator('.formfrage canvas').count()) sahForm = true;
     await karten.first().tap();
     await page.waitForTimeout(2400);
   }
 
+  // EVERY pattern question in the round, not the first one.
+  //
+  // The first version checked only the first, and a sabotage that
+  // resolved every question with the house's first generator sailed
+  // through it: that bug falls back to card zero, and the row's
+  // continuation happened to BE card zero that run. One question is a
+  // coin toss with three sides; five of them is not.
+  check('every pattern question is right when answered by reading the row',
+    sahMuster > 0 && richtig === sahMuster, `${richtig} of ${sahMuster} correct`);
+
   check('the round mixes both kinds of question rather than ten of one',
-    sahForm && sahMuster, `shapes ${sahForm}, patterns ${sahMuster}`);
+    sahForm && sahMuster > 0, `shapes ${sahForm}, patterns ${sahMuster}`);
   check('answering ten of them finishes the round',
     await page.locator('.blatt').count() === 1, `answered ${gestellt}`);
 

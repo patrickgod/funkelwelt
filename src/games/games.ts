@@ -360,6 +360,21 @@ export const muster: Game = {
 export function answerOf(gameId: string, q: Question): number {
   const want = expectedAnswer(gameId, q);
   const i = q.choices.indexOf(want);
+  // The fallback stays, and it is a landmine worth naming.
+  //
+  // If the answer cannot be found among the cards, something upstream
+  // is wrong — and this quietly marks the FIRST card correct instead of
+  // saying so. A sabotage run that resolved every question with the
+  // wrong generator sailed through the first version of the shapes
+  // check because of exactly this: the bug picks card zero, and card
+  // zero happened to be right that time.
+  //
+  // It is not a throw, because the alternative to a wrong card is a
+  // six-year-old looking at a crashed screen, and that is worse. So the
+  // safety net stays here and the alarm lives in `tools/verify.mjs`,
+  // which answers a pattern question by reading the row rather than by
+  // asking this function — every one of them in the round, because one
+  // of them is a coin toss.
   return i >= 0 ? i : 0;
 }
 

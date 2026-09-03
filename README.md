@@ -141,12 +141,23 @@ ever rises; a wrong answer moves nothing at all; leaving costs nothing.
 It is chased away, never killed, and it leaves a light where it stood —
 so the world gets brighter as you clear them.
 
-There are two houses. One teaches the pairs that make ten and pays
-**Mathe-Sterne**; the other asks which letter a word starts with — a
-picture and a voice, never the written word — and pays **Wort-Sterne**.
-That is the whole reason the stars are per subject: a child who loves
-numbers and finds letters hard is visibly good at something rather than
-behind, and the gates that open are the ones they earned.
+There are three houses. One teaches the pairs that make ten and pays
+**Mathe-Sterne**; one asks which letter a word starts with — a picture
+and a voice, never the written word — and pays **Wort-Sterne**; one
+asks you to find a shape and to continue a row of them, and pays
+Mathe-Sterne again. That is the whole reason the stars are per subject:
+a child who loves numbers and finds letters hard is visibly good at
+something rather than behind, and the gates that open are the ones they
+earned.
+
+The shapes house pays the maths star on purpose. Shapes and patterns
+are maths, and a child who is slow at sums but sees a pattern instantly
+should be able to earn the same star by the road that suits them. It is
+also the one house that works with the sound switched off, which is the
+one to open in a waiting room.
+
+Each door carries a small plaque showing what is done inside — a
+ten-frame, an ear, a circle and a triangle. Not a word on any of them.
 
 A cart beside the path sells four things — a better lantern, fast boots,
 a Mut band, a hat. One screen, nothing to place, and every one is better

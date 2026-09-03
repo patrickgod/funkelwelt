@@ -152,6 +152,35 @@ it.** A risk you have not built is a risk you are still carrying.
   and a five-pointed mark is two pixels, so from where a child actually
   stands the two gates were the same door twice.
 
+* **Das Haus der Formen, and a plaque on every door.** The third door.
+  Shapes and patterns came across from Lernkiste with their generators
+  and their flat drawings; a house may now name several games, so a
+  round alternates find-the-shape and continue-the-row rather than
+  being ten of either.
+
+  It pays **Mathe-Sterne**, which is the design decision and not a
+  filing one: shapes and patterns are the same strand of the curriculum
+  as counting, so a child who finds adding hard and sees shapes
+  instantly has a second way to earn the star that opens the Zahlen
+  gate. A third currency would have said their strength was a lesser
+  subject.
+
+  Two things were changed on the way over rather than copied. The shape
+  question was spoken and nothing else, which stops being a question the
+  moment a parent uses the sound switch — it is a grey silhouette now,
+  which is also a better exercise, because matching a silhouette to a
+  coloured shape is recognising the form apart from its colour. And the
+  star shape was `glow`, the exact colour of a Mathe-Stern, sitting
+  among the answer cards of a game whose reward is a gold star; it is
+  purple.
+
+  The plaques are the readability half. `haus.png` is one sprite used
+  for all three doors, so finding the shapes house meant walking into
+  two wrong ones and remembering which — a child memorising a map
+  instead of reading one. Each door now has a small coded plaque saying
+  what is done inside: a ten-frame, an ear, a circle and a triangle. No
+  letters on any of them.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick
@@ -231,11 +260,19 @@ something to answer it with now.
 ten things, come out stronger, watch the bar move — with no combat and
 no fairy, and that is enough to be worth a real playtest.
 
-### 3. More of LernInseln's houses
+### 3. More of Lernkiste's houses
 
-Still over there and all of them code: the first words, the rhymes, the
-shapes, the patterns, and the two writing houses (which also need the
-tracing surface). Each is a door, a generator and a prompt kind.
+Still over there and all of them code: the first words, the rhymes, and
+the two writing houses (which also need the tracing surface). Each is a
+door, a generator and a prompt kind, and a house may now name more than
+one of them.
+
+The shapes and the patterns have crossed. What that cost, for
+estimating the rest: a morning, of which the generators were twenty
+minutes and the two things that had to be REDESIGNED rather than copied
+were most of the remainder. Assume the same for each of the others —
+none of them arrives unchanged, because Lernkiste answered to a menu
+and this one answers to a world.
 
 ### 4. A second region
 

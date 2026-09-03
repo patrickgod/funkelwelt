@@ -411,3 +411,47 @@ connects to is a shared global for no benefit.** And more usefully:
 summary line too.** Both of these looked, at a glance, like a clean run
 that simply had nothing to say — and "no output" reads as "fine" to a
 tired eye at exactly the moment it means "this measured nothing".
+
+## A check that only looks at the first one is a coin toss
+
+**Signature:** a deliberately broken build passed the check written to
+catch it, and the check was not wrong — it was just too short.
+
+Das Haus der Formen asks two kinds of question in one round, and
+`buildRound` resolves each with the generator that made it. The bug
+worth guarding against is resolving all ten with the house's FIRST
+generator, and it is invisible from outside, because `answerOf` falls
+back to marking card zero correct when it cannot find the answer among
+the cards.
+
+So the check answers a pattern question by reading the row — which is
+what the child does, and is an independent oracle rather than a copy of
+the generator — and asserts the card is marked right. Sabotaged, and it
+passed:
+
+```
+ok  and answering a pattern question by reading the row is RIGHT — tapped herz
+```
+
+Three cards, shuffled. The bug picks card zero. That run, the row's
+continuation *was* card zero. The check was a one-in-three coin toss and
+it lost.
+
+Checking every pattern question in the round instead of the first one
+turned it into `0 of 5 correct` immediately, and the odds of a false
+pass went from 33% to under half a percent.
+
+Generalises: **when a check samples something the code shuffles, sample
+all of it.** The instinct to check the first one and move on is right
+for a check about STRUCTURE — is the row there, does it have a gap —
+and wrong for every check whose subject is a value that varies. The
+question to ask is "how many ways could this pass by accident", and if
+the answer is a small number, the check has that many sides.
+
+There is a second lesson underneath it. The first sabotage attempt
+changed the line that picks the generator, which changed which
+questions were GENERATED as well as how they were answered — so the
+round became ten shape questions and a different check caught it. That
+felt like success and was not: the bug I meant to test had never been
+built. **A sabotage has to break exactly one thing**, or what you have
+proved is that the suite notices something, not that it notices this.
