@@ -1,9 +1,9 @@
-// Luma's portrait, drawn by Gemini at BUILD time.
+// The two painted pictures in this game, drawn by Gemini at BUILD time.
 //
-//   node tools/genluma.mjs              # if assets/luma/luma.png is missing
-//   node tools/genluma.mjs --force      # again
-//   node tools/genluma.mjs --varianten  # four to choose from, into art_raw/
-//   node tools/genluma.mjs --model gemini-3-pro-image
+//   node tools/genkunst.mjs --was luma   --varianten   # four to choose from
+//   node tools/genkunst.mjs --was luma   --force --aus art_raw/luma-2.png
+//   node tools/genkunst.mjs --was titel  --varianten
+//   node tools/genkunst.mjs --was titel  --force --aus art_raw/titel-1.png
 //
 // Key: GEMINI_API_KEY, or C:\Development\shortsmith\.env.
 //
@@ -44,7 +44,17 @@ const MODEL = args.includes('--model') ? args[args.indexOf('--model') + 1] : 'ge
 /** Skip the drawing and process a variant that has already been chosen. */
 const AUS = args.includes('--aus') ? args[args.indexOf('--aus') + 1] : null;
 
-const ZIEL = 'assets/luma/luma.webp';
+/** Which picture. `luma` is her portrait; `titel` is the opening art. */
+const WAS = args.includes('--was') ? args[args.indexOf('--was') + 1] : 'luma';
+
+const DATEI = args.includes('--datei') ? args[args.indexOf('--datei') + 1] : 'sprite';
+const ZIELE = {
+  luma: 'assets/luma/luma.webp',
+  titel: 'assets/kunst/titel.webp',
+  sprite: `art_raw/${DATEI}-roh.png`,
+};
+const ZIEL = ZIELE[WAS];
+if (!ZIEL) throw new Error(`--was must be one of ${Object.keys(ZIELE).join(', ')}`);
 
 function apiKey() {
   if (process.env.GEMINI_API_KEY) return process.env.GEMINI_API_KEY;
@@ -124,6 +134,88 @@ midriff, no low neckline, no cleavage. She is looked at by young
 children and she is dressed like a storybook illustration. No grim,
 edgy, gothic or melancholy treatment; she is warm.`
 
+/**
+ * The opening picture.
+ *
+ * A child sees this before they have touched anything, so it has one
+ * job: say what kind of place this is. Wide, so the title can sit in the
+ * sky above it, and lit from one small source in the middle of a lot of
+ * dark — which is the entire premise of the game in one image.
+ */
+const TITEL_BRIEF = `Key art for the title screen of a gentle
+role-playing game made for a six-year-old child.
+
+THE PICTURE
+A wide landscape at dusk, seen from a little way back. In the middle
+distance, small in the frame and lit from within their own lantern,
+a single child in a green tunic walks a path through a quiet meadow
+towards a small half-timbered cottage whose windows are warm and lit.
+Beside the child's shoulder floats a tiny fairy: a mote of golden light
+with faint wings, no bigger than an apple.
+
+Around them the world is dim but not frightening — deep blue-green
+meadow, a still pond catching the last of the sky, the dark mass of a
+wood, low cliffs. Lamp posts along the path, each a small pool of warm
+gold. A few motes of light drifting in the air.
+
+The whole image is warm light against a deep cool dark. It should feel
+like the moment before an adventure, not during one: quiet, expectant,
+safe.
+
+STYLE
+Hand-painted storybook illustration with the composition of Japanese
+role-playing game key art — Final Fantasy, Ni no Kuni, the calmer Zelda
+box art. Painterly digital illustration, soft edges, strong warm/cool
+contrast, generous atmosphere. NOT pixel art, NOT 3D rendered, NOT a
+photograph.
+
+COMPOSITION
+Wide 16:9. The upper third is open sky and haze, with nothing important
+in it, because a title will sit there. The child is small — no more than
+a tenth of the frame's height — and slightly left of centre. The eye
+should go to the lantern first, then the cottage.
+
+PALETTE
+Deep indigo and plum for the dark, sea-green and moss for the meadow,
+warm gold and honey for every light source. Nothing grey, nothing black,
+nothing garish.
+
+MUST NOT
+No text, letters, numbers, logos, watermark or signature anywhere — the
+title is added separately. No frame, no border, no vignette. No weapons,
+no monsters, no danger, nothing menacing in the dark. No faces in
+close-up. Not grim, not gothic, not melancholy. Warm.`
+
+/**
+ * One shared style clause, so every generated sprite agrees with every
+ * other one AND with the hundreds of pixels still drawn in code.
+ *
+ * Lifted in shape from Tidegarden's `tools/genart.mjs`, which had
+ * already worked out that the two clauses doing the real work are the
+ * LIGHT DIRECTION and the flat magenta ground. The light direction is
+ * this project's oldest rule and the one thing a generated sprite can
+ * get wrong in a way no amount of palette snapping will fix; the magenta
+ * is what lets the background be cut away.
+ */
+const SPRITE = (subjekt) =>
+  `Pixel art sprite of ${subjekt}, top-down three-quarter view — the `
+  + 'Zelda camera, where you see the face of a thing and the ground it '
+  + 'stands on. For a gentle role-playing game made for a six-year-old. '
+  + 'Chunky readable forms, strong silhouette, visible pixel blocks, NO '
+  + 'anti-aliasing, no gradients, a limited flat palette of about eight '
+  + 'colours. Lighting strictly from the UPPER LEFT: lit top and left '
+  + 'faces, shaded right faces and undersides. Storybook colours — moss '
+  + 'and sage greens, warm sand, cream plaster, terracotta, weathered '
+  + 'timber, slate blue, and warm gold for anything lit. Clean dark '
+  + 'edges but NO solid black outline all the way around. Centred and '
+  + 'filling the frame, on a FLAT PURE MAGENTA #FF00FF background. No '
+  + 'ground, no cast shadow, no text, no border, no UI, no extra '
+  + 'objects, nothing frightening.';
+
+const SUBJEKT = args.includes('--subjekt') ? args[args.indexOf('--subjekt') + 1] : '';
+
+const BRIEFS = { luma: BRIEF, titel: TITEL_BRIEF, sprite: SPRITE(SUBJEKT) };
+
 async function bild(prompt, path) {
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`,
@@ -132,7 +224,10 @@ async function bild(prompt, path) {
       headers: { 'x-goog-api-key': apiKey(), 'content-type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseModalities: ['IMAGE'], imageConfig: { aspectRatio: '1:1' } },
+        generationConfig: {
+          responseModalities: ['IMAGE'],
+          imageConfig: { aspectRatio: WAS === 'titel' ? '16:9' : '1:1' },
+        },
       }),
     });
   if (!res.ok) throw new Error(`${res.status} ${(await res.text()).slice(0, 400)}`);
@@ -168,8 +263,8 @@ function schrumpfen(von, nach) {
     execFileSync('ffmpeg', [
       '-y', '-hide_banner', '-loglevel', 'error',
       '-i', von,
-      '-vf', 'scale=448:448:flags=lanczos',
-      '-c:v', 'libwebp', '-quality', '86',
+      '-vf', WAS === 'titel' ? 'scale=1280:-2:flags=lanczos' : 'scale=448:448:flags=lanczos',
+      '-c:v', 'libwebp', '-quality', WAS === 'titel' ? '80' : '86',
       nach,
     ], { stdio: 'pipe' });
     return true;
@@ -184,10 +279,10 @@ function schrumpfen(von, nach) {
 if (VARIANTEN) {
   mkdirSync('art_raw', { recursive: true });
   for (let i = 1; i <= 4; i++) {
-    const path = `art_raw/luma-${i}.png`;
+    const path = `art_raw/${WAS}-${i}.png`;
     process.stdout.write(`  variant ${i} … `);
     try {
-      await bild(BRIEF, path);
+      await bild(BRIEFS[WAS], path);
       console.log(path);
     } catch (e) {
       console.log(`FAILED ${e.message}`);
@@ -203,7 +298,7 @@ if (!FORCE && existsSync(ZIEL)) {
   process.exit(0);
 }
 
-mkdirSync('assets/luma', { recursive: true });
+mkdirSync(ZIEL.slice(0, ZIEL.lastIndexOf('/')), { recursive: true });
 mkdirSync('art_raw', { recursive: true });
 
 // `--aus` is how a choice gets made. Four variants come back from one
@@ -212,12 +307,19 @@ mkdirSync('art_raw', { recursive: true });
 // command in the shell history rather than a file somebody dragged.
 let roh = AUS;
 if (!roh) {
-  roh = 'art_raw/luma-roh.png';
+  roh = `art_raw/${WAS}-roh.png`;
   process.stdout.write(`  asking ${MODEL} … `);
-  await bild(BRIEF, roh);
+  await bild(BRIEFS[WAS], roh);
   console.log('ok');
 }
-if (!schrumpfen(roh, ZIEL)) writeFileSync(ZIEL, readFileSync(roh));
+if (WAS === 'sprite') {
+  // A sprite goes to `tools/pixelise.mjs` next, which wants the full
+  // resolution: shrinking it here would throw away the very edges that
+  // pass is trying to find the grid in.
+  if (roh !== ZIEL) writeFileSync(ZIEL, readFileSync(roh));
+} else if (!schrumpfen(roh, ZIEL)) {
+  writeFileSync(ZIEL, readFileSync(roh));
+}
 const gross = readFileSync(ZIEL).length;
 console.log(`  ${ZIEL} — ${Math.round(gross / 1024)} KB from ${roh}`);
 if (!AUS && existsSync(roh) && gross > 0) unlinkSync(roh);

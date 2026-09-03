@@ -110,26 +110,23 @@ export type Art = 'baum' | 'busch' | 'stein' | 'haus' | 'zaun' | 'schild' | 'lat
 
 export interface Ding {
   art: Art;
-  /** Top-left of the sprite, in world pixels. */
-  x: number;
-  y: number;
+  /**
+   * Where it stands, in world pixels: the middle of its footprint and
+   * the line it meets the ground on.
+   *
+   * NOT a top-left corner any more. A generated sprite is whatever size
+   * the pixeliser made it, and that is not known when this module is
+   * read — so the corner is computed at draw time from the picture that
+   * actually exists, and this stores only the two numbers that are
+   * decided by the map rather than by the art.
+   */
+  mitte: number;
   /** Where it meets the ground — the key everything is sorted by. */
   fuss: number;
   seed: number;
   /** Lamp posts light the world; everything else only stands in it. */
   licht: { x: number; y: number } | null;
 }
-
-/** Sprite size and where its foot sits, per kind. */
-const MASS: Record<Art, { w: number; h: number }> = {
-  baum: { w: 26, h: 34 },
-  busch: { w: 18, h: 15 },
-  stein: { w: 16, h: 13 },
-  haus: { w: 80, h: 100 },
-  zaun: { w: 16, h: 18 },
-  schild: { w: 18, h: 24 },
-  laterne: { w: 13, h: 34 },
-};
 
 export const dinge: Ding[] = [];
 
@@ -147,16 +144,17 @@ export let START = { x: 0, y: 0 };
 export let TUER = { tx: 0, ty: 0 };
 
 function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void {
-  const m = MASS[art];
   const mitte = tx * KACHEL + (tiles * KACHEL) / 2;
   const fuss = (ty + 1) * KACHEL;
   dinge.push({
     art,
-    x: Math.round(mitte - m.w / 2),
-    y: fuss - m.h,
+    mitte: Math.round(mitte),
     fuss,
     seed,
-    licht: art === 'laterne' ? { x: Math.round(mitte), y: fuss - m.h + 8 } : null,
+    // A lamp lights from its lantern, which is near the top of a
+    // thirty-four pixel post. Measured from the foot rather than from
+    // the sprite, so it does not move when the sprite is redrawn.
+    licht: art === 'laterne' ? { x: Math.round(mitte), y: fuss - 26 } : null,
   });
 }
 

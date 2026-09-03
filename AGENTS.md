@@ -99,20 +99,45 @@ tooling, the muscle memory and the pixel-art pipeline all transfer.
 * **TypeScript**, no framework, bundled with **esbuild**.
 * **Canvas** for the world, plain **DOM** for menus and buttons — the
   DOM is better at buttons and canvas is better at pixels.
-* **Pixel art on a closed palette** (`src/core/palette.ts`). Shading
-  means **stepping along a ramp**, never multiplying a colour. Light
-  comes from the upper LEFT, always. Every sprite is drawn in code.
-* **One exception, and only one: Luma's portrait.** She is not part of
-  the world — she is a painting in a box in FRONT of it, which is where
-  Final Fantasy, Persona and modern Zelda put their illustrated art.
-  Pixels in the world, a painting in the dialogue box; the contrast is
-  the convention rather than a mistake. `tools/genluma.mjs` writes the
-  brief and asks Gemini at BUILD time; the running app has never heard
-  of it and still talks to nobody. The coded 46x46 version of her stays
-  in `src/spiel/luma.ts` as the offline fallback, and it is also the
-  argument for the exception: it is legible, on-palette, and about as
-  warm as a bus timetable. **Anything that goes IN the world is still
-  drawn in code.**
+* **One closed palette, and nothing outside it** (`src/core/palette.ts`).
+  Shading means **stepping along a ramp**, never multiplying a colour.
+  Light comes from the upper LEFT, always.
+
+  This — not "drawn in code" — is the rule that was actually keeping the
+  world coherent, and it took Patrick asking to drop the other one to
+  notice. A cherry tree and a fox and a little house read as ONE island
+  because they share 117 colours and one light direction, not because a
+  human typed their pixels.
+
+* **How a sprite gets made is a decision about SIZE.**
+
+  Big things are generated and then forced onto the palette:
+  `tools/genkunst.mjs --was sprite` draws it, `tools/pixelise.mjs` finds
+  the grid the model implied, area-averages down, and snaps every pixel
+  to the nearest palette colour — with `--ramps` naming which drawers it
+  is allowed to land in. Both are lifted from Tidegarden, where the
+  pipeline was built. `node tools/pixbatch.mjs` runs the whole set.
+
+  Small things stay drawn in code, and the threshold is **about 24
+  pixels**. That is measured, not guessed: a 100px house and a 34px tree
+  come back better than anything worth hand-coding, a 24px signpost
+  survives, and a 16px bush comes back as a pink smear. Tidegarden found
+  the same line from the other side — its villagers, rabbits, birds and
+  glints stayed code because they were *too small for generation to
+  survive the downsample*.
+
+  So: the adventurer (18×26), every 16×16 ground tile, the lightsparks,
+  the ten-frame, the icons and the effects are drawn. The house, the
+  trees, the lamp post, the signpost and the rock are generated. Both
+  halves land on the same palette, and `welt.ts` cannot tell them apart
+  — which is the test of whether this was done properly.
+
+* **Luma's portrait is neither.** She is a painting, not a sprite, and
+  she is in a box in FRONT of the world rather than in it — which is
+  where Final Fantasy, Persona and modern Zelda put theirs. She is the
+  only thing in the game not on the closed palette, and the coded 46×46
+  version of her in `src/spiel/luma.ts` stays as the offline fallback.
+
 * **`localStorage` only**, wrapped so a private-mode failure degrades to
   "this session only". Keyed, because there are three save slots.
 * **GitHub Pages** deploy from this repo, gated on the suite.
@@ -144,6 +169,9 @@ node tools/iconsheet.mjs         the icon at the sizes iOS draws it
 node tools/icons.mjs             regenerate those icons
 node tools/devlog.mjs            reassemble DEVLOG.md from devlog/*/article.md
 node tools/messen.mjs            what opening the world and walking cost
+node tools/pixbatch.mjs          generate + pixelise the whole sprite set
+node tools/pixelise.mjs a.png b.png --height 34 --ramps leaf,timber --clean
+node tools/genkunst.mjs --was titel --varianten
 ```
 
 `messen.mjs` is deliberately NOT part of `verify.mjs`. A headless

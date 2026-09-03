@@ -14,6 +14,7 @@ import { held, heldSchatten, HAUT, HAAR, KLEID, W as HW, H as HH,
   type Aussehen, type Richtung } from './spiel/held.js';
 import { Steuerung } from './spiel/steuerung.js';
 import { Welt } from './welt/welt.js';
+import * as sprites from './welt/sprites.js';
 import { el, tap, knopf } from './ui/dom.js';
 import * as runde from './ui/runde.js';
 import * as luma from './ui/luma.js';
@@ -327,6 +328,14 @@ let titelFrame = -1;
 // ------------------------------------------------------------- the world
 
 function zeigeWelt(): void {
+  // The generated sprites are read before the world is built, because
+  // the world composites its sprites synchronously and a tree that
+  // arrives afterwards is a tree that is never drawn. They are loaded
+  // once per session; the second call resolves immediately.
+  void sprites.laden().then(() => weltBauen());
+}
+
+function weltBauen(): void {
   schirm = 'welt';
   vorschau = null;
   leeren();

@@ -47,6 +47,7 @@ import { held, heldSchatten, W as HELD_W, H as HELD_H,
 import { Steuerung, TOT, WEIT } from '../spiel/steuerung.js';
 import * as k from './kacheln.js';
 import * as karte from './karte.js';
+import * as sprites from './sprites.js';
 
 /**
  * How far the lantern and a lamp post reach, in world pixels — an inner
@@ -257,21 +258,45 @@ export class Welt {
    * overlap so heavily that eight is already more than enough. The
    * difference is two hundred sprite builds at load or sixteen.
    */
+  /**
+   * How many versions of a kind there are.
+   *
+   * Eight when they are drawn — a seeded generator gives variety for
+   * free — and however many were generated when they are not, because
+   * there a variant costs a drawing.
+   */
+  private variantenVon(art: karte.Art): number {
+    const gen = sprites.varianten(art);
+    if (gen) return gen;
+    return art === 'haus' || art === 'schild' || art === 'laterne' ? 1 : 8;
+  }
+
   private bild(art: karte.Art, seed: number, stufe: number): HTMLCanvasElement {
-    const v = art === 'haus' || art === 'schild' || art === 'laterne' ? 0 : seed & 7;
+    const v = (seed >>> 0) % this.variantenVon(art);
     const key = `${art}:${v}:${stufe}`;
     const hit = this.dingBild.get(key);
     if (hit) return hit;
 
-    let p: Px;
-    switch (art) {
-      case 'baum': p = k.baum(v * 2654435761); break;
-      case 'busch': p = k.busch(v * 2654435761); break;
-      case 'stein': p = k.stein(v * 2654435761); break;
-      case 'zaun': p = k.zaun(v); break;
-      case 'schild': p = k.schild(); break;
-      case 'laterne': p = k.laterne(); break;
-      default: p = k.haus(); break;
+    // The generated sprite if there is one, the drawn one if not. Both
+    // are already on the closed palette, so everything below — the two
+    // steps down the ramp for the lantern — works either way.
+    let p = sprites.hol(art, v);
+    if (p) {
+      // A copy, because the loaded buffer is shared and `remap` is in
+      // place. Dimming the original once would dim it for ever.
+      const kopie = new Px(p.w, p.h);
+      kopie.data.set(p.data);
+      p = kopie;
+    } else {
+      switch (art) {
+        case 'baum': p = k.baum(v * 2654435761); break;
+        case 'busch': p = k.busch(v * 2654435761); break;
+        case 'stein': p = k.stein(v * 2654435761); break;
+        case 'zaun': p = k.zaun(v); break;
+        case 'schild': p = k.schild(); break;
+        case 'laterne': p = k.laterne(); break;
+        default: p = k.haus(); break;
+      }
     }
     // Build the lit one and step the SAME buffer down for the other two,
     // exactly as the region is built, so a tree and the grass it stands
@@ -620,12 +645,16 @@ export class Welt {
     hin: (x: number, y: number) => [number, number], S: number,
   ): void {
     const probe = this.bild(d.art, d.seed, 2);
-    if (d.x + probe.width < this.camX || d.x > this.camX + vw) return;
-    if (d.y + probe.height < this.camY || d.y > this.camY + vh) return;
+    // The corner is worked out from the picture that actually exists,
+    // because a generated sprite is whatever size the pixeliser made it.
+    const dx = d.mitte - Math.round(probe.width / 2);
+    const dy = d.fuss - probe.height;
+    if (dx + probe.width < this.camX || dx > this.camX + vw) return;
+    if (dy + probe.height < this.camY || dy > this.camY + vh) return;
     // A lamp post is never in its own shadow.
-    const stufe = d.licht ? 2 : this.beleuchtet(d.x + probe.width / 2, d.fuss - 4);
+    const stufe = d.licht ? 2 : this.beleuchtet(d.mitte, d.fuss - 4);
     const b = this.bild(d.art, d.seed, stufe);
-    const [sx, sy] = hin(d.x, d.y);
+    const [sx, sy] = hin(dx, dy);
     ctx.drawImage(b, sx, sy, b.width * S, b.height * S);
   }
 
