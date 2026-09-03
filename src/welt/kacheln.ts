@@ -660,24 +660,37 @@ export function tafel(art: number): Px {
       p.rect(cx, cy, 2, 2, hell);
     }
   } else if (art === 1) {
-    // Sound coming out, not an ear.
+    // Three boxes in a row with the middle one EMPTY — which is exactly
+    // the picture the Nachbarzahlen house asks every question with: a
+    // row of numbers, one of them missing.
     //
-    // The ear works at sixty-eight pixels, where it is the button a
-    // child taps to hear a word again. At sixteen it was a brown smudge
-    // — the contact sheet made that unarguable in one look — because an
-    // ear is all internal detail and there is no room for any of it.
+    // Set APART from each other. Touching, they read as a single dark
+    // bar with two coins in it rather than as three of anything, and
+    // three-ness is the whole point.
+    const rahmen = shade(P.timber, 1);
+    const voll = shade(P.glow, 2);
+    const leer = shade(P.plaster, 4);
+    for (let i = 0; i < 3; i++) {
+      const x = 2 + i * 6;
+      p.rect(x, 6, 4, 6, rahmen);
+      p.rect(x + 1, 7, 2, 4, i === 1 ? leer : voll);
+    }
+  } else if (art === 3) {
+    // Two arrows, one each way, STACKED rather than side by side.
     //
-    // A source and two arcs has almost no internal detail at all, which
-    // is why it survives: it is the shape every volume control in the
-    // world uses, and a child who has used a tablet has seen it.
-    const ton = shade(P.chalk, 2);
-    const hell = shade(P.chalk, 3);
-    p.rect(3, 6, 3, 6, ton);
-    p.rect(6, 4, 2, 10, ton);
-    for (const [x, r] of [[9, 3], [12, 5]] as const) {
-      for (let dy = -r; dy <= r; dy++) {
-        const dx = Math.round(Math.sqrt(Math.max(0, r * r - dy * dy)) * 0.42);
-        p.rect(x + dx - 1, 9 + dy, 2, 1, hell);
+    // Side by side they would be four pixels wide apiece and the
+    // antialiasing would eat the heads, which is how the plus and minus
+    // became a gold diamond. Stacked, each gets the full width of the
+    // board — and both are drawn from their own centre line, because
+    // the first version grew its heads downwards and the lower arrow
+    // hung off the bottom of the plaque and onto the post.
+    const hell = shade(P.glow, 3);
+    const kern = shade(P.glow, 2);
+    for (const [cy, rechts] of [[6, true], [12, false]] as const) {
+      p.rect(rechts ? 2 : 6, cy - 1, 9, 3, kern);
+      p.rect(rechts ? 2 : 6, cy - 1, 9, 1, hell);
+      for (let i = 0; i < 4; i++) {
+        p.rect(rechts ? 11 + i : 5 - i, cy - 3 + i, 1, 7 - i * 2, kern);
       }
     }
   } else {

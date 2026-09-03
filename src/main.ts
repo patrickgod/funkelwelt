@@ -502,8 +502,9 @@ function zeigeHaus(tuer: Tuer): void {
   dieWelt.ortSichern();
   leeren();
   fx.clear();
-  const haus = tuer === 'wort' ? runde.HAUS_ERSTE_LAUTE
-    : tuer === 'rechnen' ? runde.HAUS_RECHENMEISTER
+  const haus = tuer === 'nachbarn' ? runde.HAUS_NACHBARZAHLEN
+    : tuer === 'addition' ? runde.HAUS_ADDITION
+    : tuer === 'richtung' ? runde.HAUS_RICHTUNG
     : runde.HAUS_VERLIEBTE_ZAHLEN;
   runde.starten(ui, haus, () => {
     schirm = 'welt';

@@ -537,6 +537,8 @@ await measureButtons('world');
 // the whole reason the stars are per SUBJECT — was a promise.
 
 {
+  // Das Haus der Nachbarzahlen — the middle building, which was Das
+  // Haus der ersten Laute until Deutsch moved to a world of its own.
   await inDieWelt();
   await page.evaluate(() => {
     const k = 'funkelwelt.platz0.v1';
@@ -550,21 +552,15 @@ await measureButtons('world');
   await page.waitForTimeout(1400);
   await lumaWeg();
 
-  check('the second door opens the language house',
+  check('the middle door opens Das Haus der Nachbarzahlen',
     await page.locator('.runde').count() === 1
-    && await page.locator('.karten button').count() === 4);
-  await measureButtons('language house');
+    && await page.locator('.zahlenreihe').count() === 1);
+  await measureButtons('Nachbarzahlen');
 
-  // The question is a PICTURE and a sound, never a written word. A
-  // child who could read the word would not need to be asked what it
-  // starts with.
-  check('it asks with a picture, not with the written word',
-    await page.locator('.wortbild canvas').count() === 1
-    && await page.locator('.wortzeile').count() === 0);
-  check('and there is a way to hear it again',
-    await page.locator('.hoeren').count() === 1);
+  // A row with exactly one gap in it, and the gap is the question.
+  check('it asks with a row that has one gap in it',
+    await page.locator('.zahlenreihe .luecke').count() === 1);
 
-  // Answer it out, and see which star it pays.
   for (let i = 0; i < 14; i++) {
     if (await page.locator('.blatt').count()) break;
     const n = await page.locator('.karten button').count();
@@ -574,9 +570,10 @@ await measureButtons('world');
   }
   await page.waitForTimeout(1600);
   const s5 = await slot();
-  check('a round here pays Wort-Sterne', s5.sterne.wort > 0, `${s5.sterne.wort} Wort`);
-  check('and never Mathe-Sterne, which it did not teach',
-    s5.sterne.mathe === 0, `${s5.sterne.mathe} Mathe`);
+  check('a round here pays Mathe-Sterne, like every house in this world',
+    s5.sterne.mathe > 0, `${s5.sterne.mathe} Mathe`);
+  check('and no Wort-Stern exists in this world at all',
+    s5.sterne.wort === 0, `${s5.sterne.wort} Wort`);
 }
 
 // The hat has to be ON HIS HEAD.
@@ -789,6 +786,88 @@ async function beiTor(sterne, wort = 0) {
     drin.length > 0, `picked up ${JSON.stringify(drin)}`);
 }
 
+// -------------------------------------- Das Haus von links und rechts
+//
+// Patrick's: "Sprites seitlich von Vehikeln und Flugobjekten ... und die
+// Kinder müssen antippen was nach rechts fährt und was nach links."
+//
+// The fourth house, and the only one in the meadow that asks for no
+// counting. The check that matters is not that it opens — it is that a
+// child who reads the arrow and the vehicles, and nothing else, is
+// right. Everything here is a picture: get the direction cue wrong on
+// one sprite and the question becomes unanswerable in a way no amount
+// of maths knowledge would rescue.
+
+{
+  await inDieWelt();
+  await stellAuf(40.5, 19.4);
+  await inDieWelt();
+  await laufe('ArrowUp', 900);
+  await page.waitForTimeout(900);
+  check('the east door opens Das Haus von links und rechts',
+    await page.locator('.runde').count() === 1);
+
+  // Rule 15 again: the sound goes off in two taps, so the question has
+  // to be on the screen. It is an arrow, which is also not a word —
+  // rule 14 — because the child cannot read "rechts".
+  check('the question is an arrow, not a word and not only a voice',
+    await page.locator('.pfeilfrage canvas').count() === 1
+    && await page.locator('.buehne-q').first().evaluate(
+      (e) => !/rechts|links/i.test(e.textContent ?? '')));
+
+  let gestellt = 0, richtig = 0, gefragt = 0;
+  const gesehen = new Set();
+  for (let i = 0; i < 16; i++) {
+    if (await page.locator('.blatt').count()) break;
+    await lumaWeg();
+    const karten = page.locator('.karten button');
+    if (await karten.count() === 0) break;
+    gestellt++;
+
+    const labels = await karten.evaluateAll(
+      (els) => els.map((e) => e.getAttribute('aria-label') ?? ''));
+    for (const l of labels) gesehen.add(l.split(' ')[0]);
+
+    // Which way is being asked. Read off the arrow's own alt text
+    // rather than off the generator.
+    const nach = await page.locator('.pfeilfrage canvas')
+      .evaluate((e) => e.getAttribute('data-nach') ?? '');
+    const passend = labels.filter((l) => l.endsWith(nach));
+    if (passend.length !== 1) {
+      check('exactly one vehicle goes the way the arrow points',
+        false, `${passend.length} of ${labels.length} go ${nach}`);
+      gefragt++;
+    }
+    const idx = labels.findIndex((l) => l.endsWith(nach));
+    if (idx >= 0) {
+      await karten.nth(idx).tap();
+      await page.waitForTimeout(600);
+      if (await page.locator('.karten button.richtig').count() === 1) richtig++;
+      gefragt++;
+      await page.waitForTimeout(2000);
+      continue;
+    }
+    await karten.first().tap();
+    await page.waitForTimeout(2400);
+  }
+
+  check('every question has exactly one vehicle going the right way',
+    gefragt === gestellt, `${gefragt} of ${gestellt} were answerable`);
+  check('and picking it by reading the arrow is RIGHT, every time',
+    richtig > 0 && richtig === gefragt, `${richtig} of ${gefragt} correct`);
+  check('the round shows more than one kind of vehicle',
+    gesehen.size >= 3, `saw ${[...gesehen].join(', ')}`);
+  check('answering ten of them finishes the round',
+    await page.locator('.blatt').count() === 1, `answered ${gestellt}`);
+
+  await page.waitForTimeout(1800);
+  const sv = await slot();
+  check('Das Haus von links und rechts pays Mathe-Sterne',
+    sv.sterne.mathe > 0, `${sv.sterne.mathe} stars`);
+  await page.locator('button', { hasText: 'Zurück in die Welt' }).first().tap();
+  await page.waitForTimeout(600);
+}
+
 // ------------------------------------------------------- the steering
 //
 // Both of these are Patrick's, from the first time he actually played
@@ -923,7 +1002,7 @@ async function beiTor(sterne, wort = 0) {
     verwaist.length ? `no door: ${verwaist.join(', ')}` : generatoren.join(', '));
 }
 
-// ------------------------------------- Das Haus der Rechenmeister
+// ------------------------------------------ Das Haus der Addition
 //
 // The fourth door, and the step up from the pairs that make ten. It
 // stands next to that house on purpose, which makes the plaques the
@@ -935,7 +1014,7 @@ async function beiTor(sterne, wort = 0) {
   await inDieWelt();
   await laufe('ArrowUp', 900);
   await page.waitForTimeout(900);
-  check('the third door opens Das Haus der Rechenmeister',
+  check('the north door opens Das Haus der Addition',
     await page.locator('.runde').count() === 1);
 
   const arten = new Set();
@@ -978,8 +1057,11 @@ async function beiTor(sterne, wort = 0) {
     await karten.first().tap();
     await page.waitForTimeout(2400);
   }
-  check('a round here is not ten of the same thing',
-    arten.size >= 2, `asked: ${[...arten].join(', ') || 'nothing recognised'}`);
+  // One topic per house now: a door named after Addition that asks a
+  // Nachbarzahlen question is a door that lied about what was inside.
+  check('and it asks sums and nothing else',
+    arten.size === 1 && arten.has('rechnung'),
+    `asked: ${[...arten].join(', ') || 'nothing recognised'}`);
   check('and no number anywhere in it goes above ten',
     hoechste > 0 && hoechste <= 10, `highest seen: ${hoechste}`);
   check('answering ten of them finishes the round',
@@ -987,7 +1069,7 @@ async function beiTor(sterne, wort = 0) {
 
   await page.waitForTimeout(1800);
   const sr = await slot();
-  check('Das Haus der Rechenmeister pays Mathe-Sterne', sr.sterne.mathe > 0);
+  check('Das Haus der Addition pays Mathe-Sterne', sr.sterne.mathe > 0);
   check('the house counts how often it has been cleared',
     sr.geschafft['rechenmeister'] === 1, JSON.stringify(sr.geschafft));
 
@@ -1020,20 +1102,22 @@ async function beiTor(sterne, wort = 0) {
   }
 
   const zu = await beiWortTor(0, 0);
-  check('the Wörter gate is shut to a child who has not earned it',
+  check('the second gate is shut to a child who has not earned it',
     zu.x < 41, `stopped at x ${zu.x.toFixed(2)}`);
 
-  // THE ASSERTION THE WHOLE PER-SUBJECT DESIGN RESTS ON.
-  //
-  // A mountain of Mathe stars must not open the Wörter gate. If it did,
-  // the two subjects would be one currency with two labels, and a child
-  // who is strong at numbers would quietly be handed everything.
-  const nurMathe = await beiWortTor(200, 0);
-  check('and being brilliant at numbers does not open it',
-    nurMathe.x < 41, `stopped at x ${nurMathe.x.toFixed(2)}`);
+  // The two gates want the SAME thing at different heights now. The far
+  // one wanted Wörter until Deutsch moved to its own world, at which
+  // point it became a door that could never be opened at all.
+  // Forty stars is level three, which is exactly what the NEAR gate
+  // wants. Stated against the other gate rather than against a number,
+  // so the two cannot drift into wanting the same thing without this
+  // noticing.
+  const knapp = await beiWortTor(40, 0);
+  check('and the far gate still wants more than the near one does',
+    knapp.x < 41, `level-3 stars stopped at x ${knapp.x.toFixed(2)}`);
 
-  const auf = await beiWortTor(0, 12);
-  check('but eight Wort-Sterne does',
+  const auf = await beiWortTor(100, 0);
+  check('but it opens once it has been earned',
     auf.x > 41, `walked through to x ${auf.x.toFixed(2)}`);
 }
 

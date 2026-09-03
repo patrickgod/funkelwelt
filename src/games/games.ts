@@ -51,13 +51,7 @@
 
 import type { Game, Question, Prompt } from './types.js';
 import { staerkeVon } from '../core/spielstand.js';
-import { WOERTER } from './woerter.js';
-import { hasBild } from './wortbilder.js';
-
-/** One at random. The language games pick their distractors this way. */
-function pickOne<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
+import { FAHRZEUGE, type Richtung } from './fahrzeuge.js';
 
 function shuffle<T>(arr: T[]): T[] {
   const a = arr.slice();
@@ -204,67 +198,44 @@ export const rechenmeister: Game = {
   },
 };
 
-// --------------------------------------------- Haus der ersten Laute
+// ------------------------------------------- Haus von links und rechts
 
-export const anlaute: Game = {
-  id: 'anlaute',
-  // Only words that have a picture. The question is "which letter does
-  // this word START with", and without a picture the only way to know
-  // WHICH word is to hear it — which makes the whole house stop working
-  // the moment a parent turns the sound off in a waiting room. A house
-  // that breaks when you use a switch the app itself offers is broken.
-  facts: () => WOERTER.filter((w) => hasBild(w.wort)).map((w) => `an:${w.wort}`),
+/**
+ * Which of these is going that way?
+ *
+ * Four vehicles, all five kinds and both directions available, and
+ * exactly one of them going the way the arrow asks. The child scans the
+ * row and taps it.
+ *
+ * The question is an ARROW rather than a word or a voice. Rule 14 says
+ * the child cannot read "rechts"; rule 15 says the sound is switchable
+ * off in two taps, so the question has to survive being silent. An
+ * arrow is neither of those things, and it is the same arrow as the
+ * signpost in the meadow.
+ *
+ * The fact is the DIRECTION and not the vehicle, because that is what
+ * is being practised. A child who is shaky on left should meet left
+ * again, whether it arrives on a bus or a bicycle.
+ */
+export const richtung: Game = {
+  id: 'richtung',
+  facts: () => ['ri:links', 'ri:rechts'],
   next(pick) {
     const fact = pick(this.facts());
-    const w = WOERTER.find((x) => `an:${x.wort}` === fact) ?? WOERTER[0];
-    const letter = w.wort[0].toUpperCase();
-    // Distractors are letters that actually confuse a beginner — the
-    // ones that sound close, then any others.
-    const confusable: Record<string, string[]> = {
-      B: ['P', 'D'], P: ['B', 'T'], D: ['T', 'B'], T: ['D', 'P'],
-      G: ['K', 'C'], K: ['G', 'C'], F: ['V', 'W'], V: ['F', 'W'],
-      W: ['V', 'M'], M: ['N', 'W'], N: ['M', 'H'], S: ['Z', 'F'],
-      Z: ['S', 'T'], L: ['R', 'N'], R: ['L', 'N'], H: ['N', 'K'],
-      A: ['O', 'E'], E: ['A', 'I'], I: ['E', 'U'], O: ['A', 'U'], U: ['O', 'I'],
-    };
-    const near = (confusable[letter] ?? ['M', 'S']).slice();
-    const pool = 'ABDEFGHIKLMNOPRSTUWZ'.split('').filter((c) => c !== letter);
-    while (near.length < 3) {
-      const c = pickOne(pool);
-      if (!near.includes(c)) near.push(c);
-    }
+    const nach = fact.slice(3) as Richtung;
+    const weg: Richtung = nach === 'rechts' ? 'links' : 'rechts';
+    // Four different vehicles, so the odd one out cannot be spotted by
+    // "the only bus" instead of by which way it is pointing.
+    const welche = shuffle(FAHRZEUGE.slice()).slice(0, 4);
+    const karten = welche.map((f, i) => `fz:${f}:${i === 0 ? nach : weg}`);
     return {
       fact,
-      prompt: { kind: 'wort', wort: w.wort, audio: w.wort.toLowerCase(), zeige: false },
-      choices: shuffle([letter, ...near.slice(0, 3)]),
+      prompt: { kind: 'richtung', nach },
+      choices: shuffle(karten),
       correct: -1,
-      showOnMiss: { kind: 'wort', wort: w.wort, audio: w.wort.toLowerCase(), zeige: true },
     } as Question;
   },
 };
-
-// -------------------------------------------------- Haus der Silben
-
-export const silben: Game = {
-  id: 'silben',
-  facts: () => WOERTER.map((w) => `si:${w.wort}`),
-  next(pick) {
-    const fact = pick(this.facts());
-    const w = WOERTER.find((x) => `si:${x.wort}` === fact) ?? WOERTER[0];
-    // The word IS shown here, because clapping a word you can see is
-    // the exercise the teacher actually sets — and a first-grader who
-    // is learning to read gains from seeing it while hearing it.
-    return {
-      fact,
-      prompt: { kind: 'wort', wort: w.wort, audio: w.wort.toLowerCase(), zeige: true },
-      choices: ['1', '2', '3', '4'],
-      correct: -1,
-      showOnMiss: { kind: 'wort', wort: w.wort, audio: w.wort.toLowerCase(), zeige: true },
-    } as Question;
-  },
-};
-
-// ---------------------------------------------------------------- glue
 
 /**
  * The correct index, resolved once here rather than in every generator.
@@ -305,11 +276,13 @@ function expectedAnswer(gameId: string, q: Question): string {
       const p = q.prompt as Extract<Prompt, { kind: 'rechnung' }>;
       return String(p.a + p.b);
     }
-    case 'anlaute':
-      return q.fact.slice(3)[0].toUpperCase();
-    case 'silben': {
-      const w = WOERTER.find((x) => x.wort === q.fact.slice(3));
-      return String(w ? w.silben : 2);
+    case 'richtung': {
+      // Whichever card is going the way the arrow points. Read off the
+      // CARDS rather than off the generator, so a card list that was
+      // built wrong is a wrong answer here too instead of being quietly
+      // agreed with.
+      const p = q.prompt as Extract<Prompt, { kind: 'richtung' }>;
+      return q.choices.find((c) => c.endsWith(`:${p.nach}`)) ?? q.choices[0];
     }
     default:
       return q.choices[0];
@@ -320,8 +293,7 @@ export const GAMES: Record<string, Game> = {
   'verliebte-zahlen': verliebteZahlen,
   'zahlenreihe': zahlenreihe,
   'rechenmeister': rechenmeister,
-  'anlaute': anlaute,
-  'silben': silben,
+  'richtung': richtung,
 };
 
 /** How many questions a round of this house has. About three minutes. */

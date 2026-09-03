@@ -161,32 +161,8 @@ if (want('welt-einstellungen')) {
 }
 
 // The language house: a picture, an ear, and four letters.
-if (want('laute')) {
-  await page.evaluate(() => {
-    const k = 'funkelwelt.platz0.v1';
-    const s = JSON.parse(localStorage.getItem(k));
-    s.ort = { x: 17.5, y: 18.4 };
-    localStorage.setItem(k, JSON.stringify(s));
-  });
-  await page.reload();
-  await page.waitForTimeout(800);
-  await starten();
-  await page.locator('.platz').first().tap();
-  await page.waitForTimeout(2400);
-  await lumaWeg();
-  await shot('laute-welt');
-  await page.keyboard.down('ArrowUp');
-  await page.waitForTimeout(700);
-  await page.keyboard.up('ArrowUp');
-  await page.waitForTimeout(1600);
-  await lumaWeg();
-  await shot('laute');
-}
-
-// Das Haus der Rechenmeister: the approach, with its plaque and the
-// plaque of the pairs house two screens south, and one question from
-// each of its three generators.
-if (want('rechnen')) {
+// Das Haus der Addition, and its neighbour's plaque two screens south.
+if (want('addition')) {
   await page.evaluate(() => {
     const k = 'funkelwelt.platz0.v1';
     const s = JSON.parse(localStorage.getItem(k));
@@ -199,14 +175,42 @@ if (want('rechnen')) {
   await page.locator('.platz').first().tap();
   await page.waitForTimeout(2400);
   await lumaWeg();
-  await shot('rechnen-welt');
+  await shot('addition-welt');
   await page.keyboard.down('ArrowUp');
   await page.waitForTimeout(700);
   await page.keyboard.up('ArrowUp');
   await page.waitForTimeout(1600);
   await lumaWeg();
   for (let i = 0; i < 3; i++) {
-    await shot(`rechnen-${i + 1}`);
+    await shot(`addition-${i + 1}`);
+    await page.locator('.karten button').first().tap();
+    await page.waitForTimeout(2100);
+    await lumaWeg();
+  }
+}
+
+// Das Haus von links und rechts: the approach and two questions.
+if (want('richtung')) {
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.ort = { x: 40.5, y: 19.4 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await page.reload();
+  await page.waitForTimeout(800);
+  await starten();
+  await page.locator('.platz').first().tap();
+  await page.waitForTimeout(2400);
+  await lumaWeg();
+  await shot('richtung-welt');
+  await page.keyboard.down('ArrowUp');
+  await page.waitForTimeout(700);
+  await page.keyboard.up('ArrowUp');
+  await page.waitForTimeout(1600);
+  await lumaWeg();
+  for (let i = 0; i < 2; i++) {
+    await shot(`richtung-${i + 1}`);
     await page.locator('.karten button').first().tap();
     await page.waitForTimeout(2100);
     await lumaWeg();

@@ -17,6 +17,8 @@ export type Prompt =
   | { kind: 'doppel'; n: number }
   /** A spoken word. The child hears it; nothing is written. */
   | { kind: 'wort'; wort: string; audio: string; zeige: boolean }
+  /** An arrow. "Which of these is going THAT way." */
+  | { kind: 'richtung'; nach: 'links' | 'rechts' }
   /**
    * Write this, with a finger.
    *

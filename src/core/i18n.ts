@@ -51,8 +51,9 @@ const DE = {
 
   // ------------------------------------------------------- the houses
   'haus.verliebteZahlen': 'Das Haus der verliebten Zahlen',
-  'haus.ersteLaute': 'Das Haus der ersten Laute',
-  'haus.rechenmeister': 'Das Haus der Rechenmeister',
+  'haus.nachbarzahlen': 'Das Haus der Nachbarzahlen',
+  'haus.addition': 'Das Haus der Addition',
+  'haus.richtung': 'Das Haus von links und rechts',
 
   // -------------------------------------------------------- a round
   'runde.raus': 'Zurück',
@@ -140,6 +141,11 @@ const DE = {
     'Der Karren! Für die Münzen, die du findest, gibt es hier vier gute Sachen.',
   'say.torAuf':
     'Schau, das Tor ist offen! Du hast genug gelernt, um da hineinzukommen.',
+  // The two directions, as instructions. The arrow on the stage says
+  // which way; this says it out loud for a child who wants it read to
+  // them, and the exercise works with the sound switched off.
+  'say.nachRechts': 'Tippe auf das, was nach rechts fährt.',
+  'say.nachLinks': 'Tippe auf das, was nach links fährt.',
   'say.hilfe': 'Das ist knifflig, oder? Schau, ich zeig es dir.',
 
   // No slots, on purpose. Every one of these becomes a fixed MP3 at

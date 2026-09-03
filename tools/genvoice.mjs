@@ -214,7 +214,15 @@ if (SAMPLES) {
 
 mkdirSync('assets/voice', { recursive: true });
 
-const alle = { ...spokenLines(), ...woerter() };
+// The word list is NOT generated while Deutsch has no house.
+//
+// Patrick moved the syllables to their own world — "und dann in der
+// nächsten welt die silben?" — so the forty-four word takes are
+// forty-four MP3s cached on a child's iPad for a door that is shut.
+// `woerter()` stays right where it is: when that world is built, one
+// line brings them back, and the recordings are a `node tools/genvoice`
+// away rather than a rewrite.
+const alle = { ...spokenLines() };
 const stems = Object.keys(alle).sort();
 console.log(`  ${stems.length} lines from src/core/i18n.ts and src/games/woerter.ts`);
 

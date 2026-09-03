@@ -28,10 +28,10 @@ import * as fx from '../core/fx.js';
 import { iconCanvas } from '../core/icons.js';
 import { tenFrameCanvas } from '../core/tenframe.js';
 import { buildRound, rundenLaenge, bekanntePaare } from '../games/games.js';
-import { hasBild, bildCanvas } from '../games/wortbilder.js';
 import type { Prompt, Question } from '../games/types.js';
 import { el, tap, knopf, zentrumVon } from './dom.js';
 import * as luma from './luma.js';
+import { fahrzeugCanvas, pfeilCanvas, type Fahrzeug, type Richtung } from '../games/fahrzeuge.js';
 
 export interface Haus {
   /** Save-slot key, so a house can count how often it has been cleared. */
@@ -46,7 +46,26 @@ export interface Haus {
   fach: stand.Fach;
 }
 
-/** The three doors that exist. */
+/**
+ * The three doors that exist, and all three of them are maths.
+ *
+ * Patrick, after playing it: "ich denke das wörter haus kann erstmal zu.
+ * stattdessen drei mathe häuser: verliebte zahlen, nachbarzahlen,
+ * addition" — and then, about German: "und dann in der nächsten welt
+ * die silben?"
+ *
+ * So the two subjects are not two doors in one meadow any more, they
+ * are two WORLDS. This region is maths, one topic per house, and
+ * Deutsch gets a region of its own. That is a better shape than the one
+ * it replaces: a house here no longer has to justify what it teaches
+ * against the house next door, because every house next door teaches
+ * the same subject a step further on.
+ *
+ * One generator each, deliberately. `Haus.spiel` still takes a list and
+ * the Burg will need it, but a house named after a topic should ask
+ * that topic — Das Haus der Nachbarzahlen asking a sum is a door that
+ * lied about what was inside.
+ */
 export const HAUS_VERLIEBTE_ZAHLEN: Haus = {
   id: 'verliebte-zahlen',
   spiel: 'verliebte-zahlen',
@@ -54,48 +73,35 @@ export const HAUS_VERLIEBTE_ZAHLEN: Haus = {
   fach: 'mathe',
 };
 
-/**
- * Das Haus der ersten Laute.
- *
- * The first house that pays Wort-Sterne, and until it existed the
- * per-subject design had exactly one subject.
- */
-export const HAUS_ERSTE_LAUTE: Haus = {
-  id: 'anlaute',
-  // Anlaute and Silben together, alternating. Both are phonologische
-  // Bewusstheit — hearing the shape of a spoken word — and German first
-  // grade teaches them side by side rather than as two subjects, so one
-  // house asking both is the ordinary arrangement and not a shortcut.
-  // The word is HIDDEN for the first-sound question and SHOWN for the
-  // syllable one, which the prompt already carries per question.
-  spiel: ['anlaute', 'silben'],
-  name: 'haus.ersteLaute',
-  fach: 'wort',
+/** The middle building, which used to be Das Haus der ersten Laute. */
+export const HAUS_NACHBARZAHLEN: Haus = {
+  id: 'zahlenreihe',
+  spiel: 'zahlenreihe',
+  name: 'haus.nachbarzahlen',
+  fach: 'mathe',
+};
+
+/** The step up, north of the first. Plus, to ten, and nothing else. */
+export const HAUS_ADDITION: Haus = {
+  id: 'rechenmeister',
+  spiel: 'rechenmeister',
+  name: 'haus.addition',
+  fach: 'mathe',
 };
 
 /**
- * Das Haus der Rechenmeister.
+ * Links und rechts, east of the path.
  *
- * The step up from the pairs that make ten, and it stands next door to
- * that house on purpose: the beginner's door and the harder one are
- * neighbours in the same corner of the meadow, told apart by their
- * plaques rather than by a sign a child would have to read.
- *
- * Three generators, all of them within twenty and all of them ported
- * from Lernkiste with their didactics intact: plus and minus to ten
- * (with some of it running backwards, because a child who can do 6+3
- * and not 9-3 has learned a procedure rather than a fact), the number
- * line with a gap in the middle, and the doubles.
- *
- * Nothing gates this door. A child who is not ready walks in, finds it
- * hard, and walks out — and neither the walking out nor a wrong answer
- * costs them anything, which is the whole reason it is safe to leave it
- * open.
+ * The fourth, and the only one in the meadow that asks for no counting
+ * at all — which is the point of it. Links und rechts is
+ * Raumorientierung and sits in the same first-grade strand as the
+ * numbers, so a child who is slow with sums can be quick here and still
+ * be earning the star that opens the gates.
  */
-export const HAUS_RECHENMEISTER: Haus = {
-  id: 'rechenmeister',
-  spiel: ['rechenmeister', 'zahlenreihe'],
-  name: 'haus.rechenmeister',
+export const HAUS_RICHTUNG: Haus = {
+  id: 'richtung',
+  spiel: 'richtung',
+  name: 'haus.richtung',
   fach: 'mathe',
 };
 
@@ -148,7 +154,13 @@ function form(): 'perle' | 'herz' {
 }
 
 /** Letters and numbers want different card shapes. */
+/** How big a vehicle is drawn on a card. */
+function fahrSkala(): number {
+  return Math.max(2, Math.min(5, Math.floor((window.innerHeight * 0.11) / 26)));
+}
+
 function kartenKlasse(q: Question): string {
+  if (q.choices.some((c) => c.startsWith('fz:'))) return ' fahrzeuge';
   if (q.choices.some((c) => c.length > 2)) return ' worte';
   return '';
 }
@@ -173,10 +185,6 @@ export function stamm(wort: string): string {
 /** Which star this house pays. Two subjects, two stars. */
 function sternIcon(fach: stand.Fach): 'stern' | 'sternWort' {
   return fach === 'wort' ? 'sternWort' : 'stern';
-}
-
-function bildSkala(): number {
-  return Math.max(2, Math.min(6, Math.floor(window.innerHeight / 190)));
 }
 
 function rahmenSkala(): number {
@@ -248,7 +256,17 @@ function frageZeichnen(): void {
 
   const karten = el('div', `karten${kartenKlasse(q)}`);
   q.choices.forEach((label, idx) => {
-    const b = el('button', undefined, label);
+    const b = el('button');
+    if (label.startsWith('fz:')) {
+      // The card IS the vehicle, pointing the way it is going. Nothing
+      // is written on it — a six-year-old who cannot read "Hubschrauber"
+      // can still answer every question in this house.
+      const [, art, nach] = label.split(':');
+      b.appendChild(fahrzeugCanvas(art as Fahrzeug, nach as Richtung, fahrSkala()));
+      b.setAttribute('aria-label', `${art} ${nach}`);
+    } else {
+      b.textContent = label;
+    }
     tap(b, () => antwort(idx, b, buehne, karten));
     karten.appendChild(b);
   });
@@ -281,6 +299,28 @@ function fragebild(p: Prompt, q: Question): HTMLElement {
         const n = p.n >= 0 ? p.n : Number(q.fact.slice(3));
         box.appendChild(el('div', 'zahl-gross', String(n)));
       }
+      break;
+    }
+    case 'richtung': {
+      // The whole question, and it is one arrow. It is spoken as well,
+      // for a child who wants it read to them, but it does not need to
+      // be: with the sound off the arrow still says which way.
+      const holder = el('div', 'pfeilfrage');
+      const bild = pfeilCanvas(p.nach, fahrSkala() + 2);
+      // Named as well as drawn: a screen reader gets the question, and
+      // `tools/verify.mjs` can tell which way it was asked WITHOUT
+      // asking the code that decides the answer.
+      bild.setAttribute('data-nach', p.nach);
+      bild.setAttribute('aria-label', p.nach);
+      holder.appendChild(bild);
+      box.appendChild(holder);
+      const key = `say.nach${p.nach === 'rechts' ? 'Rechts' : 'Links'}`;
+      const hoeren = el('button', 'hoeren');
+      hoeren.appendChild(iconCanvas('ohr', 68));
+      const sag = (): void => { audio.say(key.replace(/\./g, '-').toLowerCase(), t(key)); };
+      tap(hoeren, sag);
+      box.appendChild(hoeren);
+      setTimeout(sag, 260);
       break;
     }
     case 'reihe': {
@@ -324,32 +364,6 @@ function fragebild(p: Prompt, q: Question): HTMLElement {
         zwei.appendChild(f);
       }
       box.appendChild(zwei);
-      break;
-    }
-    case 'wort': {
-      // A picture AND a spoken word — two channels for the same thing,
-      // and both are here on purpose. AGENTS.md rule 15 says the sound
-      // must be switchable off in two taps, and an exercise that stops
-      // working when a parent uses that switch in a waiting room is a
-      // broken exercise. So the picture carries it when the sound is
-      // off, and the ear button is there for a child who is not sure
-      // what the drawing is.
-      const bild = hasBild(p.wort) ? bildCanvas(p.wort, bildSkala()) : null;
-      if (bild) {
-        const holder = el('div', 'wortbild');
-        holder.appendChild(bild);
-        box.appendChild(holder);
-      }
-      const hoeren = el('button', 'hoeren');
-      hoeren.appendChild(iconCanvas('ohr', 68));
-      tap(hoeren, () => audio.say(`wort-${stamm(p.wort)}`, p.wort));
-      box.appendChild(hoeren);
-      // The word is shown in the syllable house and hidden in the
-      // letters house: clapping a word you can SEE is the exercise a
-      // teacher actually sets, and guessing a first sound from a written
-      // word is not a listening exercise at all.
-      if (p.zeige) box.appendChild(el('div', 'wortzeile', p.wort));
-      setTimeout(() => audio.say(`wort-${stamm(p.wort)}`, p.wort), 260);
       break;
     }
     default:

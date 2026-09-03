@@ -183,11 +183,11 @@ import { tafel } from '../src/welt/kacheln.js';
 // antialiasing filled the notches between the arms, and nobody would
 // have noticed until a screenshot of the whole world was cropped.
 const W = 18, H = 26;
-const NAMEN = ['Zahlen', 'Laute', 'Rechnen'];
+const NAMEN = ['Verliebte', 'Nachbarn', 'Addition', 'Richtung'];
 const SKALEN = [3, 6];
 
 const c = document.createElement('canvas');
-c.width = 40 + 3 * (W * 6 + 24);
+c.width = 40 + 4 * (W * 6 + 24);
 c.height = 60 + (H * 3 + H * 6) + 40;
 document.body.appendChild(c);
 const ctx = c.getContext('2d')!;

@@ -616,6 +616,29 @@ button.gross {
 }
 .doppelfeld { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
 
+/* Das Haus von links und rechts. The card IS the vehicle, so it holds a
+   canvas rather than a glyph — and it is WIDER than a number card,
+   because a bus seen from the side is wider than it is tall and
+   squeezing it into a square card would crop the very end that says
+   which way it is going. */
+.karten.fahrzeuge button {
+  width: clamp(120px, 20vw, 210px);
+  height: clamp(96px, 15vh, 150px);
+}
+.karten.fahrzeuge button canvas {
+  image-rendering: pixelated;
+  display: block;
+  margin: 0 auto;
+}
+
+/* The arrow that asks the question. */
+.pfeilfrage {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0 10px;
+}
+.pfeilfrage canvas { image-rendering: pixelated; display: block; }
+
 /* Answer cards live in the lower two-thirds and never in the top
    corners: a child holds a tablet at the sides, with thumbs low. */
 .karten {
