@@ -253,16 +253,16 @@ function zeigeEditor(platz: number): void {
    */
   const frisurBild = (i: number): HTMLCanvasElement => {
     const c = el('canvas');
-    c.width = 48;
-    c.height = 48;
+    c.width = 60;
+    c.height = 60;
     const cc = c.getContext('2d', { willReadFrequently: true })!;
     cc.imageSmoothingEnabled = false;
     // Just the head: three times the size of the sprite, cropped to the
     // top, so the difference between the styles is all you see.
     const px = held('unten', 0, { ...a, frisur: i }).toCanvas();
-    cc.drawImage(px, 0, 0, HW, 13, -6, -2, HW * 3.6, 13 * 3.6);
-    c.style.width = '48px';
-    c.style.height = '48px';
+    cc.drawImage(px, 0, 0, HW, 13, -7, -3, HW * 4.4, 13 * 4.4);
+    c.style.width = '60px';
+    c.style.height = '60px';
     return c;
   };
 

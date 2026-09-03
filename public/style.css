@@ -213,7 +213,7 @@ button.gefahr { background: var(--rot); color: var(--hell); }
 .reihe {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .reihe .was {
@@ -227,15 +227,18 @@ button.gefahr { background: var(--rot); color: var(--hell); }
    rather than merely outlined — an outline is not enough of a signal
    for a six-year-old choosing quickly. */
 .probe {
-  width: 52px;
-  height: 52px;
+  /* 64, not 52. Apple's 44pt minimum is for adults with a mental model
+     of what is tappable; a six-year-old choosing quickly needs the
+     whole 64, and the verification suite measures it. */
+  width: 64px;
+  height: 64px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--tief);
-  min-width: 52px;
-  min-height: 52px;
+  min-width: 64px;
+  min-height: 64px;
   padding: 0;
   margin: 0;
   border-radius: 14px;
