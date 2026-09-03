@@ -182,6 +182,25 @@ it.** A risk you have not built is a risk you are still carrying.
   on the question stage and on every card, including the wrong ones,
   because a distractor of fourteen teaches that fourteen is plausible.
 
+* **Steering that answers a finger.** Patrick's two notes from playing
+  it, and they were the same failure twice: you touch the screen and
+  nothing happens. A tap was taken literally, so tapping the house —
+  the most obvious thing in the picture — routed to a solid tile and
+  did nothing at all. And a tap only existed on RELEASE, under 900ms,
+  having moved less than sixteen pixels, so holding a finger down did
+  nothing either.
+
+  A tap on something solid is read rather than obeyed: a house means its
+  door, anything else means the nearest place he could stand. And a held
+  finger asks for a route four times a second, re-routed rather than
+  steered straight at, so holding towards the far bank walks round by
+  the bridge instead of into the water.
+
+  Both are checked. Getting those two checks honest took three goes —
+  the first aimed its tap into the HUD, the second was measuring the
+  house when it claimed to be measuring the meadow, and the third was
+  reading a saved position from before the walk.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick
@@ -232,36 +251,92 @@ no recolour that preserves four independent sliders on this sheet.
 **Also blocked on credit** either way:
 <https://ai.studio/projects>
 
-### 2. Play it, before building anything on it
+### 2. It has been played once. Play it again, with the six-year-old.
 
-The whole reason the world came first was to find out whether walking
-around is worth doing. That question is still open — it just has
-something to answer it with now.
+**Patrick played it**, and the first thing that came back was not about
+maths at all — it was that the steering did not work. Tapping the house
+did nothing, and holding a finger down did nothing. Both are fixed and
+both are checked now.
 
-* Two minutes with the son, on the iPad, with nothing else in the game.
-* **Settle the steering.** Thumbstick or tap-to-walk. Let him try both
-  in ninety seconds and take the answer, whichever it is; then the
-  loser can be deleted.
+That is the lesson of the whole exercise and it is worth keeping in
+front of whoever reads this next: **four houses' worth of didactics had
+been built on top of a control scheme nobody had held a finger on.**
+The suite drove the world with arrow keys, the screenshots drove it with
+arrow keys, and tap-to-walk — the DEFAULT steering, the one a child
+actually gets — had never been used by anything but a single check that
+tapped once and let go.
+
+Still open, and still the questions the world was built early to answer:
+
+* Two minutes with the son, on the iPad.
+* **Settle the steering** now that both halves of it work. Thumbstick or
+  tap-and-hold; take whichever answer comes back and delete the other.
 * Is the region the right size? "Small enough to learn by heart" is the
   goal and 48×36 is a guess at it.
-* Does he find the door on his own, or does he need the signpost
-  explained? The path leads to it and the lamps light the way, which is
-  the whole bet about level design instead of instructions.
-* Is ten questions the right length now that there is a walk either side
-  of it? Over on LernInseln ten was right for a round you arrived at
-  from a menu.
-* Does he want to go straight back in, or straight back out?
+* Does he find a door on his own? The plaques are new and untested by
+  anybody who cannot read.
+* Is ten questions the right length with a walk either side of it?
+* Does he want to go straight back in, or straight back out? That one
+  feeds directly into item 3.
 * **Does Luma get in the way?** Three misses is a number nobody has
-  tested. It might be two, or it might be that a child who has got three
-  wrong wants the fairy to leave them alone.
-* Does she need more than one expression? She says the difficult line
-  and the delighted line with the same face.
+  tested.
 
-**The game is now playable end to end** — walk, find the door, answer
-ten things, come out stronger, watch the bar move — with no combat and
-no fairy, and that is enough to be worth a real playtest.
+### 3. The thing the design has not answered: coming back
 
-### 3. The rest of Deutsch: Silben lesen and Silben schreiben
+Patrick, after the first play: *"Wir müssen im Konzept halt einen Weg
+finden wie man immer wieder dieselben Themen übt und z.B. die
+verliebten Zahlen nicht enden sobald das Haus einmal geschafft ist."*
+
+This is the real hole and it is a design hole, not a missing feature.
+The whole app is spaced repetition — `staerke` per fact, weighted
+picking, the scheduler that already knows 7 is shaky and 5 is not — and
+the world sits on top of it saying "done" the moment a house is cleared
+once. The engine underneath is built for coming back a hundred times.
+The building above it is built for going in once.
+
+`geschafft[haus]` already counts the clears, so the count exists and
+nothing reads it. Sketches, cheapest first, and **none of them should
+be built before Patrick picks one**:
+
+* **The house is never finished.** Its door simply keeps working, and
+  what changes is what it asks: the scheduler already serves the facts
+  a child is shakiest on, so the tenth visit is a different ten
+  questions from the first. Costs nothing — it is close to what the code
+  already does — and the missing piece is a REASON to go back in.
+* **The reason is the star, and stars are per house.** A house that has
+  been cleared once still pays, so the gates stay reachable by going
+  back to a house you like. Small change, and it makes the gate a goal
+  rather than a wall.
+* **Die Burg der Mathematik** — Patrick's own suggestion. A fortress
+  door that asks all of it, mixed at random, drawing from every
+  generator the child has met. The natural "come back when you are
+  stronger" building, and the natural home for `buildRound`'s list of
+  generators, which already takes as many as you give it.
+
+### 4. Links und rechts: what drives which way
+
+Also Patrick's, and it is the next exercise to build: side-on sprites of
+things that move — Auto, Bus, Fahrrad, Heli, Flugzeug — and the child
+taps the ones going right, or the ones going left.
+
+Worth noting why this is maths and not decoration: left and right is
+Raumorientierung, it is in the same first-grade strand as the numbers,
+and it is the one exercise so far that needs no counting at all. A child
+who is slow with sums can be quick at this.
+
+It is also the first exercise that needs a SET of drawn objects rather
+than one, which means `tools/contact.mjs` first and the generator
+second. Five vehicles, each facing both ways, is ten sprites, and the
+lesson from the door plaques applies at full force: draw the sheet
+before drawing the second one.
+
+### 5. Waypoints
+
+Patrick's: teleporting between places. Not needed while there is one
+region — it becomes the answer to "the walk back is boring" the moment
+there are two, and that is when to build it.
+
+### 6. The rest of Deutsch: Silben lesen and Silben schreiben
 
 The two that Patrick named and that do not exist yet.
 
@@ -276,15 +351,13 @@ it. It is the only prompt in the design with no answer cards at all —
 the answer IS the tracing, and the round moves on when the last stroke
 lands. `types.ts` still carries the `schreiben` prompt kind, waiting.
 
-That is the whole of the ask that is still outstanding.
-
 **Also open, and Patrick's to say:** Das Haus der ersten Laute asks
 which letter a word starts with. It is not on the list of three, and it
 was not asked to be removed either — it is still standing, and it is
 the one place a Wort-Stern comes from, so removing it would leave the
 Wörter gate unopenable until Silben lesen exists.
 
-### 4. A second region
+### 7. A second region
 
 The gate proves the mechanism on twelve tiles. What it opens onto should
 eventually be somewhere, not a walled garden — and the honest note is
