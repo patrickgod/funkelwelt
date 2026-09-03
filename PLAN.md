@@ -52,6 +52,23 @@ it.** A risk you have not built is a risk you are still carrying.
   in `i18n.ts`, generated at build time, 400 KB, and the running app has
   never heard of ElevenLabs.
 
+* **Luma, and the moment a pair comes good.** A painted portrait in a
+  JRPG dialogue box — the one deliberate exception to "every pixel is
+  drawn in code", because she is a painting in front of the world rather
+  than part of it. She says each line once per adventurer, the world
+  holds still while she talks, and after three misses in a round she
+  turns up and the ten-frame comes back for the rest of it.
+
+  And when a pair to ten comes good in BOTH directions, that outranks
+  the payout and is shown first. It had never once fired: `paareVorher`
+  was read at the END of the round, by which time the facts had already
+  been recorded. Found by failing to screenshot it.
+
+* **Juice.** Dust off the feet while walking, a lantern that breathes,
+  weight at the door, coins that fly into the purse, and three children
+  walking on the spot on the title screen. All of it a RESPONSE to
+  something the child did; none of it fires on a mistake.
+
 ## Next, in order
 
 ### 1. Play it, before building anything on it
@@ -73,31 +90,17 @@ something to answer it with now.
   of it? Over on LernInseln ten was right for a round you arrived at
   from a menu.
 * Does he want to go straight back in, or straight back out?
+* **Does Luma get in the way?** Three misses is a number nobody has
+  tested. It might be two, or it might be that a child who has got three
+  wrong wants the fairy to leave them alone.
+* Does she need more than one expression? She says the difficult line
+  and the delighted line with the same face.
 
 **The game is now playable end to end** — walk, find the door, answer
 ten things, come out stronger, watch the bar move — with no combat and
 no fairy, and that is enough to be worth a real playtest.
 
-### 2. Luma
-
-* Portrait bottom-left, text box beside it, JRPG framing.
-* Two sentences at a time, never more, and spoken via the ElevenLabs
-  build-time pipeline lifted from LernInseln.
-* She says each line **once** — `spielstand.gehoert` already tracks it.
-* Artwork: Patrick wants to make her with Gemini. Until then a drawn
-  placeholder in the game's own palette.
-
-### 3. When a pair comes good
-
-`bekanntePaare()` already knows when a pair to ten is solid in **both**
-directions, which is the real definition of having learned one, and at
-the moment it fires a small burst of hearts and nothing else.
-
-That is the thing this whole app is actually for. It deserves more of a
-fuss than finishing a round does — and it is a signal to the grown-up in
-the room as much as to the child.
-
-### 4. Shadows
+### 2. Shadows
 
 * Visible on the map and **walked into on purpose**, not sprung from
   the grass. KONZEPT.md's worry about the interruption tax is real.
@@ -105,13 +108,13 @@ the room as much as to the child.
 * **Mut** fills; full Mut ends it at once.
 * Coins on the way out.
 
-### 5. Gates, and a second region
+### 3. Gates, and a second region
 
 * A gate that wants `Mathe` level 3. The world visibly gets bigger.
 * This is the moment the per-subject experience pays off, and the first
   time a child sees that being good at something opened something.
 
-### 6. The shop
+### 4. The shop
 
 * Three or four things at a time. Cloak, boots, lantern, Mut capacity.
 * Everything available to every character.

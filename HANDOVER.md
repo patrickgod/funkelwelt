@@ -74,7 +74,14 @@ node tools/iconsheet.mjs      # the home-screen icon at the sizes iOS draws
 node tools/devlog.mjs         # reassemble DEVLOG.md from devlog/*/article.md
 node tools/messen.mjs         # what it costs to open the world and to walk
 node tools/genvoice.mjs       # Luma's lines, from i18n.ts, at build time
+node tools/genluma.mjs --varianten   # four portraits of her to choose from
+node tools/contact.mjs luma   # the coded fallback, at the sizes it is seen
 ```
+
+`tools/shot.mjs haus-paar` is order-dependent: it seeds a save so that a
+pair is one right answer away, and it has to reseed after the reload
+because the world's five-second autosave will otherwise write the old
+save back over it.
 
 Pushing to `master` deploys to <https://patrickgod.github.io/funkelwelt/>
 if the suite passes.
@@ -114,10 +121,30 @@ writing font, and nobody can look at a house with no door. Every one of
 them implements the same `Game` interface in `src/games/types.ts` and
 will drop in unchanged when a door exists for it.
 
-Luma speaks. `node tools/genvoice.mjs` reads every `say.*` line out of
-`src/core/i18n.ts` and writes MP3s into `assets/voice/`; the running app
-has never heard of ElevenLabs, and the suite still checks that. A line
-that is not in the string table cannot be spoken.
+Luma speaks, and now has a face. `node tools/genvoice.mjs` reads every
+`say.*` line out of `src/core/i18n.ts` and writes MP3s into
+`assets/voice/`; `node tools/genluma.mjs` writes her brief, asks Gemini
+for four portraits and `--aus` picks one. Both run at BUILD time — the
+running app has never heard of either service and the suite still checks
+every request's origin. A line that is not in the string table cannot be
+spoken.
+
+**Her portrait is the one exception to "every pixel is drawn in code"**,
+and AGENTS.md says why in full. Short version: she is a painting in a box
+in FRONT of the world, which is where Final Fantasy, Persona and modern
+Zelda put theirs. Anything that goes IN the world is still drawn in code.
+The coded 46x46 fallback in `src/spiel/luma.ts` stays, and is also the
+argument for the exception.
+
+Everything AROUND her matters more than the picture: she says each line
+once per adventurer and never again, the world holds still while she
+talks, the whole box is the tap target, and she leaves on her own. After
+three misses in a round she turns up and the ten-frame comes back for
+the rest of it — concrete before abstract, re-offered, with nothing
+taken away and nothing marked.
+
+And when a pair to ten comes good in **both** directions, that outranks
+the payout and is shown first. That is the thing the whole app is for.
 
 Measured, not estimated: opening the world takes 155 ms and walking
 costs 0.81 ms of script per frame — on a desktop under software
@@ -138,7 +165,9 @@ the switch is two taps away inside the world, in the settings behind the
 cog. Ninety seconds, take whichever answer comes back, and then delete
 the other one.
 
-Then Luma, PLAN.md item 2 — she has a voice already and no face.
+Then PLAN.md item 2: the shadows. The loop it completes — walk into one
+on purpose, push it back by knowing things, Mut fills and never empties —
+is the last piece of the design that has never been built.
 
 ## Things worth knowing before you start
 
@@ -160,7 +189,7 @@ Then Luma, PLAN.md item 2 — she has a voice already and no face.
 `README.md` is the front door. `DEVLOG.md` is the diary — four entries
 so far, the second of which explains why this project exists — and it is
 **generated** from `devlog/*/article.md`, so edit those and rerun
-`node tools/devlog.mjs`. `DEVLOG-STYLE.md` is the house style and is
+`node tools/devlog.mjs`. There are five entries. `DEVLOG-STYLE.md` is the house style and is
 worth reading before adding an entry: three strands always, keep the
 wrong turns in, and numbers are measurements rather than estimates.
 

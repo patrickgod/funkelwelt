@@ -232,6 +232,42 @@ already done that for "you cannot lose", for "nothing leaves the device"
 and for "every button is 64 pixels", and had left the one about its own
 build process as prose.
 
+## A celebration that could never fire
+
+**Signature:** a screen that is correct in every line and has never once
+been reached.
+
+The pair-to-ten celebration asked "which pairs are new" by comparing
+`bekanntePaare()` at the end of a round against `bekanntePaare()` — read
+at the end of the same round. But `stand.merken` runs as each question
+is answered, so the pair had been known for three minutes by the time
+the payout asked, and the answer was always nothing.
+
+Every line of it was right. It was found by trying to take a
+SCREENSHOT of it, and failing six times.
+
+Generalises: **a before-and-after comparison has to capture "before"
+before the thing happens**, which sounds too obvious to write down and is
+exactly why it survived review. And: rule 2 says verify by looking —
+this is what happens when you cannot get the thing on screen to look at.
+Not being able to reach a screen is itself the bug report.
+
+## A check that timed out instead of failing
+
+**Signature:** a suite that hangs for thirty seconds and then dies,
+instead of printing FAIL.
+
+`and she is a picture that actually loaded` measured
+`.luma-gemalt`'s `naturalWidth`. When the portrait is missing the
+element REPLACES ITSELF with the coded fallback — so the locator matched
+nothing and Playwright waited thirty seconds and threw, aborting the
+whole run before any of the checks after it.
+
+Generalises: **a check on an element that might not exist must count it
+before it measures it.** A check whose failure mode is a timeout is a
+check nobody reads the output of, and it takes the rest of the suite
+with it.
+
 ## Committing before deliberately breaking things
 
 **Signature:** twenty minutes of work gone, and the tool that ate it was
@@ -247,6 +283,15 @@ files of uncommitted work.
 Generalises: **sabotage runs need a commit in front of them.** The
 practice creates a "put it back" step, and "put it back" and "throw away
 everything I have not committed" are the same command.
+
+**It then happened twice more in the same session**, and the second time
+was the one that cost real time: the revert quietly took back a one-line
+fix to the pair celebration, the screenshot that had just started
+working stopped working, and the next half hour went into debugging a
+bug that had already been fixed and un-fixed. The rule is not "commit
+before the first sabotage". It is **commit before every one of them**,
+including the third, including when the change since the last commit
+feels too small to bother.
 
 ## Four icon promises turned into four assertions
 

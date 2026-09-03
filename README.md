@@ -60,6 +60,7 @@ node tools/icons.mjs          # regenerate those icons
 node tools/devlog.mjs         # reassemble DEVLOG.md from devlog/*/article.md
 node tools/messen.mjs         # what it costs to open the world and to walk
 node tools/genvoice.mjs       # Luma's lines, from i18n.ts, at build time
+node tools/genluma.mjs        # her portrait, via Gemini, at build time
 ```
 
 Pushing to `master` deploys to GitHub Pages if the suite passes.
@@ -71,9 +72,10 @@ menus, because the DOM is better at buttons and canvas is better at
 pixels. `localStorage` only, keyed, because there are three save slots.
 
 **Every pixel is drawn in code** on a closed palette — no image files
-except the generated home-screen icons. Shading means stepping along a
-ramp, never multiplying a colour; the light comes from the upper left,
-always.
+except the generated home-screen icons and Luma's portrait. Shading
+means stepping along a ramp, never multiplying a colour; the light comes
+from the upper left, always. Anything that goes IN the world is drawn in
+code; she is the one painting, and she is in a box in front of it.
 
 Nothing leaves the device: no network calls, no analytics, no fonts from
 a CDN, not even an error reporter. That is a check in `tools/verify.mjs`
@@ -118,8 +120,19 @@ half, and the lightsparks in the grass pay those. Walking about earns
 coins; only the house earns stars. That line is a test rather than an
 intention.
 
-Luma speaks, in one voice, generated at build time. The running app has
-never heard of ElevenLabs and still makes no network calls at all.
+**Luma** turns up at the bottom of the screen with a painted portrait and
+a text box, JRPG-style, says two sentences out loud, and goes. She says
+each line once per adventurer and never again. Her portrait is the one
+deliberate exception to "every pixel is drawn in code" — she is a
+painting in a box in front of the world rather than part of it, which is
+where Final Fantasy, Persona and modern Zelda put theirs.
+
+Both her voice and her face are generated at BUILD time and shipped as
+files. The running app has never heard of ElevenLabs or Gemini and still
+makes no network calls at all.
+
+When a pair to ten comes good in **both** directions, everything stops
+and says so. That is the thing the whole app is for.
 
 **What has not happened yet:** anyone actually playing it. The loop is
 whole — walk, find the door, answer ten things, come out stronger — and

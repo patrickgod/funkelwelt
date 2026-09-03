@@ -102,6 +102,17 @@ tooling, the muscle memory and the pixel-art pipeline all transfer.
 * **Pixel art on a closed palette** (`src/core/palette.ts`). Shading
   means **stepping along a ramp**, never multiplying a colour. Light
   comes from the upper LEFT, always. Every sprite is drawn in code.
+* **One exception, and only one: Luma's portrait.** She is not part of
+  the world — she is a painting in a box in FRONT of it, which is where
+  Final Fantasy, Persona and modern Zelda put their illustrated art.
+  Pixels in the world, a painting in the dialogue box; the contrast is
+  the convention rather than a mistake. `tools/genluma.mjs` writes the
+  brief and asks Gemini at BUILD time; the running app has never heard
+  of it and still talks to nobody. The coded 46x46 version of her stays
+  in `src/spiel/luma.ts` as the offline fallback, and it is also the
+  argument for the exception: it is legible, on-palette, and about as
+  warm as a bus timetable. **Anything that goes IN the world is still
+  drawn in code.**
 * **`localStorage` only**, wrapped so a private-mode failure degrades to
   "this session only". Keyed, because there are three save slots.
 * **GitHub Pages** deploy from this repo, gated on the suite.
