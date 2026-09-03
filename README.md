@@ -141,6 +141,12 @@ ever rises; a wrong answer moves nothing at all; leaving costs nothing.
 It is chased away, never killed, and it leaves a light where it stood —
 so the world gets brighter as you clear them.
 
+A gate in the cliffs wants three stars in **Zahlen** before it opens.
+It shows what it wants as three stars rather than as a number, because
+the child cannot read one — and when they have earned it, the stars
+light up and the way is clear. Same spot, same child; the difference is
+what they learned.
+
 **What has not happened yet:** anyone actually playing it. The loop is
 whole — walk, find the door, answer ten things, come out stronger — and
 the person it is for has not seen any of it.

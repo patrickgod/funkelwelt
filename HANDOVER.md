@@ -150,6 +150,13 @@ taken away and nothing marked.
 And when a pair to ten comes good in **both** directions, that outranks
 the payout and is shown first. That is the thing the whole app is for.
 
+A **gate** in the north-east cliff wants Mathe level 3, and behind it is
+a pocket that is sealed on every other side. It shows what it wants as
+three stars rather than as a number — rule 14 — and they light when it
+opens. This is the one place the per-subject stars actually pay off, so
+`tools/verify.mjs` asserts both directions: it must not open early and
+must not stay shut late.
+
 Seven **shadows** stand in the dim corners off the path. Not solid: you
 see one from across the meadow and decide about it. Meeting one is the
 screen the whole design is arranged around, so read

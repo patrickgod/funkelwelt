@@ -101,6 +101,15 @@ it.** A risk you have not built is a risk you are still carrying.
   paragraph — and the sabotage run earned its keep: the first version of
   them passed against code that drained Mut on a miss.
 
+* **A gate that wants three stars.** A pocket carved into the north-east
+  cliff, sealed on every side, with the gate as the only way in — two
+  lightsparks and a lamp inside so the lesson does not land as a locked
+  door with nothing behind it. What it wants is drawn as three stars
+  rather than written as a level, and they light up when it opens.
+
+  This is the moment the per-subject stars pay off, so both directions
+  are asserted: it must not open early and must not stay shut late.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick
@@ -180,18 +189,20 @@ something to answer it with now.
 ten things, come out stronger, watch the bar move — with no combat and
 no fairy, and that is enough to be worth a real playtest.
 
-### 3. Gates, and a second region
-
-* A gate that wants `Mathe` level 3. The world visibly gets bigger.
-* This is the moment the per-subject experience pays off, and the first
-  time a child sees that being good at something opened something.
-
-### 4. The shop
+### 3. The shop
 
 * Three or four things at a time. Cloak, boots, lantern, Mut capacity.
 * Everything available to every character.
 * **Not a canvas.** The lesson from the playtest that started this
   project.
+
+### 4. A second region
+
+The gate proves the mechanism on twelve tiles. What it opens onto should
+eventually be somewhere, not a walled garden — and the honest note is
+that the pocket is small and deliberately so: the mechanism was the
+point, and a whole second 48×36 region is a day's work that should wait
+until somebody has played the first one.
 
 ## Later, once the loop is proven
 
