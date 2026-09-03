@@ -1000,8 +1000,16 @@ async function beiTor(sterne, wort = 0) {
   await karteAuf({}, { x: 10.5, y: 6.5 });
   const beiIhm = await hell(10, 6);
   const woanders = await hell(40, 30);
+  // Against the DOT'S OWN brightness, not against another tile.
+  //
+  // This first read `beiIhm > woanders`, and a sabotage that pinned the
+  // dot to the middle of the map still passed it — 285 against 272,
+  // because the meadow up there happens to be a shade lighter than the
+  // grass down here. Thirteen units of luck is not an assertion. The
+  // marker is `#ffe08a`, which is 617, and nothing else on this map is
+  // anywhere near that.
   check('the map shows where he is',
-    beiIhm > woanders, `on him ${beiIhm}, elsewhere ${woanders}`);
+    beiIhm > 500, `on him ${beiIhm}, elsewhere ${woanders}`);
 
   await karteAuf({}, { x: 40.5, y: 30.5 });
   const umgezogen = await hell(40, 30);

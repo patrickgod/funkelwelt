@@ -227,6 +227,23 @@ it.** A risk you have not built is a risk you are still carrying.
   past the near gate, asserted against that gate rather than against a
   number.
 
+* **A map in the pause menu.** The whole region on one screen: the land,
+  the woods, the lamps, the four houses, the cart, both gates, and a
+  pulsing dot where he is. Not the lightsparks and not the shadows — a
+  map that marks every collectable turns exploring into shopping.
+
+  The one piece of fog is the doors: finished houses have a lit doorway
+  and unfinished ones are dark, which makes the map a list of things
+  left to do without a word of text on it. It is also the first thing in
+  the game to read `geschafft` for anything but a tutorial line.
+
+* **Every maths house now answers its own question in the suite.** The
+  loose end from the CI failure: three checks that looked like they
+  tested three houses were only asserting that a round can be finished,
+  and had been going green on luck. All four now work the answer out
+  from what is on the screen — the partner to ten, the gap in the row,
+  the sum, the arrow — and all four report 10 of 10.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick
@@ -334,23 +351,7 @@ and **none should be built before Patrick picks one**:
   "come back when you are stronger" building, and `buildRound` already
   takes as many generators as you give it.
 
-### 4. A map in the pause menu
-
-Patrick: *"since the world will be bigger in the future, maybe we need
-map overview in the pause menu? like in a real game? showing the
-complete map?"*
-
-Yes, and it gets more useful with every house. The region is 48×36 and
-about thirteen tiles of it are on screen at once, so a child already
-holds most of it in their head rather than in front of their eyes.
-
-Cheap, because `karte.ts` already has everything: the tiles, the houses,
-the gates, the shadows, the lightsparks. A map is one more `Px` buffer
-drawn at one pixel per tile and scaled up. Worth doing properly though
-— show where he IS, show the doors he has been through, and do not show
-what he has not found yet.
-
-### 5. The second world: Deutsch
+### 4. The second world: Deutsch
 
 Patrick: *"und dann in der nächsten welt die silben? lesen und
 schreiben, und kombinationen wie Lea, lulu, Mama, Oma, etc. aber eben
@@ -376,12 +377,12 @@ carries the `schreiben` kind, waiting.
 unreferenced, along with `woerter()` in `tools/genvoice.mjs`. One line
 brings the recordings back.
 
-### 6. Waypoints
+### 5. Waypoints
 
 Patrick's, and now they have a job: two worlds means walking between
 them. Build them when the second world exists and not before.
 
-### 7. Anything else about a second region
+### 6. Anything else about a second region
 
 The gate proves the mechanism on twelve tiles. What it opens onto should
 eventually be somewhere, not a walled garden — and the honest note is

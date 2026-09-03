@@ -526,3 +526,37 @@ biased it asserts nothing at all while still going green most days. If
 the check can work out the right answer from what is on the screen — and
 in a game for six-year-olds it almost always can, because the screen has
 to be readable by a six-year-old — then it should.
+
+## A check that survives the sabotage by thirteen units is not a check
+
+**Signature:** a deliberately broken build failed one of the two checks
+that should have caught it, and passed the other — by 285 to 272.
+
+The map draws a pulsing dot where the adventurer is. Two checks guarded
+it: "the map shows where he is" (his tile is brighter than a far-away
+tile) and "it moves when he does" (the same far tile is brighter after
+he walks to it than before).
+
+Pinning the dot to the middle of the map broke the second one flat and
+sailed through the first, because the meadow in the north happens to be
+a shade lighter than the grass in the south. The check had been reading
+terrain, not the marker, for its entire life — it only ever passed
+because the two tiles it compared were slightly different colours.
+
+The fix was to state it against the thing itself: the marker is
+`#ffe08a`, which sums to 617, and nothing else on that map is within a
+hundred of it. `beiIhm > 500`.
+
+Generalises, and it is not the same lesson as "assert relationships,
+not absolutes" — it is the boundary of it. **A relative assertion is
+only worth anything when the two sides differ for the RIGHT reason.**
+Comparing his tile to a distant tile compares two pieces of grass and
+happens to include a dot; comparing the same tile before and after he
+arrives isolates the dot exactly. When the relationship cannot be made
+to isolate the thing, an absolute threshold taken from the actual value
+— not from a round number somebody liked — is the honest check.
+
+The general habit underneath: **when a sabotage run fails some of the
+checks it should fail, look hard at the ones that passed.** They are not
+redundant coverage. They are checks that have just told you they do not
+work, and it is the only time they will ever say so.
