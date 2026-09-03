@@ -46,7 +46,7 @@ import { held, heldSchatten, W as HELD_W, H as HELD_H,
   type Aussehen, type Richtung } from '../spiel/held.js';
 import { Steuerung, TOT, WEIT } from '../spiel/steuerung.js';
 import { kugel, KW as LUMA_W, KH as LUMA_H } from '../spiel/luma.js';
-import { schatten as schattenPx, schattenFleck, SW, SH } from '../spiel/schatten.js';
+import { schatten as schattenPx, schattenFleck, artVon, ARTEN, SW, SH } from '../spiel/schatten.js';
 import * as k from './kacheln.js';
 import * as karte from './karte.js';
 import * as sprites from './sprites.js';
@@ -152,7 +152,7 @@ export class Welt {
 
   private readonly lampen: { x: number; y: number }[] = [];
   /** Shadows still standing, and the images of them. */
-  private readonly schattenBilder: HTMLCanvasElement[] = [];
+  private readonly schattenBilder = new Map<string, HTMLCanvasElement[]>();
   private fleckBild: HTMLCanvasElement | null = null;
   private readonly wegSchatten = new Set<string>();
   /** So a shadow is met once, not sixty times a second. */
@@ -324,7 +324,14 @@ export class Welt {
     }
     for (let f = 0; f < 2; f++) this.funkeBild.push(k.funke(f).toCanvas());
     for (let f = 0; f < 4; f++) this.kugelBild.push(kugel(f).toCanvas());
-    for (let f = 0; f < 4; f++) this.schattenBilder.push(schattenPx(f, 7, 1).toCanvas());
+    // One row of frames per KIND, so a shadow in the meadow looks like
+    // the creature the encounter will show — built once here rather
+    // than redrawn as the child walks past.
+    for (const art of ARTEN) {
+      const reihe: HTMLCanvasElement[] = [];
+      for (let f = 0; f < 4; f++) reihe.push(schattenPx(f, 7, 1, art).toCanvas());
+      this.schattenBilder.set(art, reihe);
+    }
     this.karrenBild = k.karren().toCanvas();
     this.fleckBild = schattenFleck(1).toCanvas();
     this.schattenBild = heldSchatten().toCanvas();
@@ -883,7 +890,9 @@ export class Welt {
       if (this.wegSchatten.has(sch.id)) continue;
       if (sch.x < this.camX - 32 || sch.x > this.camX + vw + 32) continue;
       if (sch.y < this.camY - 40 || sch.y > this.camY + vh + 40) continue;
-      const b = this.schattenBilder[Math.floor(this.zeit * 3.6) % 4];
+      const reihe = this.schattenBilder.get(artVon(sch.id));
+      const b = reihe?.[Math.floor(this.zeit * 3.6) % 4];
+      if (!b) continue;
       const bob = Math.round(Math.sin(this.zeit * 1.7 + sch.x) * 1.5);
       if (this.fleckBild) {
         const [fx2, fy2] = hin(sch.x - SW / 2, sch.y - 6);

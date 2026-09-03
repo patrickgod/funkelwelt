@@ -122,7 +122,20 @@ export const verliebteZahlen: Game = {
 
     // Seeing -> Knowing -> Remembering, per pair. The frame is filled,
     // then gone.
-    const prompt: Prompt = { kind: 'tenframe', n: s >= 3 ? -1 : n, numeral: true };
+    // The ten-frame is ALWAYS shown.
+    //
+    // It used to vanish once a fact was strong (`s >= 3`), on the
+    // didactic argument that the scaffold should fade as mastery
+    // arrives. Patrick, playing it: "ich sehe manchmal 4 zahlen zur
+    // auswahl und nicht immer die matrix mit den herzen. es sollte
+    // immer die matrix zu sehen sein."
+    //
+    // He read it as a bug, which is the answer: a support that removes
+    // itself without warning is indistinguishable from a broken screen,
+    // and the child cannot know why the picture went away. Fading it
+    // may still be right one day, but it has to be something the child
+    // can SEE happening — a frame that dims, not one that is missing.
+    const prompt: Prompt = { kind: 'tenframe', n, numeral: true };
 
     const count = s === 0 ? 3 : 4;
     return {

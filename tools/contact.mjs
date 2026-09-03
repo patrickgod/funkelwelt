@@ -37,9 +37,14 @@ async function sheet(name, source) {
   page.on('pageerror', (e) => console.log('  page error:', e.message));
   await page.goto(`file://${process.cwd().replace(/\\/g, '/')}/.contact/index.html`);
   await page.waitForFunction(() => window.ready === true, { timeout: 15000 });
-  await page.locator('canvas').screenshot({ path: `shots/${name}.png` });
+  // `blatt-` because `tools/shot.mjs` writes into the same folder and
+  // both tools had a target called `schatten`. The world shot silently
+  // overwrote the contact sheet, and the sheet I had just spent ten
+  // minutes reading was a screenshot of a completely different screen
+  // by the time I looked at it again.
+  await page.locator('canvas').screenshot({ path: `shots/blatt-${name}.png` });
   await page.close();
-  console.log(`  shots/${name}.png`);
+  console.log(`  shots/blatt-${name}.png`);
 }
 
 // ------------------------------------------------------- the adventurer
@@ -143,69 +148,36 @@ for (const s of [2, 3, 4, 6]) {
 
 if (doIt('schatten')) {
   await sheet('schatten', `
-import { schatten, SW, SH } from '../src/spiel/schatten.js';
+import { ARTEN, schatten, SW, SH } from '../src/spiel/schatten.js';
 
-// Four frames across, and four stages of being pushed back down — which
-// is the only axis this creature has. It must read as DIM rather than
-// as dangerous at every one of them, and it must never read as hurt.
-const S = 6;
+// All five kinds across, four stages of being pushed back down.
+//
+// The axis that matters is the DOWN one: every one of these has to read
+// as dim rather than as dangerous at every stage, and none of them may
+// ever read as hurt. The across axis is the new one — five silhouettes
+// that must be tellable apart at a glance, because a child should be
+// able to say "there's a tall one over there" before they are close
+// enough to see the colour.
+const S = 5;
 const c = document.createElement('canvas');
-c.width = 40 + 4 * (SW * S + 20);
-c.height = 40 + 4 * (SH * S + 16);
+c.width = 40 + ARTEN.length * (SW * S + 18);
+c.height = 50 + 4 * (SH * S + 14);
 document.body.appendChild(c);
 const ctx = c.getContext('2d')!;
 ctx.imageSmoothingEnabled = false;
 ctx.fillStyle = '#2f2a3c';
 ctx.fillRect(0, 0, c.width, c.height);
-[1, 0.66, 0.33, 0.05].forEach((wach, row) => {
-  for (let f = 0; f < 4; f++) {
-    ctx.drawImage(schatten(f, 7, wach).toCanvas(),
-      20 + f * (SW * S + 20), 20 + row * (SH * S + 16), SW * S, SH * S);
-  }
-});
-
-(window as any).ready = true;
-`);
-}
-
-// --------------------------------------------------- the door plaques
-
-if (doIt('tafel')) {
-  await sheet('tafel', `
-import { tafel } from '../src/welt/kacheln.js';
-
-// All four side by side, on grass, at the scale the world draws them
-// AND at the scale a child sees them from the path. Rule 3: a sprite is
-// judged on the background it will actually be seen on.
-//
-// This sheet exists because a plaque nearly shipped as a gold blob.
-// A plus and a minus were drawn on a board sixteen pixels wide, the
-// antialiasing filled the notches between the arms, and nobody would
-// have noticed until a screenshot of the whole world was cropped.
-const W = 18, H = 26;
-const NAMEN = ['Verliebte', 'Nachbarn', 'Addition', 'Richtung'];
-const SKALEN = [3, 6];
-
-const c = document.createElement('canvas');
-c.width = 40 + 4 * (W * 6 + 24);
-c.height = 60 + (H * 3 + H * 6) + 40;
-document.body.appendChild(c);
-const ctx = c.getContext('2d')!;
-ctx.imageSmoothingEnabled = false;
-ctx.fillStyle = '#548544';
-ctx.fillRect(0, 0, c.width, c.height);
 ctx.font = 'bold 15px sans-serif';
 ctx.textAlign = 'center';
 
-NAMEN.forEach((n, i) => {
-  const x = 20 + i * (W * 6 + 24);
+ARTEN.forEach((art, col) => {
+  const x = 20 + col * (SW * S + 18);
   ctx.fillStyle = '#f8f0dc';
-  ctx.fillText(n, x + (W * 6) / 2, 22);
-  let y = 34;
-  for (const s of SKALEN) {
-    ctx.drawImage(tafel(i).toCanvas(), x, y, W * s, H * s);
-    y += H * s + 14;
-  }
+  ctx.fillText(art, x + (SW * S) / 2, 24);
+  [1, 0.66, 0.33, 0.05].forEach((wach, row) => {
+    ctx.drawImage(schatten(row % 4, 7 + col, wach, art).toCanvas(),
+      x, 34 + row * (SH * S + 14), SW * S, SH * S);
+  });
 });
 
 (window as any).ready = true;

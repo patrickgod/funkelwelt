@@ -25,13 +25,13 @@ import { t } from '../core/i18n.js';
 import * as stand from '../core/spielstand.js';
 import * as audio from '../core/audio.js';
 import * as fx from '../core/fx.js';
-import { iconCanvas } from '../core/icons.js';
+import { iconCanvas, type Icon } from '../core/icons.js';
 import { tenFrameCanvas } from '../core/tenframe.js';
 import { buildRound, rundenLaenge, bekanntePaare } from '../games/games.js';
-import type { Prompt, Question } from '../games/types.js';
+import type { Question } from '../games/types.js';
 import { el, tap, knopf, zentrumVon } from './dom.js';
 import * as luma from './luma.js';
-import { fahrzeugCanvas, pfeilCanvas, type Fahrzeug, type Richtung } from '../games/fahrzeuge.js';
+import { fragebild, karteFuer, kartenKlasse, rahmenSkala, type Fuellung } from './frage.js';
 
 export interface Haus {
   /** Save-slot key, so a house can count how often it has been cleared. */
@@ -149,49 +149,11 @@ let raus: (() => void) | null = null;
  * THIS frame is the metaphor the house is named after, and a
  * six-year-old reads it without being told.
  */
-function form(): 'perle' | 'herz' {
+function form(): Fuellung {
   return lauf?.haus.spiel === 'verliebte-zahlen' ? 'herz' : 'perle';
 }
 
 /** Letters and numbers want different card shapes. */
-/** How big a vehicle is drawn on a card. */
-function fahrSkala(): number {
-  return Math.max(2, Math.min(5, Math.floor((window.innerHeight * 0.11) / 26)));
-}
-
-function kartenKlasse(q: Question): string {
-  if (q.choices.some((c) => c.startsWith('fz:'))) return ' fahrzeuge';
-  if (q.choices.some((c) => c.length > 2)) return ' worte';
-  return '';
-}
-
-/**
- * How big the ten-frame is drawn.
- *
- * Sized from the viewport rather than fixed, and generously: the frame
- * IS the question in this house, and the first version drew it at scale
- * 4 on an iPad, which left it floating in the middle of a mostly empty
- * screen looking like a footnote. It is 68 by 30 source pixels; this
- * aims it at about half the width and a fifth of the height, whichever
- * is the tighter, and keeps to whole numbers because a pixel drawing at
- * a fractional scale has some lines two pixels thick and some three.
- */
-/** File stems have no umlauts, because file names on a server do not. */
-export function stamm(wort: string): string {
-  return wort.toLowerCase()
-    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
-}
-
-/** Which star this house pays. Two subjects, two stars. */
-function sternIcon(fach: stand.Fach): 'stern' | 'sternWort' {
-  return fach === 'wort' ? 'sternWort' : 'stern';
-}
-
-function rahmenSkala(): number {
-  const nachBreite = (window.innerWidth * 0.5) / 68;
-  const nachHoehe = (window.innerHeight * 0.22) / 30;
-  return Math.max(3, Math.min(8, Math.floor(Math.min(nachBreite, nachHoehe))));
-}
 
 /** Open a house. `zurueck` is called when the child is done with it. */
 export function starten(ui: HTMLElement, haus: Haus, zurueck: () => void): void {
@@ -251,22 +213,12 @@ function frageZeichnen(): void {
   s.appendChild(oben);
 
   const buehne = el('div', 'buehne-q');
-  buehne.appendChild(fragebild(q.prompt, q));
+  buehne.appendChild(fragebild(q.prompt, q, form()));
   s.appendChild(buehne);
 
   const karten = el('div', `karten${kartenKlasse(q)}`);
   q.choices.forEach((label, idx) => {
-    const b = el('button');
-    if (label.startsWith('fz:')) {
-      // The card IS the vehicle, pointing the way it is going. Nothing
-      // is written on it — a six-year-old who cannot read "Hubschrauber"
-      // can still answer every question in this house.
-      const [, art, nach] = label.split(':');
-      b.appendChild(fahrzeugCanvas(art as Fahrzeug, nach as Richtung, fahrSkala()));
-      b.setAttribute('aria-label', `${art} ${nach}`);
-    } else {
-      b.textContent = label;
-    }
+    const b = karteFuer(label);
     tap(b, () => antwort(idx, b, buehne, karten));
     karten.appendChild(b);
   });
@@ -285,99 +237,14 @@ function beutel(sterne: number, muenzen: number): HTMLElement {
   return p;
 }
 
-/** How a prompt is drawn. Nothing here is a sentence the child must read. */
-function fragebild(p: Prompt, q: Question): HTMLElement {
-  const box = el('div', 'frage');
-  switch (p.kind) {
-    case 'tenframe': {
-      if (p.n >= 0) {
-        const f = el('div', 'zehnerfeld');
-        f.appendChild(tenFrameCanvas({ n: p.n, shape: form() }, rahmenSkala()));
-        box.appendChild(f);
-      }
-      if (p.numeral) {
-        const n = p.n >= 0 ? p.n : Number(q.fact.slice(3));
-        // Named as well as drawn, so `tools/verify.mjs` can ANSWER this
-        // question rather than tapping a card and hoping. It tapped and
-        // hoped for weeks, and passed on luck.
-        box.setAttribute('data-zahl', String(n));
-        box.appendChild(el('div', 'zahl-gross', String(n)));
-      }
-      break;
-    }
-    case 'richtung': {
-      // The whole question, and it is one arrow. It is spoken as well,
-      // for a child who wants it read to them, but it does not need to
-      // be: with the sound off the arrow still says which way.
-      const holder = el('div', 'pfeilfrage');
-      const bild = pfeilCanvas(p.nach, fahrSkala() + 2);
-      // Named as well as drawn: a screen reader gets the question, and
-      // `tools/verify.mjs` can tell which way it was asked WITHOUT
-      // asking the code that decides the answer.
-      bild.setAttribute('data-nach', p.nach);
-      bild.setAttribute('aria-label', p.nach);
-      holder.appendChild(bild);
-      box.appendChild(holder);
-      const key = `say.nach${p.nach === 'rechts' ? 'Rechts' : 'Links'}`;
-      const hoeren = el('button', 'hoeren');
-      hoeren.appendChild(iconCanvas('ohr', 68));
-      const sag = (): void => { audio.say(key.replace(/\./g, '-').toLowerCase(), t(key)); };
-      tap(hoeren, sag);
-      box.appendChild(hoeren);
-      setTimeout(sag, 260);
-      break;
-    }
-    case 'reihe': {
-      const row = el('div', 'zahlenreihe');
-      for (const v of p.seq) {
-        row.appendChild(el('span', v === null ? 'luecke' : undefined,
-          v === null ? '?' : String(v)));
-      }
-      box.appendChild(row);
-      break;
-    }
-    case 'rechnung': {
-      const r = el('div', 'rechnung');
-      r.append(
-        el('span', undefined, String(p.a)),
-        el('span', undefined, p.op),
-        el('span', undefined, String(p.b)),
-        el('span', undefined, '='),
-        el('span', undefined, '?'),
-      );
-      box.appendChild(r);
-      const f = el('div', 'zehnerfeld');
-      f.appendChild(tenFrameCanvas({ n: p.a }, Math.max(2, rahmenSkala() - 1)));
-      f.setAttribute('data-n', String(p.a));
-      box.appendChild(f);
-      break;
-    }
-    case 'doppel': {
-      const r = el('div', 'rechnung');
-      r.append(
-        el('span', undefined, String(p.n)),
-        el('span', undefined, '+'),
-        el('span', undefined, String(p.n)),
-        el('span', undefined, '='),
-        el('span', undefined, '?'),
-      );
-      box.appendChild(r);
-      const zwei = el('div', 'doppelfeld');
-      for (let i = 0; i < 2; i++) {
-        const f = el('div', 'zehnerfeld');
-        f.appendChild(tenFrameCanvas({ n: p.n }, Math.max(2, rahmenSkala() - 1)));
-        zwei.appendChild(f);
-      }
-      box.appendChild(zwei);
-      break;
-    }
-    default:
-      // The shapes, patterns and writing houses use the remaining prompt
-      // kinds. Their generators are still in LernInseln and come across
-      // when their doors do; see src/games/games.ts.
-      break;
-  }
-  return box;
+/**
+ * Which star this house pays, as an icon.
+ *
+ * Gold and five-pointed for numbers, blue and four-pointed for words.
+ * Same shape in two colours was not enough at icon size.
+ */
+function sternIcon(fach: stand.Fach): Icon {
+  return fach === 'wort' ? 'sternWort' : 'stern';
 }
 
 function feldErsetzen(buehne: HTMLElement, n: number, extra: number): void {

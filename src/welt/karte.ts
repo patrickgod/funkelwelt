@@ -38,7 +38,7 @@ export const ZEILEN: readonly string[] = [
   '##.TTT.....,...T.F..TT..Tt..s~~~sTTTTT.T..#.F."#',
   '##........T.,....T..T....,T"s~~~s.T"T.,.T.#,.*.#',
   '##...,.,.T.T........S....,..s~~~s...T...T.#...F#',
-  '##...NNNNN....."".......o.*"s~~~s..........G####',
+  '##...NNNNN....."".......o.*"s~~~s........G.G####',
   '##...NNNNN.,...,......=======bbb======......####',
   '##..FNNNNN.......t.,,.=....,s~~~s....=..."..####',
   '##.".NNNNN.,.".,...,..=.."..s~~~s....=T....".###',
@@ -60,7 +60,7 @@ export const ZEILEN: readonly string[] = [
   '##.....T.t..T.=*,t..t.,...sssssssss..=.o########',
   '##TTTF...,,...=o...T...T.,....o.....*=..########',
   '##..T.t.S.t...=..,T.T..T.,"........."=,.#.F..###',
-  '##TTT.........=..T.......,..,....."..=..g..*.###',
+  '##TTT.........=..T.......,..,....."..=..gg.*.###',
   '##..T.........========================.##....###',
   '##..T.,".....tTt.TTo...,".S..,....,...,##.S.F###',
   '##.T.....F.....ot.TF......."...T.......#########',
@@ -184,6 +184,14 @@ export let LADEN: { mitte: number; fuss: number } | null = null;
  */
 const offen = new Set<string>();
 
+/**
+ * Which gate each gate TILE belongs to.
+ *
+ * A gate is two tiles wide and there is one `Tor` for it, so a tile
+ * needs to know whose it is before it can be asked whether it is open.
+ */
+const torTeil = new Map<number, string>();
+
 export function torOeffnen(id: string): void {
   offen.add(id);
 }
@@ -279,6 +287,20 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
         // is behind.
         case 'G':
         case 'g':
+          // Two tiles wide, and only the LEFT one makes a Tor.
+          //
+          // A gate used to be one tile. The adventurer's foot box is
+          // eleven pixels on a sixteen-pixel tile, so getting through a
+          // one-tile gap meant putting his centre inside a six-pixel
+          // window — and Patrick, playing it: "wenn ein tor
+          // freigeschaltet wird, muss die öffnung größer sein, sonst
+          // kommt man nicht durch." He was right, and the arithmetic
+          // says so: it was threading a needle.
+          //
+          // Every tile of the run reports to the leftmost one's id, so
+          // opening the gate opens the whole opening.
+          torTeil.set(y * KW + x, `g${zeichen(x - 1, y) === c ? x - 1 : x},${y}`);
+          if (zeichen(x - 1, y) === c) break;
           tore.push({
             id: `g${x},${y}`, tx: x, ty: y,
             mitte: x * KACHEL + 8, fuss: (y + 1) * KACHEL,
@@ -369,7 +391,10 @@ export function festAn(tx: number, ty: number): boolean {
   // A gate is solid until it is not. Everything else in `fest` is a
   // fact about the map; this one is a fact about the child.
   const z = ZEILEN[ty][tx];
-  if ((z === 'G' || z === 'g') && offen.has(`g${tx},${ty}`)) return false;
+  if (z === 'G' || z === 'g') {
+    const id = torTeil.get(ty * KW + tx);
+    if (id && offen.has(id)) return false;
+  }
   return true;
 }
 

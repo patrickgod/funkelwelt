@@ -322,7 +322,7 @@ if (want('schatten')) {
   await page.evaluate(() => {
     const k = 'funkelwelt.platz0.v1';
     const s = JSON.parse(localStorage.getItem(k));
-    s.ort = { x: 18.5, y: 12.6 };
+    s.ort = { x: 18.5, y: 9.6 };
     s.schatten = [];
     localStorage.setItem(k, JSON.stringify(s));
   });
@@ -333,9 +333,13 @@ if (want('schatten')) {
   await page.waitForTimeout(2400);
   await lumaWeg();
   await shot('schatten-welt');
-  await page.keyboard.down('ArrowUp');
-  await page.waitForTimeout(700);
-  await page.keyboard.up('ArrowUp');
+  // Down onto the shadow at (18,11), from the north. He used to be
+  // placed south of it at y 12.6 — which is inside Das Haus der
+  // Nachbarzahlen since the houses were rearranged, so this shot had
+  // quietly become a picture of a completely different screen.
+  await page.keyboard.down('ArrowDown');
+  await page.waitForTimeout(900);
+  await page.keyboard.up('ArrowDown');
   await page.waitForTimeout(1400);
   await lumaWeg();
   await shot('schatten');

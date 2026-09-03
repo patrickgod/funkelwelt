@@ -32,9 +32,10 @@ import * as audio from '../core/audio.js';
 import * as fx from '../core/fx.js';
 import { iconCanvas } from '../core/icons.js';
 import { tenFrameCanvas } from '../core/tenframe.js';
-import { buildRound, bekanntePaare } from '../games/games.js';
+import { fragebild, karteFuer, kartenKlasse, rahmenSkala } from './frage.js';
+import { buildRound, bekanntePaare, GAMES } from '../games/games.js';
 import type { Question } from '../games/types.js';
-import { schatten as schattenPx, SW, SH } from '../spiel/schatten.js';
+import { schatten as schattenPx, artVon, SW, SH } from '../spiel/schatten.js';
 import { el, tap, knopf, zentrumVon } from './dom.js';
 import * as luma from './luma.js';
 
@@ -65,16 +66,30 @@ let lauf: Lauf | null = null;
 let wurzel: HTMLElement | null = null;
 let raus: ((geschafft: boolean) => void) | null = null;
 
+/**
+ * What a shadow may ask: everything the four houses teach.
+ *
+ * Read from GAMES rather than listed by hand, so a new house cannot be
+ * built without the shadows learning it too — the old list of one is
+ * exactly what happens when this is written out somewhere.
+ */
+const SPIELE = Object.keys(GAMES);
+
+/** Fisher-Yates, so an encounter is not the same shape twice. */
+function mischen<T>(arr: T[]): T[] {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 /** The shadow, drawn at whatever size the screen can spare. */
 function schattenSkala(): number {
   return Math.max(3, Math.min(7, Math.floor((window.innerHeight * 0.24) / SH)));
 }
 
-function rahmenSkala(): number {
-  const b = (window.innerWidth * 0.42) / 68;
-  const h = (window.innerHeight * 0.17) / 30;
-  return Math.max(3, Math.min(7, Math.floor(Math.min(b, h))));
-}
 
 /** Walk into a shadow. `zurueck(true)` when it has been chased away. */
 export function starten(ui: HTMLElement, id: string, zurueck: (weg: boolean) => void): void {
@@ -85,7 +100,18 @@ export function starten(ui: HTMLElement, id: string, zurueck: (weg: boolean) => 
     // Deliberately more questions than it can take, so the round never
     // runs out from under a child who is finding it hard. The encounter
     // ends when Mut is full, not when the questions do.
-    fragen: buildRound('verliebte-zahlen', mutVoll() * 4),
+    // Every kind of question a house in this world teaches, shuffled.
+    //
+    // Patrick: "the schatten opponents, they always have the verliebte
+    // zahlen task. why not randomize the tasks?" They always did,
+    // because this screen could only DRAW that one — a rendering limit
+    // that had quietly become a design decision. It shares the houses'
+    // renderer now, so a shadow asks whatever the meadow teaches.
+    //
+    // Shuffled per encounter rather than rotated: a house is a lesson
+    // and has a rhythm worth keeping, but a shadow is a surprise and
+    // should not be predictable.
+    fragen: buildRound(mischen(SPIELE), mutVoll() * 4),
     i: 0,
     mut: 0,
     beschaeftigt: false,
@@ -129,7 +155,10 @@ function zeichnen(): void {
   const buehne = el('div', 'buehne-q');
   const sBox = el('div', 'schatten');
   const sk = schattenSkala();
-  const c = schattenPx(Math.floor(performance.now() / 260) % 4, 7, wach).toCanvas();
+  // The same creature the child walked up to in the meadow, not a
+  // generic one: the kind comes from the shadow's own id.
+  const c = schattenPx(Math.floor(performance.now() / 260) % 4, 7, wach,
+    artVon(lauf?.id ?? '')).toCanvas();
   const cc = el('canvas');
   cc.width = SW * sk;
   cc.height = SH * sk;
@@ -151,21 +180,16 @@ function zeichnen(): void {
   mut.appendChild(balken);
   buehne.appendChild(mut);
 
-  const frage = el('div', 'frage');
-  if (q.prompt.kind === 'tenframe' && q.prompt.n >= 0) {
-    const f = el('div', 'zehnerfeld');
-    f.appendChild(tenFrameCanvas({ n: q.prompt.n, shape: 'herz' }, rahmenSkala()));
-    frage.appendChild(f);
-  }
-  frage.appendChild(el('div', 'zahl-gross',
-    String(q.prompt.kind === 'tenframe' && q.prompt.n >= 0
-      ? q.prompt.n : Number(q.fact.slice(3)))));
+  // The SAME renderer the houses use, which is what lets a shadow ask
+  // anything at all. This screen used to draw its own ten-frame and
+  // nothing else, so it could only ever ask verliebte Zahlen.
+  const frage = fragebild(q.prompt, q, 'herz');
   buehne.appendChild(frage);
   s.appendChild(buehne);
 
-  const karten = el('div', 'karten');
+  const karten = el('div', `karten${kartenKlasse(q)}`);
   q.choices.forEach((label, idx) => {
-    const b = el('button', undefined, label);
+    const b = karteFuer(label);
     tap(b, () => antwort(idx, b, frage, karten));
     karten.appendChild(b);
   });

@@ -1324,20 +1324,91 @@ async function beiTor(sterne, wort = 0) {
   await lumaWeg();
 
   check('walking into a shadow meets it', await page.locator('.begegnung').count() === 1);
+
+  // A shadow asks whatever the meadow teaches, not always the same
+  // thing.
+  //
+  // Patrick, from playing it: "the schatten opponents, they always have
+  // the verliebte zahlen task. why not randomize the tasks?" They
+  // always did, because this screen could only DRAW a ten-frame — a
+  // rendering limit that had become a design decision without anybody
+  // choosing it.
+  //
+  // Counted by the KIND of picture on the stage, so this asserts the
+  // screen can draw them rather than that the generator was called.
+  {
+    const arten = new Set();
+    for (let i = 0; i < 8; i++) {
+      if (await page.locator('.begegnung').count() === 0) break;
+      if (await page.locator('.pfeilfrage').count()) arten.add('richtung');
+      else if (await page.locator('.zahlenreihe').count()) arten.add('reihe');
+      else if (await page.locator('.rechnung').count()) arten.add('rechnung');
+      else if (await page.locator('.zehnerfeld').count()) arten.add('tenframe');
+      const karten = page.locator('.begegnung .karten button');
+      if (await karten.count() === 0) break;
+      await karten.first().tap();
+      await page.waitForTimeout(1500);
+    }
+    check('a shadow asks more than one kind of question',
+      arten.size >= 2, `asked: ${[...arten].join(', ') || 'nothing recognised'}`);
+  }
+  await page.locator('.begegnung .weg, .begegnung button').last().tap().catch(() => {});
+  await page.waitForTimeout(500);
+  await inDieWelt();
+  await stellAuf(18.5, 9.6);
+  await inDieWelt();
+  await lumaWeg();
+  await laufe('ArrowDown', 900);
+  await page.waitForTimeout(900);
   await measureButtons('shadow');
   check('there is a Mut bar, and it starts empty',
     await page.locator('.mut .fuellung').count() === 1
     && (await page.locator('.mut .fuellung').evaluate((e) => e.style.width)) === '0%');
 
-  /** Answer, right or wrong. The numeral on screen is the question. */
+  /**
+   * Answer, right or wrong, WHATEVER kind of question is on the screen.
+   *
+   * This used to read `.zahl-gross` and assume the partner to ten,
+   * because a shadow could only ever ask verliebte Zahlen. Now that a
+   * shadow asks whatever the meadow teaches, the check has to be able
+   * to answer all four — and the same oracles the house checks use do
+   * the job: the partner to ten, the gap in the row, the sum, and the
+   * vehicle going the way the arrow points.
+   */
+  async function loesung() {
+    if (await page.locator('.pfeilfrage canvas').count()) {
+      const nach = await page.locator('.pfeilfrage canvas')
+        .evaluate((e) => e.getAttribute('data-nach') ?? '');
+      return { art: 'fz', will: nach };
+    }
+    if (await page.locator('.zahlenreihe').count()) {
+      const reihe = await page.locator('.zahlenreihe span')
+        .evaluateAll((els) => els.map((e) => (e.textContent ?? '').trim()));
+      const luecke = reihe.indexOf('?');
+      const anker = reihe.findIndex((t) => t !== '?');
+      return { art: 'text', will: String(Number(reihe[anker]) + (luecke - anker)) };
+    }
+    const teile = await page.locator('.rechnung span')
+      .evaluateAll((els) => els.map((e) => (e.textContent ?? '').trim()));
+    if (teile.length === 5 && teile[1] === '+') {
+      return { art: 'text', will: String(Number(teile[0]) + Number(teile[2])) };
+    }
+    const gezeigt = await page.locator('.zahl-gross').first()
+      .textContent().catch(() => null);
+    if (gezeigt !== null) return { art: 'text', will: String(10 - Number(gezeigt)) };
+    return null;
+  }
+
   async function antworte(richtig) {
-    const gezeigt = Number(await page.locator('.zahl-gross').first().textContent());
-    const will = String(10 - gezeigt);
+    const l = await loesung();
+    if (!l) return false;
     const karten = page.locator('.karten button');
     const n = await karten.count();
     for (let i = 0; i < n; i++) {
-      const txt = (await karten.nth(i).textContent()).trim();
-      if (richtig === (txt === will)) { await karten.nth(i).tap(); return true; }
+      const passt = l.art === 'fz'
+        ? ((await karten.nth(i).getAttribute('aria-label')) ?? '').endsWith(l.will)
+        : (await karten.nth(i).textContent()).trim() === l.will;
+      if (richtig === passt) { await karten.nth(i).tap(); return true; }
     }
     return false;
   }

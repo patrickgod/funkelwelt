@@ -774,9 +774,28 @@ button.gross {
 /* Dusk, not danger. The house is warm plaster because the lights are on
    in there; out here they are not, and the whole point of a shadow is
    that it is DIM rather than threatening. Nothing on this screen is red. */
-.begegnung {
+/* The violet ground, for the encounter AND for the houses.
+ *
+ * Patrick: "es gibt manchmal aber auch eine schönere Optik, in violet,
+ * mit herzen und halbtransparentem hintergrund. keine ahnung was das
+ * ist und wann es auftaucht, aber das darf ruhig immer so sein."
+ *
+ * What he had seen was the shadow encounter, which has always been
+ * violet while the houses were tan. He is right that it looks better,
+ * and there is a reason beyond taste: the ten-frame's cells are pale
+ * blue and its hearts are pink, and both of those sit on a dark ground
+ * far better than on a light one. On tan the frame was the brightest
+ * thing on the screen after the answer cards; on violet the frame is
+ * the brightest thing, full stop, which is where the eye should go. */
+.begegnung,
+.runde {
   background: linear-gradient(180deg, #2f2a3c 0%, #1a1622 100%);
 }
+
+.runde .zahl-gross { color: var(--kreide-hell); }
+.runde .karten button { color: var(--kreide); }
+.runde .zahlenreihe { color: var(--creme); }
+.runde .rechnung { color: var(--creme); }
 
 .begegnung .schatten canvas { image-rendering: pixelated; display: block; }
 .begegnung .zahl-gross { color: var(--kreide-hell); }
