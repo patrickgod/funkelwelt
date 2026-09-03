@@ -21,7 +21,7 @@
 // tail is exactly that, it is forty lines, and it never has to be
 // downloaded.
 
-import { get } from './state.js';
+import { get } from './spielstand.js';
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -46,7 +46,7 @@ export function unlock(): void {
 }
 
 function on(): boolean {
-  return unlocked && ctx !== null && master !== null && get().sound;
+  return unlocked && ctx !== null && master !== null && get().ton;
 }
 
 /**
@@ -274,7 +274,7 @@ function speakFallback(text: string): void {
  * German words, used only if that file is not there.
  */
 export function say(id: string, text = ''): void {
-  if (!get().voice) return;
+  if (!get().stimme) return;
   stopSaying();
 
   if (missing.has(id)) { speakFallback(text); return; }

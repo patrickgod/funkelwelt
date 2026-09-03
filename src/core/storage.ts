@@ -1,6 +1,9 @@
 // localStorage, wrapped so that a private-window failure degrades to
 // "this session only" instead of crashing.
 //
+// Keyed, unlike LernInseln's version, because this game has three save
+// slots and that one was written for exactly one.
+//
 // AGENTS.md rule 8: nothing leaves the device. This file is the only
 // persistence in the app, and it writes to exactly one key.
 //
@@ -11,10 +14,9 @@
 // So: probe once at startup, and if the probe fails, keep the state in
 // memory and never touch storage again.
 
-const KEY = 'lerninseln.save.v1';
-
 let available: boolean | null = null;
-let memory: string | null = null;
+/** The in-memory fallback, per key. */
+const memory = new Map<string, string>();
 
 function probe(): boolean {
   if (available !== null) return available;
@@ -29,20 +31,20 @@ function probe(): boolean {
   return available;
 }
 
-export function load(): string | null {
-  if (!probe()) return memory;
+export function load(key: string): string | null {
+  if (!probe()) return memory.get(key) ?? null;
   try {
-    return window.localStorage.getItem(KEY);
+    return window.localStorage.getItem(key);
   } catch {
-    return memory;
+    return memory.get(key) ?? null;
   }
 }
 
-export function save(text: string): void {
-  memory = text;
+export function save(key: string, text: string): void {
+  memory.set(key, text);
   if (!probe()) return;
   try {
-    window.localStorage.setItem(KEY, text);
+    window.localStorage.setItem(key, text);
   } catch {
     // Quota, or private mode changing its mind. The in-memory copy
     // above still holds, so the session continues.
@@ -50,11 +52,11 @@ export function save(text: string): void {
   }
 }
 
-export function clear(): void {
-  memory = null;
+export function clear(key: string): void {
+  memory.delete(key);
   if (!probe()) return;
   try {
-    window.localStorage.removeItem(KEY);
+    window.localStorage.removeItem(key);
   } catch {
     /* nothing to do; the memory copy is already gone */
   }
