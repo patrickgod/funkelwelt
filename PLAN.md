@@ -201,6 +201,32 @@ it.** A risk you have not built is a risk you are still carrying.
   house when it claimed to be measuring the meadow, and the third was
   reading a saved position from before the walk.
 
+* **The maths world: four houses, one topic each.** Patrick closed the
+  word house and set the shape — verliebte Zahlen, Nachbarzahlen,
+  Addition, and links und rechts. Deutsch moves to a region of its own,
+  which is also what the waypoints are for.
+
+  One generator per house on purpose. `Haus.spiel` still takes a list
+  and the Burg will want it, but a door named after a topic that asks a
+  different one is a door that lied.
+
+  **Links und rechts** is the new exercise and the only house that asks
+  for no counting: five vehicles seen from the side, four on screen,
+  exactly one going the way the arrow points. Raumorientierung is in the
+  same first-grade strand as the numbers, so a child who is slow with
+  sums can be quick here and still earn the star that opens the gates.
+  The question is an arrow — not a word (rule 14) and not only a voice
+  (rule 15).
+
+  Ten sprites, so the contact sheet came FIRST this time. Three of the
+  five first drafts failed it: the bicycle was two grey blobs, the
+  helicopter was a table, the aeroplane was a Zeppelin.
+
+  The far gate changed with all this. It wanted Wörter 2, which stopped
+  being openable the moment Deutsch left. It is Mathe now, one level
+  past the near gate, asserted against that gate rather than against a
+  number.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick
@@ -283,81 +309,79 @@ Still open, and still the questions the world was built early to answer:
 
 ### 3. The thing the design has not answered: coming back
 
-Patrick, after the first play: *"Wir müssen im Konzept halt einen Weg
-finden wie man immer wieder dieselben Themen übt und z.B. die
-verliebten Zahlen nicht enden sobald das Haus einmal geschafft ist."*
+Patrick: *"Wir müssen im Konzept halt einen Weg finden wie man immer
+wieder dieselben Themen übt und z.B. die verliebten Zahlen nicht enden
+sobald das Haus einmal geschafft ist."*
 
-This is the real hole and it is a design hole, not a missing feature.
-The whole app is spaced repetition — `staerke` per fact, weighted
-picking, the scheduler that already knows 7 is shaky and 5 is not — and
-the world sits on top of it saying "done" the moment a house is cleared
-once. The engine underneath is built for coming back a hundred times.
-The building above it is built for going in once.
+**First, the fact, because it changes the question:** the house never
+closes. The only thing that reads `geschafft` is one of Luma's tutorial
+lines. The door keeps working for ever, and the scheduler already
+serves the facts a child is shakiest on, so the tenth visit is a
+different ten questions from the first.
 
-`geschafft[haus]` already counts the clears, so the count exists and
-nothing reads it. Sketches, cheapest first, and **none of them should
-be built before Patrick picks one**:
+So nothing is broken. What is missing is a REASON to go back in, and
+that is a design decision rather than a bug. Sketches, cheapest first,
+and **none should be built before Patrick picks one**:
 
-* **The house is never finished.** Its door simply keeps working, and
-  what changes is what it asks: the scheduler already serves the facts
-  a child is shakiest on, so the tenth visit is a different ten
-  questions from the first. Costs nothing — it is close to what the code
-  already does — and the missing piece is a REASON to go back in.
-* **The reason is the star, and stars are per house.** A house that has
-  been cleared once still pays, so the gates stay reachable by going
-  back to a house you like. Small change, and it makes the gate a goal
-  rather than a wall.
-* **Die Burg der Mathematik** — Patrick's own suggestion. A fortress
-  door that asks all of it, mixed at random, drawing from every
-  generator the child has met. The natural "come back when you are
-  stronger" building, and the natural home for `buildRound`'s list of
-  generators, which already takes as many as you give it.
+* **A cleared house still pays.** Small change; makes the gates
+  reachable by going back to a house you like rather than only by
+  finishing new ones.
+* **The house shows what it remembers.** Something on the door, or on
+  its plaque, that gets fuller as the facts inside get stronger — the
+  non-numeric progress bar KONZEPT asks for, at house scale.
+* **Die Burg der Mathematik** — Patrick's own. A fortress that asks all
+  of it, mixed at random, drawing from every generator. The natural
+  "come back when you are stronger" building, and `buildRound` already
+  takes as many generators as you give it.
 
-### 4. Links und rechts: what drives which way
+### 4. A map in the pause menu
 
-Also Patrick's, and it is the next exercise to build: side-on sprites of
-things that move — Auto, Bus, Fahrrad, Heli, Flugzeug — and the child
-taps the ones going right, or the ones going left.
+Patrick: *"since the world will be bigger in the future, maybe we need
+map overview in the pause menu? like in a real game? showing the
+complete map?"*
 
-Worth noting why this is maths and not decoration: left and right is
-Raumorientierung, it is in the same first-grade strand as the numbers,
-and it is the one exercise so far that needs no counting at all. A child
-who is slow with sums can be quick at this.
+Yes, and it gets more useful with every house. The region is 48×36 and
+about thirteen tiles of it are on screen at once, so a child already
+holds most of it in their head rather than in front of their eyes.
 
-It is also the first exercise that needs a SET of drawn objects rather
-than one, which means `tools/contact.mjs` first and the generator
-second. Five vehicles, each facing both ways, is ten sprites, and the
-lesson from the door plaques applies at full force: draw the sheet
-before drawing the second one.
+Cheap, because `karte.ts` already has everything: the tiles, the houses,
+the gates, the shadows, the lightsparks. A map is one more `Px` buffer
+drawn at one pixel per tile and scaled up. Worth doing properly though
+— show where he IS, show the doors he has been through, and do not show
+what he has not found yet.
 
-### 5. Waypoints
+### 5. The second world: Deutsch
 
-Patrick's: teleporting between places. Not needed while there is one
-region — it becomes the answer to "the walk back is boring" the moment
-there are two, and that is when to build it.
+Patrick: *"und dann in der nächsten welt die silben? lesen und
+schreiben, und kombinationen wie Lea, lulu, Mama, Oma, etc. aber eben
+nur mit den buchstaben lLeEaAoOuUmMiI"*
 
-### 6. The rest of Deutsch: Silben lesen and Silben schreiben
+That is a complete brief, and the letter set is the important half:
 
-The two that Patrick named and that do not exist yet.
+    a A   e E   i I   l L   m M   o O   u U
 
-**Silben lesen** is the cheaper one: the word split at the join, shown,
-and the child picks the one they hear — or hears the syllables and picks
-the word. It needs no new surface, only a generator and a prompt kind,
-and the word list with its syllable counts is already here.
+Seven letters, both cases, and nothing else. It is the standard German
+Erstlesen starter set, and it is chosen so that every word a child meets
+is built only from letters they have been taught — which is the whole
+method. Lea, Lulu, Mama, Oma, Mimi, Emil, Elli, Lilo, Mia, Uli, Lama,
+Eule, Muli.
 
-**Silben schreiben** needs the tracing surface from Lernkiste
-(`src/games/schrift.ts`, 313 lines) and the writing font that goes with
-it. It is the only prompt in the design with no answer cards at all —
-the answer IS the tracing, and the round moves on when the last stroke
-lands. `types.ts` still carries the `schreiben` prompt kind, waiting.
+**Silben lesen** needs a generator and a prompt kind. **Silben
+schreiben** needs the tracing surface from Lernkiste
+(`src/games/schrift.ts`, 313 lines) and its writing font; it is the one
+prompt in the design with no answer cards at all, and `types.ts` still
+carries the `schreiben` kind, waiting.
 
-**Also open, and Patrick's to say:** Das Haus der ersten Laute asks
-which letter a word starts with. It is not on the list of three, and it
-was not asked to be removed either — it is still standing, and it is
-the one place a Wort-Stern comes from, so removing it would leave the
-Wörter gate unopenable until Silben lesen exists.
+`src/games/woerter.ts` and `wortbilder.ts` are still here, unbundled and
+unreferenced, along with `woerter()` in `tools/genvoice.mjs`. One line
+brings the recordings back.
 
-### 7. A second region
+### 6. Waypoints
+
+Patrick's, and now they have a job: two worlds means walking between
+them. Build them when the second world exists and not before.
+
+### 7. Anything else about a second region
 
 The gate proves the mechanism on twelve tiles. What it opens onto should
 eventually be somewhere, not a walled garden — and the honest note is

@@ -141,19 +141,20 @@ ever rises; a wrong answer moves nothing at all; leaving costs nothing.
 It is chased away, never killed, and it leaves a light where it stood —
 so the world gets brighter as you clear them.
 
-There are three houses. One teaches the pairs that make ten; one asks
-which letter a word starts with — a picture and a voice, never the
-written word — and pays **Wort-Sterne**; and next door to the first
-stands the step up, Nachbarzahlen and addition, paying **Mathe-Sterne**
-again. Nothing in any of them goes above ten.
+This region is the maths world, and there will be a second one for
+German. Four houses stand in it, one topic each: the pairs that make
+ten, the neighbour numbers, addition, and — the odd one out — which of
+these is going left and which is going right.
 
-That is the whole reason the stars are per subject: a child who loves
-numbers and finds letters hard is visibly good at something rather than
-behind, and the gates that open are the ones they earned.
+That last one asks for no counting at all, and that is deliberate.
+Left and right is spatial reasoning and it sits in the same first-grade
+strand as the numbers, so a child who is slow with sums can be quick at
+something and still earn the star that opens the gates. Nothing anywhere
+in the game goes above ten.
 
 Each door carries a small plaque showing what is done inside — counting
-dots, sound coming out, a plus. Not a word on any of them, because the
-child cannot read one.
+dots, a row with a gap, a plus, two arrows. Not a word on any of them,
+because the child cannot read one.
 
 A cart beside the path sells four things — a better lantern, fast boots,
 a Mut band, a hat. One screen, nothing to place, and every one is better

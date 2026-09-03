@@ -150,49 +150,47 @@ taken away and nothing marked.
 And when a pair to ten comes good in **both** directions, that outranks
 the payout and is shown first. That is the thing the whole app is for.
 
-There are **three houses**, and the scope of what they may teach is set
-and is not yours to widen: **maths is verliebte Zahlen, Nachbarzahlen
-and addition, all at ten or below; German is the syllables.** Patrick
-set that after a fourth house had been built, and it was removed the
-same hour. If a fifth idea seems obviously good, it probably seemed
-obviously good then too — ask him.
+**This region is the MATHS world.** There will be a second one for
+Deutsch — that is Patrick's shape, not an idea to revisit — and the
+waypoints in PLAN.md exist to get between them.
 
-The lit door west opens *Das Haus der verliebten Zahlen* and pays
-Mathe-Sterne. The door in the middle opens *Das Haus der ersten Laute*
-and pays Wort-Sterne. Its neighbour to the north opens *Das Haus der
-Rechenmeister* — Nachbarzahlen and addition — and pays Mathe-Sterne
-again; it is the step up, and it stands beside the beginner's house on
-purpose.
+Four houses, one topic each, and all four pay Mathe-Sterne:
 
-Nothing gates the harder door. A child who is not ready walks in, finds
-it hard, and walks out, and neither leaving nor a wrong answer costs
-them anything, which is what makes it safe to leave open.
+* **Das Haus der verliebten Zahlen** — the pairs that make ten. West,
+  the first door a child meets.
+* **Das Haus der Nachbarzahlen** — a row with one gap in it. The middle
+  building; it was Das Haus der ersten Laute until Deutsch moved out.
+* **Das Haus der Addition** — plus, to ten. North of the first, so the
+  beginner's door and the step up are neighbours.
+* **Das Haus von links und rechts** — four vehicles seen from the side,
+  one going the way the arrow points. East of the path.
+
+**One generator per house, and keep it that way.** `Haus.spiel` takes a
+list and the Burg will need it, but a door named after a topic that asks
+a different one is a door that lied about what was inside.
 
 **Nothing above ten**, anywhere: not in the question, not on the right
 card, and not on a wrong one either, because a distractor of fourteen
-teaches a child that fourteen is a plausible answer. It is a check in
-`tools/verify.mjs`, not a convention, because a ceiling is exactly the
-kind of number somebody raises by copying the line above it.
+teaches a child that fourteen is plausible. It is a check, not a
+convention, because a ceiling is the kind of number somebody raises by
+copying the line above it.
 
-A house may name SEVERAL generators (`Haus.spiel` takes a list) and
-both maths houses do. If you add one, read the note on `answerOf` in
-`src/games/games.ts` first — it falls back to marking the first card
-correct, which is right for a child and very good at hiding this exact
-class of bug from you.
-
-**Every generator in GAMES must have a door.** Four of them shipped for
-weeks with none: bundled into every download, unreachable, and
-contradicting the comment at the top of their own file. That is a check
-now too.
+**Every generator in GAMES must have a door.** Four of them once shipped
+for weeks with none — bundled into every download, unreachable. That is
+a check too, and it is why closing the word house also took `anlaute`
+and `silben` out of GAMES rather than leaving them lying there.
 
 Each door has a small **plaque** beside it saying what is done inside —
-counting dots, sound coming out, a plus, and no letters on any of them.
-They are not decoration: `haus.png` is one generated sprite used for
-every door, so without them the only way to find the right house is to
-walk into the wrong ones and remember which. Run
-`node tools/contact.mjs tafel` before changing one. Two of the first
-four drafts were unreadable at the size they are actually seen, and
-that sheet is the only reason anybody found out.
+counting dots, a row with a gap, a plus, two arrows — and no letters on
+any of them. `haus.png` is one generated sprite used for every door, so
+without them the only way to find the right house is to walk into the
+wrong ones and remember which. Run `node tools/contact.mjs tafel` before
+changing one: of the six drafts written so far, three were unreadable at
+the size they are actually seen, and that sheet is the only reason
+anybody found out.
+
+The same goes for `node tools/contact.mjs fahrzeuge`. Three of those
+five first drafts failed too.
 
 A **cart** stands beside the path out of the house with four things on
 it. Read `src/ui/laden.ts` before changing it: every rule in there is a
