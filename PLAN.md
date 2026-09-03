@@ -89,6 +89,18 @@ it.** A risk you have not built is a risk you are still carrying.
   ring on the path and asking, once, in whichever control the slot is
   set to.
 
+* **Shadows.** Seven of them, in the dim corners off the path, not solid
+  — you see one from across the meadow and decide about it. Mut fills
+  and never empties; a wrong answer moves nothing at all; leaving takes
+  nothing. Chased away, never killed: it shrinks, its eyes dim, and it
+  leaves a **light** where it stood, permanently. Clear all seven and
+  the region is measurably brighter, which is KONZEPT's non-numeric
+  progress bar at world scale.
+
+  "A wrong answer costs nothing" is four assertions now rather than a
+  paragraph — and the sabotage run earned its keep: the first version of
+  them passed against code that drained Mut on a miss.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick
@@ -139,7 +151,7 @@ no recolour that preserves four independent sliders on this sheet.
 **Also blocked on credit** either way:
 <https://ai.studio/projects>
 
-### 2. Play it, before building anything on it### 2. Play it, before building anything on it
+### 2. Play it, before building anything on it
 
 The whole reason the world came first was to find out whether walking
 around is worth doing. That question is still open — it just has
@@ -168,26 +180,13 @@ something to answer it with now.
 ten things, come out stronger, watch the bar move — with no combat and
 no fairy, and that is enough to be worth a real playtest.
 
-### 3. Shadows
-
-The sprite is drawn already — `src/spiel/schatten.ts`, soft dark shape,
-two worried eyes, no teeth — and nothing calls it yet. It shrinks rather
-than being wounded as it is pushed back, because it is chased away and
-never killed.
-
-* Visible on the map and **walked into on purpose**, not sprung from
-  the grass. KONZEPT.md's worry about the interruption tax is real.
-* Correct answers push it back; wrong answers do nothing at all.
-* **Mut** fills; full Mut ends it at once.
-* Coins on the way out.
-
-### 4. Gates, and a second region
+### 3. Gates, and a second region
 
 * A gate that wants `Mathe` level 3. The world visibly gets bigger.
 * This is the moment the per-subject experience pays off, and the first
   time a child sees that being good at something opened something.
 
-### 5. The shop
+### 4. The shop
 
 * Three or four things at a time. Cloak, boots, lantern, Mut capacity.
 * Everything available to every character.

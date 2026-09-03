@@ -189,6 +189,31 @@ Generalises: **when a feature lands, re-read the checks that touch the
 same square metre of the game.** One of them is probably now testing
 something else.
 
+## A penalty check that ran where the penalty could not bite
+
+**Signature:** the most important assertion in the project, passing
+against code that breaks the rule it exists to protect.
+
+"A wrong answer must never cost the child anything" is the single most
+important decision in KONZEPT.md, so meeting a shadow got four
+assertions: Mut does not move, the shadow does not advance, no coin is
+taken, nothing turns red.
+
+Then the sabotage run put `mut = Math.max(0, mut - 1)` on a miss — the
+exact mistake an RPG framing would make — and the check **passed**. It
+answered the wrong question first, on an empty bar, so there was nothing
+there to take. `max(0, 0 - 1)` is `0`.
+
+It answers one right first now, so Mut is at 20% when the miss lands,
+and the check also asserts that the reading it compares is not zero.
+
+Generalises: **a check that something is not taken away has to run from
+a state where there is something to take.** The empty-inventory case
+passes every theft test ever written. Same family as "zero is a lazy
+spelling of unchanged" — and the reason it was caught is rule 4: the
+sabotage run is not a formality, it is the only thing that tells you
+whether an assertion is load-bearing or decorative.
+
 ## A check that asserted zero was asserting something about the suite
 
 **Signature:** an assertion of an absolute — zero, empty, exactly one.

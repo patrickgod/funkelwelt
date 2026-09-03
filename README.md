@@ -134,6 +134,13 @@ makes no network calls at all.
 When a pair to ten comes good in **both** directions, everything stops
 and says so. That is the thing the whole app is for.
 
+Seven **shadows** stand off the path in the dim corners. They are not
+sprung on you — you see one from across the meadow and walk into it if
+you want to. Right answers push it back and fill **Mut**, which only
+ever rises; a wrong answer moves nothing at all; leaving costs nothing.
+It is chased away, never killed, and it leaves a light where it stood —
+so the world gets brighter as you clear them.
+
 **What has not happened yet:** anyone actually playing it. The loop is
 whole — walk, find the door, answer ten things, come out stronger — and
 the person it is for has not seen any of it.

@@ -150,6 +150,14 @@ taken away and nothing marked.
 And when a pair to ten comes good in **both** directions, that outranks
 the payout and is shown first. That is the thing the whole app is for.
 
+Seven **shadows** stand in the dim corners off the path. Not solid: you
+see one from across the meadow and decide about it. Meeting one is the
+screen the whole design is arranged around, so read
+`src/ui/begegnung.ts` before touching it — Mut only ever fills, a wrong
+answer moves nothing at all, and leaving takes nothing. Chased away it
+leaves a light where it stood, for ever, so clearing all seven makes the
+region measurably brighter.
+
 Measured, not estimated: opening the world takes 155 ms and walking
 costs 0.81 ms of script per frame — on a desktop under software
 rendering, so read it as a bound on the work rather than as a frame rate

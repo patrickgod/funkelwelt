@@ -567,6 +567,15 @@ await measureButtons('world');
   }
 
   // THE CHECK THIS WHOLE DESIGN EXISTS FOR.
+  //
+  // One RIGHT answer first, so that Mut is above zero when the wrong one
+  // lands. The first version of this asked the wrong question first, on
+  // an empty bar — and a sabotage that did `mut = max(0, mut - 1)` on a
+  // miss sailed straight through it, because there was nothing there to
+  // take. A penalty check has to run from a state where the penalty
+  // could actually bite.
+  await antworte(true);
+  await page.waitForTimeout(1100);
   const vorMut = await page.locator('.mut .fuellung').evaluate((e) => e.style.width);
   const vorSchatten = await page.locator('.begegnung .schatten canvas')
     .evaluate((c) => `${c.width}x${c.height}`);
@@ -578,18 +587,14 @@ await measureButtons('world');
     .evaluate((c) => `${c.width}x${c.height}`);
   const s2 = await slot();
   check('a wrong answer costs nothing at all — Mut does not move',
-    vorMut === nachMut, `${vorMut} -> ${nachMut}`);
+    vorMut === nachMut && vorMut !== '0%', `${vorMut} -> ${nachMut}`);
   check('  …the shadow does not advance',
     vorSchatten === nachSchatten, `${vorSchatten} -> ${nachSchatten}`);
   check('  …no coin is taken', s2.muenzen === vorGeld, `${vorGeld} -> ${s2.muenzen}`);
   check('  …and nothing on the screen turns red',
     await page.locator('.begegnung .rot, .begegnung .falsch, .begegnung .gefahr').count() === 0);
 
-  // And a right answer does move it.
-  await antworte(true);
-  await page.waitForTimeout(1100);
-  const mut1 = await page.locator('.mut .fuellung').evaluate((e) => e.style.width);
-  check('a right answer pushes the shadow back', mut1 !== '0%', `Mut ${mut1}`);
+  check('a right answer pushes the shadow back', vorMut !== '0%', `Mut ${vorMut}`);
 
   // Four more fills it, and full Mut ends the encounter at once.
   for (let i = 0; i < 6; i++) {
