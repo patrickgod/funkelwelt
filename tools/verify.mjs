@@ -789,6 +789,77 @@ async function beiTor(sterne, wort = 0) {
     drin.length > 0, `picked up ${JSON.stringify(drin)}`);
 }
 
+// ------------------------------------------------------- the steering
+//
+// Both of these are Patrick's, from the first time he actually played
+// it: "das tippen aufs haus hat irgendwie nicht funktioniert" and
+// "gedrückt halten sollte zum laufen auch funktionieren, nicht nur
+// tippen. Also quasi wie die Steuerung in Diablo 2."
+//
+// They were one bug and one missing feature, and both had the same
+// shape from the child's side: you touch the screen and nothing at all
+// happens. That is the worst answer a game can give, because a
+// six-year-old does not conclude "that tile is impassable" — they
+// conclude it is broken, and they are more right than the game is.
+
+{
+  await inDieWelt();
+  await stellAuf(7.5, 23.5);
+  await inDieWelt();
+  await lumaWeg();
+
+  const mitte = await page.evaluate(() => ({
+    w: window.innerWidth, h: window.innerHeight,
+  }));
+
+  // Where the house BODY is on screen — not its door. The door was
+  // always tappable; the roof was not, and the roof is what you point
+  // at when you mean "go in there".
+  // The wall of Das Haus der verliebten Zahlen: tile (7,19), solid, one
+  // row above its door.
+  //
+  // Deliberately the BOTTOM row of the house rather than the roof. The
+  // camera centres on the adventurer, so aiming at the roof from where
+  // he stands put the tap at screen y=20 — up among the HUD buttons,
+  // where it never reached the world at all. The first version of this
+  // check duly reported that tapping the house does nothing, which was
+  // true of the check rather than of the game.
+  const dach = await page.evaluate(() => window.weltOrt?.(7 * 16 + 8, 19 * 16 + 8) ?? null);
+
+  if (!dach) {
+    check('the world exposes a way to aim a tap in the test', false);
+  } else {
+    const vorher = (await slot()).ort;
+    await page.mouse.click(dach[0], dach[1]);
+    await page.waitForTimeout(2600);
+    await lumaWeg();
+    const nachher = (await slot()).ort;
+    const weit = Math.hypot(nachher.x - vorher.x, nachher.y - vorher.y);
+    check('tapping the HOUSE walks to its door rather than doing nothing',
+      weit > 1, `moved ${weit.toFixed(2)} tiles; aimed at ${dach.map(Math.round).join(',')}`);
+    check('and it goes to the door, not just somewhere nearer',
+      Math.abs(nachher.x - 7.5) < 1.2 && Math.abs(nachher.y - 20.5) < 2.0,
+      `ended at ${nachher.x.toFixed(2)}, ${nachher.y.toFixed(2)}`);
+  }
+
+  // Hold, do not tap. The finger goes down, stays down, and never
+  // comes up — which under the old steering produced nothing whatever,
+  // because a tap was only read on release.
+  await inDieWelt();
+  await stellAuf(7.5, 23.5);
+  await inDieWelt();
+  await lumaWeg();
+  const start = (await slot()).ort;
+  await page.mouse.move(mitte.w * 0.5, mitte.h * 0.22);
+  await page.mouse.down();
+  await page.waitForTimeout(1800);
+  const waehrend = (await slot()).ort;
+  await page.mouse.up();
+  check('holding a finger down walks, without ever letting go',
+    Math.hypot(waehrend.x - start.x, waehrend.y - start.y) > 1,
+    `moved ${Math.hypot(waehrend.x - start.x, waehrend.y - start.y).toFixed(2)} tiles while held`);
+}
+
 // ------------------------------------------ every generator has a door
 //
 // Four generators shipped to a child's iPad with nothing able to reach

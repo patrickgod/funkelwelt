@@ -379,6 +379,10 @@ function weltBauen(): void {
   fx.clear();
   dieWelt = new Welt(stand.get().aussehen);
   dieWelt.groesse(welt.clientWidth || window.innerWidth, welt.clientHeight || window.innerHeight);
+  // The bridge `tools/verify.mjs` aims taps through. See `schirmOrt`
+  // for why it exists; it reads two numbers and changes nothing.
+  (window as unknown as { weltOrt?: unknown }).weltOrt =
+    (x: number, y: number) => dieWelt?.schirmOrt(x, y) ?? null;
   // The steering listens on the canvas rather than on the document, so
   // that a tap on the HUD is a tap on the HUD and not also a step to the
   // left. #ui is transparent to pointers except where a control is.

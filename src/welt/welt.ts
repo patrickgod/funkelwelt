@@ -202,6 +202,8 @@ export class Welt {
    */
   private ziel: { x: number; y: number; dann: () => void } | null = null;
   private zielFunke = -1;
+  /** Time since the held finger last asked for a route. */
+  private haltenAlter = 0;
   /** Seconds since the last puff of dust off the adventurer's feet. */
   private seitStaub = 0;
 
@@ -457,14 +459,30 @@ export class Welt {
       this.ortSichern();
     }
 
-    // A tap in tap-to-walk mode asks for a route.
-    const tipp = st.nimmTipp();
+    // A tap asks for a route. So does a finger that is simply held
+    // down, four times a second — which is the whole of Diablo's
+    // steering and the thing a child reaches for first.
+    //
+    // Held is re-ROUTED rather than steered straight at, so holding
+    // towards the far bank still walks round by the bridge. Straight
+    // steering would have walked into the water and stopped, and a
+    // child holding their finger on a thing that will not be reached is
+    // being told "no" by something that looks like a bug.
+    this.haltenAlter += dt;
+    const halten = st.gehalten();
+    let tipp = st.nimmTipp();
+    if (!tipp && halten && this.haltenAlter >= 0.25) tipp = halten;
     if (tipp) {
-      const wx = this.camX + tipp.x / this.skala;
-      const wy = this.camY + tipp.y / this.skala;
-      const r = karte.route(this.hx, this.hy, wx, wy);
-      if (r) { this.route = r; this.routeI = 0; this.festGefahren = 0; audio.click(); }
-      else { this.route = null; audio.chimeSoft(); }
+      this.haltenAlter = 0;
+      const zx = this.camX + tipp.x / this.skala;
+      const zy = this.camY + tipp.y / this.skala;
+      // What the finger MEANT: a tap on a house is its door, and a tap
+      // on a cliff is the foot of the cliff. Taken literally, both used
+      // to route to a solid tile, come back null, and do nothing at all.
+      const z = karte.zielFuerTipp(zx, zy);
+      const r = karte.route(this.hx, this.hy, z.x, z.y);
+      if (r) { this.route = r; this.routeI = 0; this.festGefahren = 0; if (!halten) audio.click(); }
+      else if (!halten) { this.route = null; audio.chimeSoft(); }
     }
 
     let v = st.vektor();
@@ -741,6 +759,26 @@ export class Welt {
 
   private aufSchirm(x: number, y: number): [number, number] {
     return [(x - this.camX) * this.skala, (y - this.camY) * this.skala];
+  }
+
+  /**
+   * Where a point in the world is on the screen. For `tools/verify.mjs`.
+   *
+   * A bridge, and a deliberate one. The checks that matter most here are
+   * Patrick's two — tapping the house, and holding a finger down — and
+   * both of them are about a TAP LANDING IN A PARTICULAR PLACE. There
+   * is no honest way to aim one from outside: the camera follows the
+   * adventurer and clamps at the edges of the region, so working the
+   * position out in the test would mean reimplementing that clamp, and
+   * a test that reimplements the code it is checking agrees with its
+   * bugs.
+   *
+   * It reads and returns two numbers, it changes nothing, and it costs
+   * a few dozen bytes. That is a better trade than not checking the
+   * steering at all.
+   */
+  schirmOrt(x: number, y: number): [number, number] {
+    return this.aufSchirm(x, y);
   }
 
   ortSichern(): void {

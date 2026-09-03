@@ -46,6 +46,16 @@ export class Steuerung {
 
   /** A completed tap, in CSS pixels, waiting to be read exactly once. */
   private tipp: { x: number; y: number } | null = null;
+  /**
+   * Where the finger is RIGHT NOW, while it is still down.
+   *
+   * Tap-to-walk used to fire only on release, and only for a press
+   * under 900 ms that had moved less than sixteen pixels. Hold your
+   * finger on the meadow and the adventurer stood still — which is the
+   * first thing anybody does with a game like this, and it is how every
+   * Diablo since the first one is played.
+   */
+  private halten: { x: number; y: number } | null = null;
 
   private zeiger = -1;
   private ab = { x: 0, y: 0, t: 0 };
@@ -98,13 +108,21 @@ export class Steuerung {
       this.stick.aktiv = true;
       this.stick.ox = e.clientX; this.stick.oy = e.clientY;
       this.stick.x = e.clientX; this.stick.y = e.clientY;
+    } else {
+      this.halten = { x: e.clientX, y: e.clientY };
     }
     e.preventDefault();
   }
 
   private bewegt(e: PointerEvent): void {
     if (e.pointerId !== this.zeiger) return;
-    if (this.modus !== 'stick') return;
+    if (this.modus !== 'stick') {
+      // Dragging steers, rather than cancelling. A held finger that
+      // wanders is a child changing their mind about where to go, not a
+      // child making a mistake.
+      if (this.halten) this.halten = { x: e.clientX, y: e.clientY };
+      return;
+    }
     let dx = e.clientX - this.stick.ox;
     let dy = e.clientY - this.stick.oy;
     const d = Math.hypot(dx, dy);
@@ -118,6 +136,7 @@ export class Steuerung {
     if (e.pointerId !== this.zeiger) return;
     this.zeiger = -1;
     this.stick.aktiv = false;
+    this.halten = null;
     if (this.modus !== 'tippen') return;
     // A tap, not a drag and not a rest: a child leaning on the screen
     // must not send the adventurer across the meadow.
@@ -144,6 +163,17 @@ export class Steuerung {
     const d = Math.hypot(dx, dy);
     if (d < TOT) return { x: 0, y: 0 };
     return { x: dx / d, y: dy / d };
+  }
+
+  /**
+   * Where the finger is, while it is still down. Walk towards it.
+   *
+   * The world re-asks every quarter second rather than every frame, so
+   * a held finger is a route that keeps being renewed — which means it
+   * still walks AROUND the pond instead of into it.
+   */
+  gehalten(): { x: number; y: number } | null {
+    return this.modus === 'tippen' ? this.halten : null;
   }
 
   /** Read a pending tap, and clear it. */

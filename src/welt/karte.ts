@@ -411,6 +411,68 @@ function sicht(ax: number, ay: number, bx: number, by: number): boolean {
  * the walking uses, so a shortcut can never be one the hero cannot
  * actually take.
  */
+/**
+ * The door of the house this tile belongs to, if it is a house at all.
+ *
+ * Each house block has its own character in the map — 'H', 'W', 'N' —
+ * so this needs no bounds and no search. That is the whole reason they
+ * are different letters.
+ */
+export function tuerVon(tx: number, ty: number): { tx: number; ty: number } | null {
+  switch (zeichen(tx, ty)) {
+    case 'H': return TUER;
+    case 'W': return TUER_WORT;
+    case 'N': return TUER_RECHNEN;
+    default: return null;
+  }
+}
+
+/**
+ * Where a child MEANT when they tapped there.
+ *
+ * A tap used to be taken literally: the tile under the finger became
+ * the target, and if that tile was solid the route came back null and
+ * the adventurer did not move at all. Patrick tapped a house — the most
+ * obvious thing in the picture, and the thing he wanted to walk into —
+ * and nothing happened.
+ *
+ * Nothing happening is the worst possible answer. A six-year-old does
+ * not conclude "that tile is impassable", they conclude the game is
+ * broken, and they are more right than the game is.
+ *
+ * So a tap on something solid is READ rather than obeyed:
+ *
+ *   a house  → its door, because that is what tapping a house means
+ *   anything else → the nearest place he could actually stand
+ *
+ * The second one is a spiral outwards, nearest first, so tapping a
+ * cliff walks to the foot of it and tapping the far bank of the stream
+ * walks to the near one. Both are what the finger was pointing at.
+ */
+export function zielFuerTipp(zx: number, zy: number): { x: number; y: number } {
+  const tx = Math.floor(zx / KACHEL), ty = Math.floor(zy / KACHEL);
+  if (!festAn(tx, ty)) return { x: zx, y: zy };
+
+  const tuer = tuerVon(tx, ty);
+  if (tuer) return { x: tuer.tx * KACHEL + KACHEL / 2, y: tuer.ty * KACHEL + KACHEL / 2 };
+
+  let best: { x: number; y: number } | null = null;
+  let bestD = Infinity;
+  for (let r = 1; r <= 6 && !best; r++) {
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+        const x = tx + dx, y = ty + dy;
+        if (x < 0 || y < 0 || x >= KW || y >= KH || festAn(x, y)) continue;
+        const cx = x * KACHEL + KACHEL / 2, cy = y * KACHEL + KACHEL / 2;
+        const d = (cx - zx) * (cx - zx) + (cy - zy) * (cy - zy);
+        if (d < bestD) { bestD = d; best = { x: cx, y: cy }; }
+      }
+    }
+  }
+  return best ?? { x: zx, y: zy };
+}
+
 export function route(vx: number, vy: number, zx: number, zy: number): { x: number; y: number }[] | null {
   const zt = { x: Math.floor(zx / KACHEL), y: Math.floor(zy / KACHEL) };
   const vt = { x: Math.floor(vx / KACHEL), y: Math.floor(vy / KACHEL) };
