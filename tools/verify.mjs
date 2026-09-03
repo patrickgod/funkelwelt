@@ -131,7 +131,17 @@ async function measureButtons(where) {
 // ---------------------------------------------------------- title screen
 
 await page.goto(BASE);
-await page.waitForTimeout(700);
+await page.waitForTimeout(900);
+
+// One picture and one button. A six-year-old handed an iPad presses the
+// biggest thing on the screen, so there has to be exactly one.
+check('the game opens on a picture and one button',
+  await page.locator('.start').count() === 1
+  && await page.locator('.start button').count() === 1);
+await measureButtons('start');
+check('and the picture actually loaded',
+  await page.locator('.startBild').evaluate((i) => i.naturalWidth) > 100);
+await starten();
 
 check('the title screen offers three slots',
   await page.locator('.platz').count() === 3);
@@ -177,6 +187,7 @@ check('the adventurer is written to slot one',
 
 await page.reload();
 await page.waitForTimeout(700);
+await starten();
 check('and is still there after a reload',
   (await page.locator('.pname').first().textContent()) === 'Testkind');
 
@@ -226,10 +237,24 @@ async function lumaWeg() {
   }
 }
 
+/**
+ * Through the start screen.
+ *
+ * One picture and one button, and every path into the game now goes
+ * past it — so this is a helper rather than four copies of the same tap.
+ */
+async function starten() {
+  if (await page.locator('.start').count()) {
+    await page.locator('button', { hasText: 'Spiel starten' }).first().tap();
+    await page.waitForTimeout(500);
+  }
+}
+
 /** Open slot one and wait for the region to be composited. */
 async function inDieWelt() {
   await page.goto(BASE);
   await page.waitForTimeout(700);
+  await starten();
   await page.locator('.platz').first().tap();
   await page.waitForTimeout(1300);
   await lumaWeg();
@@ -263,6 +288,7 @@ async function laufe(taste, ms) {
   });
   await page.goto(BASE);
   await page.waitForTimeout(700);
+  await starten();
   await page.locator('.platz').first().tap();
   await page.waitForTimeout(1400);
   check('Luma says hello when a new adventurer arrives',
@@ -298,6 +324,7 @@ async function laufe(taste, ms) {
     s.gehoert = [];
     localStorage.setItem(k, JSON.stringify(s));
   });
+  await starten();
   await page.locator('.platz').first().tap();
   await page.waitForTimeout(1400);
   const stillA = (await slot()).ort;
@@ -319,6 +346,7 @@ async function laufe(taste, ms) {
     s.gehoert = [];
     localStorage.setItem(k, JSON.stringify(s));
   });
+  await starten();
   await page.locator('.platz').first().tap();
   await page.waitForTimeout(1400);
   await lumaWeg();
@@ -327,6 +355,7 @@ async function laufe(taste, ms) {
   // And she never says the same thing twice to the same child.
   await page.goto(BASE);
   await page.waitForTimeout(700);
+  await starten();
   await page.locator('.platz').first().tap();
   await page.waitForTimeout(1600);
   check('she says each line once per adventurer, and then never again',
@@ -517,7 +546,8 @@ await page.goto(BASE);
 await page.waitForTimeout(1500);
 await ctx.setOffline(true);
 await page.goto(BASE).catch(() => { /* the assertion below is the test */ });
-await page.waitForTimeout(900);
+await page.waitForTimeout(1100);
+await starten();
 check('the game starts with the network disabled',
   await page.locator('.platz').count() === 3);
 await ctx.setOffline(false);

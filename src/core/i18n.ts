@@ -14,6 +14,7 @@ export type Lang = 'de';
 const DE = {
   'spiel.name': 'Funkelwelt',
   'spiel.unter': 'Ein kleines Abenteuer, in dem Wissen Licht macht',
+  'start.spielen': 'Spiel starten',
 
   // -------------------------------------------------------- title screen
   'titel.waehle': 'Wähle deinen Platz',

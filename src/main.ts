@@ -26,7 +26,7 @@ const ui = document.getElementById('ui') as HTMLDivElement;
 const ctx = welt.getContext('2d', { willReadFrequently: true })!;
 const fxCtx = fxCanvas.getContext('2d', { willReadFrequently: true })!;
 
-type Schirm = 'titel' | 'editor' | 'welt' | 'haus';
+type Schirm = 'start' | 'titel' | 'editor' | 'welt' | 'haus';
 let schirm: Schirm = 'titel';
 let zeit = 0;
 let gestartet = 0;
@@ -84,6 +84,38 @@ function heldBild(a: Aussehen, dir: Richtung, frame: number, scale: number): HTM
   return c;
 }
 
+// ----------------------------------------------------------- the door in
+//
+// One picture and one button.
+//
+// A six-year-old handed an iPad does not read a menu; they press the
+// biggest thing on the screen. So the first screen has exactly one
+// biggest thing, and everything else on it — the lantern in the dark,
+// the lit cottage, the fairy at the child's shoulder — is doing the job
+// of saying what kind of place this is before a word is spoken.
+
+function zeigeStart(): void {
+  schirm = 'start';
+  leeren();
+  fx.clear();
+  ctx.clearRect(0, 0, welt.width, welt.height);
+
+  const s = el('div', 'start');
+  const bild = document.createElement('img');
+  bild.className = 'startBild';
+  bild.alt = '';
+  bild.decoding = 'async';
+  bild.src = 'assets/kunst/titel.webp';
+  s.appendChild(bild);
+
+  const vorn = el('div', 'startVorn');
+  vorn.appendChild(el('h1', 'titel', t('spiel.name')));
+  vorn.appendChild(el('p', 'unter', t('spiel.unter')));
+  vorn.appendChild(knopf(t('start.spielen'), () => zeigeTitel(), 'gold gross'));
+  s.appendChild(vorn);
+  ui.appendChild(s);
+}
+
 // ---------------------------------------------------------- title screen
 
 function zeigeTitel(): void {
@@ -94,6 +126,8 @@ function zeigeTitel(): void {
   const s = el('div', 'bildschirm');
   s.appendChild(el('h1', 'titel', t('spiel.name')));
   s.appendChild(el('p', 'unter', t('spiel.unter')));
+
+  s.appendChild(el('p', 'unter', t('titel.waehle')));
 
   const reihe = el('div', 'plaetze');
   stand.alle().forEach((st, i) => {
@@ -564,7 +598,7 @@ function frame(now: number): void {
 
 groesse();
 requestAnimationFrame(frame);
-zeigeTitel();
+zeigeStart();
 
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   window.addEventListener('load', () => {

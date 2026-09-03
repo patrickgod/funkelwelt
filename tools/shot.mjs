@@ -57,7 +57,17 @@ async function shot(name) {
 }
 
 await page.goto(`http://localhost:${PORT}/`);
-await page.waitForTimeout(700);
+await page.waitForTimeout(900);
+if (want('start')) await shot('start');
+
+/** Through the door: one picture, one button. */
+async function starten() {
+  if (await page.locator('.start').count()) {
+    await page.locator('button', { hasText: 'Spiel starten' }).first().tap();
+    await page.waitForTimeout(600);
+  }
+}
+await starten();
 if (want('titel')) await shot('titel');
 
 // Into the character editor from an empty slot.
@@ -146,6 +156,7 @@ if (want('haus') || want('haus-blatt')) {
   });
   await page.reload();
   await page.waitForTimeout(800);
+  await starten();
   await page.locator('.platz').first().tap();
   await page.waitForTimeout(1200);
   await page.keyboard.down('ArrowUp');
@@ -209,6 +220,7 @@ if (want('haus-paar')) {
     // round had started from a save where it was already 3.
     await page.reload();
     await page.waitForTimeout(700);
+    await starten();
     await page.evaluate(() => {
       const k = 'funkelwelt.platz0.v1';
       const s = JSON.parse(localStorage.getItem(k));
@@ -220,6 +232,7 @@ if (want('haus-paar')) {
     });
     await page.reload();
     await page.waitForTimeout(700);
+    await starten();
     await page.locator('.platz').first().tap();
     await page.waitForTimeout(1200);
     await lumaWeg();
@@ -241,6 +254,7 @@ if (want('haus-paar')) {
 if (want('titel-belegt')) {
   await page.goto(`http://localhost:${PORT}/`);
   await page.waitForTimeout(800);
+  await starten();
   await shot('titel-belegt');
 }
 

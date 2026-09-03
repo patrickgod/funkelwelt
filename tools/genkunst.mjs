@@ -230,7 +230,20 @@ async function bild(prompt, path) {
         },
       }),
     });
-  if (!res.ok) throw new Error(`${res.status} ${(await res.text()).slice(0, 400)}`);
+  if (!res.ok) {
+    const text = await res.text();
+    // 429 here almost always means the prepayment credits are gone, not
+    // that anything is rate-limited — and the raw body says so in the
+    // middle of a JSON blob followed by a libuv assertion, which is not
+    // a message anybody reads. Say it plainly and stop.
+    if (res.status === 429 && text.includes('credits are depleted')) {
+      console.error('\n  Gemini has no prepayment credit left on this key.');
+      console.error('  Top up at https://ai.studio/projects and run this again.');
+      console.error('  Nothing was written; the sprites already in assets/ are untouched.\n');
+      process.exit(2);
+    }
+    throw new Error(`${res.status} ${text.slice(0, 400)}`);
+  }
   const json = await res.json();
   const parts = json.candidates?.[0]?.content?.parts ?? [];
   const daten = parts.find((p) => p.inlineData)?.inlineData?.data;
