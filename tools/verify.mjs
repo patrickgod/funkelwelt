@@ -441,19 +441,43 @@ await measureButtons('world');
   check('the question is shown, not written',
     await page.locator('.zehnerfeld canvas').count() === 1);
 
-  // Answer the round. The right card is whichever one the app says is
-  // right — reimplementing the arithmetic here would only produce a
-  // check that agrees with a bug.
-  let gestellt = 0;
+  // Answer the round by WORKING OUT the partner to ten, not by tapping
+  // the first card.
+  //
+  // Tapping blind is what this did for weeks. It looks like a coin toss
+  // with four sides and it is not one — the cards come back in order —
+  // so it was asserting "a round can be finished" while appearing to
+  // assert that the house works. The Nachbarzahlen check next door
+  // failed in CI for exactly this and that is how it was found.
+  let gestellt = 0, richtig = 0, gerechnet = 0;
   for (let i = 0; i < 14; i++) {
     if (await page.locator('.blatt').count()) break;
+    await lumaWeg();
     const karten = page.locator('.karten button');
     const n = await karten.count();
     if (n === 0) break;
     gestellt++;
+
+    const zahl = await page.locator('.frage[data-zahl]')
+      .first().getAttribute('data-zahl').catch(() => null);
+    if (zahl !== null) {
+      const labels = await karten.evaluateAll(
+        (els) => els.map((e) => (e.textContent ?? '').trim()));
+      const idx = labels.indexOf(String(10 - Number(zahl)));
+      if (idx >= 0) {
+        gerechnet++;
+        await karten.nth(idx).tap();
+        await page.waitForTimeout(600);
+        if (await page.locator('.karten button.richtig').count() === 1) richtig++;
+        await page.waitForTimeout(2000);
+        continue;
+      }
+    }
     await karten.first().tap();
     await page.waitForTimeout(2400);
   }
+  check('the partner that makes ten is right, every time',
+    gerechnet > 0 && richtig === gerechnet, `${richtig} of ${gerechnet} correct`);
   check('answering ten of them finishes the round',
     await page.locator('.blatt').count() === 1, `answered ${gestellt}`);
 
@@ -905,6 +929,90 @@ async function beiTor(sterne, wort = 0) {
   await page.waitForTimeout(600);
 }
 
+// ------------------------------------------------------------ the map
+//
+// Patrick: "since the world will be bigger in the future, maybe we need
+// map overview in the pause menu? like in a real game?"
+//
+// A map makes exactly one claim that can be wrong in a way a child
+// would be hurt by: it says where things are and which of them you have
+// finished. Everything else about it is decoration. So that is what is
+// checked — the doorway of a finished house must not look like the
+// doorway of one that has never been opened, and the dot must be where
+// he actually is.
+
+{
+  /** One pixel out of the map's own buffer, at map scale. */
+  async function punkt(tx, ty) {
+    return page.locator('.kartenbild canvas').evaluate((c, [x, y]) => {
+      const d = c.getContext('2d').getImageData(x, y, 1, 1).data;
+      return [d[0], d[1], d[2]];
+    }, [tx * 4 + 1, ty * 4 + 2]);
+  }
+
+  async function karteAuf(geschafft, ort) {
+    await inDieWelt();
+    await page.evaluate(([g, o]) => {
+      const k = 'funkelwelt.platz0.v1';
+      const s = JSON.parse(localStorage.getItem(k));
+      s.geschafft = g;
+      s.ort = o;
+      localStorage.setItem(k, JSON.stringify(s));
+    }, [geschafft, ort]);
+    await inDieWelt();
+    await lumaWeg();
+    await page.locator('.hudKnopf').last().tap();
+    await page.waitForTimeout(400);
+    await page.locator('.kartenknopf').first().tap();
+    await page.waitForTimeout(500);
+  }
+
+  await karteAuf({}, { x: 7.5, y: 23.5 });
+  check('the pause menu opens a map of the whole region',
+    await page.locator('.kartenbild canvas').count() === 1);
+
+  // The map must be a picture of THIS region and not a blank rectangle:
+  // the pond is water and the meadow is not, and if those come back the
+  // same colour nothing below means anything.
+  const teich = await punkt(30, 22);
+  const wiese = await punkt(10, 6);
+  check('it draws the land, not an empty rectangle',
+    teich.join() !== wiese.join(), `pond ${teich.join()}, meadow ${wiese.join()}`);
+
+  const zu = await punkt(7, 20);
+  await karteAuf({ 'verliebte-zahlen': 1 }, { x: 7.5, y: 23.5 });
+  const auf = await punkt(7, 20);
+  check('a house that has been finished is marked differently from one that has not',
+    zu.join() !== auf.join(), `unfinished ${zu.join()}, finished ${auf.join()}`);
+  // And the right way round: finished should be the BRIGHTER one, or a
+  // child reads the map as a list of places they have not been.
+  check('and the finished one is the brighter of the two',
+    auf[0] + auf[1] + auf[2] > zu[0] + zu[1] + zu[2],
+    `${zu.reduce((a, b) => a + b)} -> ${auf.reduce((a, b) => a + b)}`);
+
+  // Where he is. Sampled at his tile and at a tile he is nowhere near,
+  // then again from somewhere else entirely — a dot that is always in
+  // the same place is a decoration, not a position.
+  async function hell(x, y) {
+    const c = await punkt(x, y);
+    return c[0] + c[1] + c[2];
+  }
+  await karteAuf({}, { x: 10.5, y: 6.5 });
+  const beiIhm = await hell(10, 6);
+  const woanders = await hell(40, 30);
+  check('the map shows where he is',
+    beiIhm > woanders, `on him ${beiIhm}, elsewhere ${woanders}`);
+
+  await karteAuf({}, { x: 40.5, y: 30.5 });
+  const umgezogen = await hell(40, 30);
+  check('and it moves when he does',
+    umgezogen > woanders, `same tile: ${woanders} before, ${umgezogen} after`);
+
+  await page.locator('.kartenknopf, button', { hasText: 'Zurück' }).first().tap()
+    .catch(() => {});
+  await page.waitForTimeout(400);
+}
+
 // ------------------------------------------------------- the steering
 //
 // Both of these are Patrick's, from the first time he actually played
@@ -1055,7 +1163,7 @@ async function beiTor(sterne, wort = 0) {
     await page.locator('.runde').count() === 1);
 
   const arten = new Set();
-  let gestellt = 0;
+  let gestellt = 0, gerechnet = 0, stimmt = 0;
   let hoechste = 0;
   for (let i = 0; i < 16; i++) {
     if (await page.locator('.blatt').count()) break;
@@ -1091,6 +1199,25 @@ async function beiTor(sterne, wort = 0) {
     if (await page.locator('.doppelfeld').count()) arten.add('doppel');
     else if (await page.locator('.zahlenreihe').count()) arten.add('reihe');
     else if (await page.locator('.rechnung').count()) arten.add('rechnung');
+
+    // The sum is written on the screen — a, +, b, =, ? — so the check
+    // can add it up instead of tapping and hoping.
+    const teile = await page.locator('.rechnung span')
+      .evaluateAll((els) => els.map((e) => (e.textContent ?? '').trim()));
+    if (teile.length === 5 && teile[1] === '+') {
+      const summe = Number(teile[0]) + Number(teile[2]);
+      const labels = await karten.evaluateAll(
+        (els) => els.map((e) => (e.textContent ?? '').trim()));
+      const idx = labels.indexOf(String(summe));
+      if (idx >= 0) {
+        gerechnet++;
+        await karten.nth(idx).tap();
+        await page.waitForTimeout(600);
+        if (await page.locator('.karten button.richtig').count() === 1) stimmt++;
+        await page.waitForTimeout(2000);
+        continue;
+      }
+    }
     await karten.first().tap();
     await page.waitForTimeout(2400);
   }
@@ -1101,6 +1228,8 @@ async function beiTor(sterne, wort = 0) {
     `asked: ${[...arten].join(', ') || 'nothing recognised'}`);
   check('and no number anywhere in it goes above ten',
     hoechste > 0 && hoechste <= 10, `highest seen: ${hoechste}`);
+  check('adding the two numbers on the screen is right, every time',
+    gerechnet > 0 && stimmt === gerechnet, `${stimmt} of ${gerechnet} correct`);
   check('answering ten of them finishes the round',
     await page.locator('.blatt').count() === 1, `answered ${gestellt}`);
 

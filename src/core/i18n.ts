@@ -50,6 +50,8 @@ const DE = {
   'welt.muenzen': 'Münzen',
 
   // ------------------------------------------------------- the houses
+  'karte.titel': 'Die Karte',
+  'karte.fertig': 'Zurück',
   'haus.verliebteZahlen': 'Das Haus der verliebten Zahlen',
   'haus.nachbarzahlen': 'Das Haus der Nachbarzahlen',
   'haus.addition': 'Das Haus der Addition',

@@ -924,3 +924,38 @@ button.gross {
   user-select: text;
   -webkit-user-select: text;
 }
+
+
+/* The map. One picture, as big as the screen will allow, and one way
+   out — which is the whole screen. A child who opens this and cannot
+   find the way back has been trapped by a convenience. */
+.bildschirm.karte { gap: 14px; }
+
+.kartenbild {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  width: 100%;
+}
+
+/* `image-rendering: pixelated` and nothing else clever: the buffer is
+   four pixels a tile and the browser scales it by whole numbers most of
+   the time, which keeps the coastline crisp. `max-height` rather than a
+   fixed size, because this is the one screen whose content has a fixed
+   aspect ratio and the tablet's does not. */
+/* `object-fit: contain` and a box to fill, NOT max-width.
+   The buffer is 192x144, which is smaller than any screen this runs on,
+   so `max-width` left it at its intrinsic size — a postage stamp in the
+   middle of an iPad. The canvas has to be told to fill the box and keep
+   its shape, rather than told not to exceed it. */
+.kartenbild canvas {
+  image-rendering: pixelated;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.kartenknopf { min-width: 60%; }

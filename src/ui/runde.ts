@@ -297,6 +297,10 @@ function fragebild(p: Prompt, q: Question): HTMLElement {
       }
       if (p.numeral) {
         const n = p.n >= 0 ? p.n : Number(q.fact.slice(3));
+        // Named as well as drawn, so `tools/verify.mjs` can ANSWER this
+        // question rather than tapping a card and hoping. It tapped and
+        // hoped for weeks, and passed on luck.
+        box.setAttribute('data-zahl', String(n));
         box.appendChild(el('div', 'zahl-gross', String(n)));
       }
       break;
@@ -344,6 +348,7 @@ function fragebild(p: Prompt, q: Question): HTMLElement {
       box.appendChild(r);
       const f = el('div', 'zehnerfeld');
       f.appendChild(tenFrameCanvas({ n: p.a }, Math.max(2, rahmenSkala() - 1)));
+      f.setAttribute('data-n', String(p.a));
       box.appendChild(f);
       break;
     }

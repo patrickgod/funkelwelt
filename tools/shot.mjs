@@ -217,6 +217,30 @@ if (want('richtung')) {
   }
 }
 
+// The map, with one house finished and one gate open, so both states
+// of both markers are in the same picture.
+if (want('karte')) {
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.ort = { x: 22.5, y: 14.5 };
+    s.sterne = { mathe: 40, wort: 0 };
+    s.geschafft = { 'verliebte-zahlen': 2, richtung: 1 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await page.reload();
+  await page.waitForTimeout(800);
+  await starten();
+  await page.locator('.platz').first().tap();
+  await page.waitForTimeout(2400);
+  await lumaWeg();
+  await page.locator('.hudKnopf').last().tap();
+  await page.waitForTimeout(500);
+  await page.locator('.kartenknopf').first().tap();
+  await page.waitForTimeout(700);
+  await shot('karte');
+}
+
 // The cart, with coins for two of the four things on it.
 if (want('laden')) {
   await page.evaluate(() => {

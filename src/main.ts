@@ -21,6 +21,7 @@ import * as luma from './ui/luma.js';
 import * as begegnung from './ui/begegnung.js';
 import * as laden from './ui/laden.js';
 import type { Tuer } from './welt/karte.js';
+import * as weltkarte from './ui/weltkarte.js';
 
 const welt = document.getElementById('welt') as HTMLCanvasElement;
 const fxCanvas = document.getElementById('fx') as HTMLCanvasElement;
@@ -581,6 +582,22 @@ function weltVerlassen(): void {
 function zeigeEinstellungen(): void {
   const s = el('div', 'bildschirm dunkel');
   s.appendChild(el('h2', 'titel', t('ein.titel')));
+
+  // The map, first and biggest.
+  //
+  // It sits here rather than in the HUD because the HUD is three things
+  // and no more — out, the purse, the cog — and every one of those is
+  // there because a child needs it constantly. A map is a thing you
+  // stop and look at, which is exactly what a pause menu is for. If it
+  // turns out to be opened every thirty seconds it has earned a place
+  // out there, and that is a thing to learn by watching rather than to
+  // decide now.
+  const zurKarte = knopf(t('karte.titel'), () => {
+    audio.click();
+    weltkarte.starten(ui, () => { leeren(); hudBauen(); });
+  }, 'gold');
+  zurKarte.classList.add('kartenknopf');
+  s.appendChild(zurKarte);
 
   const reihe = (
     label: string,
