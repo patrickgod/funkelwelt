@@ -491,3 +491,38 @@ little house AND an arrow on a board fifteen pixels wide, and at the
 size it is actually seen the two merged into a smudge." **A lesson
 written down in the file you are editing is not the same as a lesson
 learned**, and the thing that catches it is looking, not remembering.
+
+## Tapping the first card is not answering the question
+
+**Signature:** a check passed on this machine, twice, and failed in CI
+with `0 Mathe`.
+
+Das Haus der Nachbarzahlen shows a row of five numbers with one gap and
+four cards to fill it. The check played a round by tapping the first
+card ten times and then asserted the round had paid stars.
+
+That looks like a coin toss with four sides and it is not one.
+`numberChoices` hands the cards back in order, and the gap in a
+five-wide window is almost never the smallest number offered — so the
+first card is not randomly wrong, it is SYSTEMATICALLY wrong. The local
+runs had been getting one or two by luck; the CI run got none, and the
+assertion that a round pays stars failed for a reason that had nothing
+to do with what it was testing.
+
+Fixed by answering properly: read the row out of the DOM, find the '?',
+take a neighbour and count. That is an independent oracle — it is what
+the child does — and it turned the check from "a round finished" into
+"filling the gap by counting is right, every time", which is the thing
+worth asserting. `10 of 10 correct`.
+
+The uncomfortable part: **the maths house next door has been tapping
+blind for weeks and passing on the same luck.** A check that plays a
+round by tapping anything is only ever asserting that the round can be
+finished, and every one of them should be reading the question instead.
+
+Generalises: **a test that supplies input at random is asserting far
+less than it looks like it is**, and when the randomness turns out to be
+biased it asserts nothing at all while still going green most days. If
+the check can work out the right answer from what is on the screen — and
+in a game for six-year-olds it almost always can, because the screen has
+to be readable by a six-year-old — then it should.

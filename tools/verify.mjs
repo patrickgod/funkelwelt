@@ -561,13 +561,50 @@ await measureButtons('world');
   check('it asks with a row that has one gap in it',
     await page.locator('.zahlenreihe .luecke').count() === 1);
 
+  // Answered by READING THE ROW, not by tapping the first card.
+  //
+  // Tapping blind is what this check used to do, and it passed locally
+  // and failed in CI with "0 Mathe". `numberChoices` hands the cards
+  // back in order, and the gap in a five-wide window is almost never
+  // the smallest of them — so the first card is not a coin toss, it is
+  // systematically the wrong answer, and the local run had simply been
+  // lucky. The maths house next door has been tapping blind for weeks
+  // for the same reason and passing on the same luck.
+  //
+  // The row is arithmetic: find the '?', take a neighbour, count.
+  let richtig = 0, gefragt = 0;
   for (let i = 0; i < 14; i++) {
     if (await page.locator('.blatt').count()) break;
-    const n = await page.locator('.karten button').count();
-    if (!n) break;
-    await page.locator('.karten button').first().tap();
+    await lumaWeg();
+    const karten = page.locator('.karten button');
+    if (await karten.count() === 0) break;
+
+    const reihe = await page.locator('.zahlenreihe span')
+      .evaluateAll((els) => els.map((e) => (e.textContent ?? '').trim()));
+    const luecke = reihe.indexOf('?');
+    const anker = reihe.findIndex((t) => t !== '?');
+    if (luecke >= 0 && anker >= 0) {
+      const fehlt = Number(reihe[anker]) + (luecke - anker);
+      const labels = await karten.evaluateAll(
+        (els) => els.map((e) => (e.textContent ?? '').trim()));
+      const idx = labels.indexOf(String(fehlt));
+      gefragt++;
+      if (idx >= 0) {
+        await karten.nth(idx).tap();
+        await page.waitForTimeout(600);
+        if (await page.locator('.karten button.richtig').count() === 1) richtig++;
+        await page.waitForTimeout(2000);
+        continue;
+      }
+      check('the number that fills the gap is on one of the cards',
+        false, `row ${reihe.join(',')} needs ${fehlt}; cards ${labels.join(',')}`);
+    }
+    await karten.first().tap();
     await page.waitForTimeout(2400);
   }
+  check('filling the gap by counting along the row is RIGHT, every time',
+    gefragt > 0 && richtig === gefragt, `${richtig} of ${gefragt} correct`);
+
   await page.waitForTimeout(1600);
   const s5 = await slot();
   check('a round here pays Mathe-Sterne, like every house in this world',
