@@ -850,14 +850,42 @@ async function beiTor(sterne, wort = 0) {
   await inDieWelt();
   await lumaWeg();
   const start = (await slot()).ort;
-  await page.mouse.move(mitte.w * 0.5, mitte.h * 0.22);
+  // Open meadow at tile (12,23), east of him — NOT the house.
+  //
+  // This aimed at a fraction of the screen height until a sabotage
+  // showed why that was wrong: the point it picked happened to land on
+  // the house, so breaking the tap-resolution broke this check too, and
+  // it had never been testing the holding on its own. A check that
+  // fails for someone else's reason is not a check, it is a rumour.
+  const wiese = await page.evaluate(() => window.weltOrt?.(12 * 16 + 8, 23 * 16 + 8) ?? null);
+  //
+  // He will end up FURTHER east than tile 12, and that is correct.
+  // The finger holds a point on the SCREEN, and the camera follows him,
+  // so the patch of world under that point slides ahead as he walks and
+  // he keeps going in that direction for as long as it is held. That is
+  // what holding the mouse does in Diablo and it is what was asked for.
+  // The check is therefore "did he walk", not "did he arrive".
+  if (!wiese) check('the world can be aimed at for the hold check', false);
+  await page.mouse.move(wiese[0], wiese[1]);
   await page.mouse.down();
-  await page.waitForTimeout(1800);
-  const waehrend = (await slot()).ort;
+  // Held for well over the 900ms that a tap is allowed to last, so the
+  // release cannot be read as a tap. Anything he walks is the holding.
+  await page.waitForTimeout(2200);
   await page.mouse.up();
+  // And then wait for the world to write his position down.
+  //
+  // The slot is only saved every five seconds of play, so the first
+  // version of this check read a position from before the walk and
+  // reported that holding does nothing. The house check next to it
+  // looked fine for the wrong reason: arriving at a door forces a save,
+  // so it happened to be reading fresh numbers.
+  await page.waitForTimeout(5400);
+  const waehrend = (await slot()).ort;
   check('holding a finger down walks, without ever letting go',
     Math.hypot(waehrend.x - start.x, waehrend.y - start.y) > 1,
-    `moved ${Math.hypot(waehrend.x - start.x, waehrend.y - start.y).toFixed(2)} tiles while held`);
+    `${start.x.toFixed(1)},${start.y.toFixed(1)} -> `
+    + `${waehrend.x.toFixed(1)},${waehrend.y.toFixed(1)}`
+    + ` (target tile 12,23; aimed at ${wiese ? wiese.map(Math.round).join(',') : '?'})`);
 }
 
 // ------------------------------------------ every generator has a door
