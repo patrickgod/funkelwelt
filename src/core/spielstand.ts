@@ -46,6 +46,21 @@ export interface Stand {
   staerke: Record<string, number>;
   /** Where the hero was standing, in world tiles. */
   ort: { x: number; y: number };
+  /**
+   * Which lightsparks have been picked up.
+   *
+   * Kept per slot and never cleared. A spark a child found once must
+   * still be found when they come back tomorrow, or the world un-learns
+   * itself overnight — the same rule as the stars, applied to the map
+   * instead of to the arithmetic.
+   */
+  funken: string[];
+  /**
+   * Thumbstick or tap-to-walk. Stored per slot rather than globally,
+   * because two children on one iPad will not agree and neither of them
+   * is wrong.
+   */
+  steuerung: 'stick' | 'tippen';
   /** How many times each dungeon has been cleared. */
   geschafft: Record<string, number>;
   /** What has been bought. */
@@ -71,6 +86,8 @@ function frisch(): Stand {
     muenzen: 0,
     staerke: {},
     ort: { x: 0, y: 0 },
+    funken: [],
+    steuerung: 'stick',
     geschafft: {},
     ausruestung: [],
     gehoert: [],
@@ -119,6 +136,9 @@ export function laden(i: number): Stand {
       ort: roh.ort && typeof roh.ort === 'object'
         ? { x: Number(roh.ort.x) || 0, y: Number(roh.ort.y) || 0 }
         : basis.ort,
+      funken: Array.isArray(roh.funken)
+        ? roh.funken.filter((x) => typeof x === 'string') : [],
+      steuerung: roh.steuerung === 'tippen' ? 'tippen' : 'stick',
       geschafft: roh.geschafft && typeof roh.geschafft === 'object' ? { ...roh.geschafft } : {},
       ausruestung: Array.isArray(roh.ausruestung)
         ? roh.ausruestung.filter((x) => typeof x === 'string') : [],
@@ -232,6 +252,13 @@ export function staerkeVon(fakt: string): number {
 export function merken(fakt: string, richtig: boolean): void {
   const jetzt = stand.staerke[fakt] ?? 0;
   stand.staerke[fakt] = richtig ? Math.min(3, jetzt + 1) : Math.max(0, jetzt - 1);
+  sichern();
+}
+
+/** A lightspark, picked up. Only ever added to. */
+export function funkeGefunden(id: string): void {
+  if (stand.funken.includes(id)) return;
+  stand.funken.push(id);
   sichern();
 }
 

@@ -80,8 +80,10 @@ dirs.forEach((d, col) => {
   for (let f = 0; f < 3; f++) {
     const x = 10 + col * CELL_W;
     const y = 26 + f * CELL_H;
-    ctx.fillStyle = 'rgba(36,29,43,0.12)';
-    ctx.fillRect(x, y, W * SCALE, H * SCALE);
+    // No cell tint. Rule 3: judge a sprite on the background it will
+    // actually be seen on, and that background is grass. A dark panel
+    // behind a character whose legs are dark timber hides the walk
+    // cycle, which is the one thing this grid exists to show.
     ctx.drawImage(held(d, f, looks[0]).toCanvas(), x, y, W * SCALE, H * SCALE);
   }
   ctx.fillStyle = '#f8f0dc';
@@ -91,8 +93,6 @@ dirs.forEach((d, col) => {
 looks.forEach((lk, i) => {
   const x = 10 + i * CELL_W;
   const y = 26 + 3 * CELL_H + 24;
-  ctx.fillStyle = 'rgba(36,29,43,0.12)';
-  ctx.fillRect(x, y, W * SCALE, H * SCALE);
   ctx.drawImage(held('unten', 0, lk).toCanvas(), x, y, W * SCALE, H * SCALE);
 });
 

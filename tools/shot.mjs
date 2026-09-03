@@ -79,11 +79,50 @@ if (want('editor2')) {
   await shot('editor2');
 }
 
+// Into the world. The name is filled here rather than relying on the
+// editor2 shot above having done it — asking for one shot by name must
+// not leave the run stuck on a disabled button.
+if (!(await page.locator('.namensfeld').inputValue())) {
+  await page.locator('.namensfeld').fill('Ben');
+  await page.waitForTimeout(250);
+}
+await page.locator('button', { hasText: 'Los geht es' }).first().tap();
+await page.waitForTimeout(1400);
+if (want('welt')) await shot('welt');
+
+// Walked east along the path, so the shot shows the lamps and the
+// bridge rather than the doorstep the game opens on.
+if (want('welt-weg') || want('welt-stick') || want('welt-einstellungen')) {
+  await page.keyboard.down('ArrowRight');
+  await page.waitForTimeout(4200);
+  await page.keyboard.up('ArrowRight');
+  await page.waitForTimeout(300);
+  if (want('welt-weg')) await shot('welt-weg');
+}
+
+// The thumbstick, mid-drag, where a thumb actually put it.
+if (want('welt-stick')) {
+  await page.touchscreen.tap(300, 600);          // wake the pointer stack
+  await page.mouse.move(300, 620);
+  await page.mouse.down();
+  await page.mouse.move(340, 600, { steps: 6 });
+  await page.waitForTimeout(500);
+  await shot('welt-stick');
+  await page.mouse.up();
+  await page.waitForTimeout(200);
+}
+
+if (want('welt-einstellungen')) {
+  await page.locator('.hudKnopf').nth(1).tap();
+  await page.waitForTimeout(500);
+  await shot('welt-einstellungen');
+  await page.locator('button', { hasText: 'Weiter spielen' }).first().tap();
+  await page.waitForTimeout(300);
+}
+
 // And a slot with somebody in it.
 if (want('titel-belegt')) {
-  await page.locator('button', { hasText: 'Los geht es' }).first().tap();
-  await page.waitForTimeout(600);
-  await page.locator('button', { hasText: 'Zurück' }).first().tap();
+  await page.locator('.hudKnopf').first().tap();
   await page.waitForTimeout(700);
   await shot('titel-belegt');
 }

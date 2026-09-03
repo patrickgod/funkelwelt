@@ -9,8 +9,11 @@ import { t } from './core/i18n.js';
 import * as stand from './core/spielstand.js';
 import * as audio from './core/audio.js';
 import * as fx from './core/fx.js';
+import { iconCanvas } from './core/icons.js';
 import { held, heldSchatten, HAUT, HAAR, KLEID, W as HW, H as HH,
   type Aussehen, type Richtung } from './spiel/held.js';
+import { Steuerung } from './spiel/steuerung.js';
+import { Welt } from './welt/welt.js';
 
 const welt = document.getElementById('welt') as HTMLCanvasElement;
 const fxCanvas = document.getElementById('fx') as HTMLCanvasElement;
@@ -23,6 +26,13 @@ type Schirm = 'titel' | 'editor' | 'welt';
 let schirm: Schirm = 'titel';
 let zeit = 0;
 let gestartet = 0;
+let letzterRahmen = 0;
+
+/** The world screen, while it is the screen. */
+let dieWelt: Welt | null = null;
+let dieSteuerung: Steuerung | null = null;
+let muenzZahl: HTMLElement | null = null;
+let muenzenGezeigt = -1;
 
 // ---------------------------------------------------------------- canvas
 
@@ -39,6 +49,7 @@ function groesse(): void {
   }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   fxCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (dieWelt) dieWelt.groesse(w, h);
 }
 
 window.addEventListener('resize', groesse);
@@ -331,10 +342,118 @@ function zeigeWelt(): void {
   schirm = 'welt';
   vorschau = null;
   leeren();
-  const s = el('div', 'bildschirm');
-  s.appendChild(el('h1', 'titel', stand.get().name));
-  s.appendChild(el('p', 'unter', 'Die Welt wird als Nächstes gebaut.'));
-  s.appendChild(knopf(t('held.zurueck'), () => zeigeTitel()));
+  fx.clear();
+  dieWelt = new Welt(stand.get().aussehen);
+  dieWelt.groesse(welt.clientWidth || window.innerWidth, welt.clientHeight || window.innerHeight);
+  // The steering listens on the canvas rather than on the document, so
+  // that a tap on the HUD is a tap on the HUD and not also a step to the
+  // left. #ui is transparent to pointers except where a control is.
+  dieSteuerung = new Steuerung(welt);
+  dieSteuerung.modus = stand.get().steuerung;
+  muenzenGezeigt = -1;
+  hudBauen();
+}
+
+/**
+ * The world's own interface: out, the purse, and the settings.
+ *
+ * Three things and no more. Everything else a child needs to know is in
+ * the picture — where they are, how dark it still is, and what is worth
+ * walking towards.
+ */
+function hudBauen(): void {
+  const hud = el('div', 'hud');
+
+  const raus = el('button', 'hudKnopf');
+  raus.appendChild(iconCanvas('zurueck', 40));
+  tap(raus, () => { audio.click(); weltVerlassen(); zeigeTitel(); });
+
+  const beutel = el('div', 'beutel');
+  beutel.appendChild(iconCanvas('muenze', 34));
+  muenzZahl = el('span', 'zahl', String(stand.get().muenzen));
+  beutel.appendChild(muenzZahl);
+
+  const zahn = el('button', 'hudKnopf');
+  zahn.appendChild(iconCanvas('zahnrad', 40));
+  tap(zahn, () => { audio.click(); zeigeEinstellungen(); });
+
+  hud.append(raus, beutel, zahn);
+  ui.appendChild(hud);
+}
+
+function weltVerlassen(): void {
+  if (dieWelt) dieWelt.ortSichern();
+  if (dieSteuerung) dieSteuerung.loesen();
+  dieWelt = null;
+  dieSteuerung = null;
+  muenzZahl = null;
+  fx.clear();
+  ctx.clearRect(0, 0, welt.width, welt.height);
+}
+
+/**
+ * Sound, voice, and which way the adventurer is steered.
+ *
+ * The steering being HERE rather than buried somewhere is the point:
+ * HANDOVER.md's first open question is which of the two a six-year-old
+ * gets on with, and the only way anyone finds out is if it can be
+ * swapped in the middle of walking about and swapped straight back.
+ */
+function zeigeEinstellungen(): void {
+  const s = el('div', 'bildschirm dunkel');
+  s.appendChild(el('h2', 'titel', t('ein.titel')));
+
+  const reihe = (
+    label: string,
+    optionen: { text: string; an: () => boolean; tu: () => void }[],
+  ): void => {
+    const r = el('div', 'reihe');
+    r.appendChild(el('div', 'was', label));
+    const knoepfe: HTMLButtonElement[] = [];
+    const auffrischen = (): void =>
+      knoepfe.forEach((b, j) => b.classList.toggle('gewaehlt', optionen[j].an()));
+    for (const o of optionen) {
+      const b = knopf(o.text, () => { o.tu(); auffrischen(); });
+      knoepfe.push(b);
+      r.appendChild(b);
+    }
+    auffrischen();
+    s.appendChild(r);
+  };
+
+  const setzen = (fn: (st: stand.Stand) => void): void => {
+    fn(stand.get());
+    stand.sichern();
+  };
+
+  reihe(t('ein.ton'), [
+    { text: t('ein.an'), an: () => stand.get().ton, tu: () => setzen((x) => { x.ton = true; }) },
+    { text: t('ein.aus'), an: () => !stand.get().ton, tu: () => setzen((x) => { x.ton = false; }) },
+  ]);
+  reihe(t('ein.stimme'), [
+    { text: t('ein.an'), an: () => stand.get().stimme, tu: () => setzen((x) => { x.stimme = true; }) },
+    { text: t('ein.aus'), an: () => !stand.get().stimme, tu: () => setzen((x) => { x.stimme = false; }) },
+  ]);
+  reihe(t('ein.steuerung'), [
+    {
+      text: t('ein.stick'),
+      an: () => stand.get().steuerung === 'stick',
+      tu: () => {
+        setzen((x) => { x.steuerung = 'stick'; });
+        if (dieSteuerung) dieSteuerung.modus = 'stick';
+      },
+    },
+    {
+      text: t('ein.tippen'),
+      an: () => stand.get().steuerung === 'tippen',
+      tu: () => {
+        setzen((x) => { x.steuerung = 'tippen'; });
+        if (dieSteuerung) dieSteuerung.modus = 'tippen';
+      },
+    },
+  ]);
+
+  s.appendChild(knopf(t('ein.fertig'), () => s.remove(), 'gold'));
   ui.appendChild(s);
 }
 
@@ -343,16 +462,31 @@ function zeigeWelt(): void {
 function frame(now: number): void {
   if (!gestartet) gestartet = now;
   zeit = (now - gestartet) / 1000;
+  // Real elapsed time, clamped. A tab that has been in the background
+  // comes back with a dt of several seconds, and an unclamped one walks
+  // the adventurer straight through whatever was in the way.
+  const dt = letzterRahmen ? Math.min(0.05, (now - letzterRahmen) / 1000) : 1 / 60;
+  letzterRahmen = now;
 
   const off = fx.shakeOffset(now);
   app.style.transform = off.x || off.y ? `translate(${off.x}px, ${off.y}px)` : '';
 
   if (schirm === 'editor' && vorschau) vorschau();
 
+  if (schirm === 'welt' && dieWelt && dieSteuerung) {
+    dieWelt.schritt(dt, dieSteuerung);
+    dieWelt.zeichnen(ctx, dieSteuerung);
+    const m = stand.get().muenzen;
+    if (muenzZahl && m !== muenzenGezeigt) {
+      muenzZahl.textContent = String(m);
+      muenzenGezeigt = m;
+    }
+  }
+
   const dpr = Math.min(3, window.devicePixelRatio || 1);
   fxCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
   fxCtx.clearRect(0, 0, fxCanvas.width, fxCanvas.height);
-  fx.update(1 / 60);
+  fx.update(dt);
   fx.draw(fxCtx);
 
   requestAnimationFrame(frame);

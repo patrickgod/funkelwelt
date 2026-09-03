@@ -104,21 +104,38 @@ export function held(dir: Richtung, frame: number, a: Aussehen): Px {
   const bob = frame === 0 ? 0 : -1;
 
   // -------------------------------------------------------------- legs
-  // The GAP between them is what makes a walk cycle read. Two blocks
-  // touching are a skirt.
   const schritt = frame === 0 ? 0 : frame === 1 ? 1 : -1;
-  const beine: [number, number][] = seite
-    ? [[cx - 3, schritt], [cx, -schritt]]
-    : [[cx - 4, schritt], [cx + 1, -schritt]];
-  for (const [bx, off] of beine) {
-    // One leg planted, one lifted. Five pixels of leg below the tunic,
-    // with three pixels of daylight between them: the first version
-    // gave them four pixels and no gap, so the body ate the whole walk.
-    const fuss = 24 + bob - Math.max(0, off);
-    p.rect(bx, 19 + bob, 3, fuss - 19 - bob, shade(P.timber, 2));
-    p.rect(bx, 19 + bob, 1, fuss - 19 - bob, shade(P.timber, 3));
-    p.rect(bx - (off > 0 ? 1 : 0), fuss, 4, 2, shade(P.timber, 1));
-    p.rect(bx - (off > 0 ? 1 : 0), fuss + 1, 4, 1, shade(P.timber, 0));
+  if (seite) {
+    // In profile a walk is legs swinging FORWARD and BACK, not up and
+    // down, and the far leg has to be a step darker or the two read as
+    // one shape. The first version put them side by side, at the same
+    // height, in one colour — and the moment the world existed and the
+    // character was actually watched walking east for four seconds, it
+    // was obvious: he was moving about inside a barrel. Same lesson as
+    // the front view's missing gap, in the one direction the contact
+    // sheet had only ever been asked to show standing still.
+    //
+    // Darker leg first, so the near one covers it.
+    const beine: [number, number][] = [[cx - 3 - schritt * 2, 2], [cx - 3 + schritt * 2, 0]];
+    for (const [bx, tiefer] of beine) {
+      const fuss = 24 + bob;
+      p.rect(bx, 19 + bob, 3, fuss - 19 - bob, shade(P.timber, 2 - tiefer));
+      p.rect(bx, 19 + bob, 1, fuss - 19 - bob, shade(P.timber, 3 - tiefer));
+      // The foot points the way the character is facing.
+      p.rect(bx - 1, fuss, 4, 2, shade(P.timber, 1 - tiefer));
+      p.rect(bx - 1, fuss + 1, 4, 1, shade(P.timber, 0));
+    }
+  } else {
+    // Facing the camera, the GAP between them is what makes the walk
+    // read. Two blocks touching are a skirt.
+    const beine: [number, number][] = [[cx - 4, schritt], [cx + 1, -schritt]];
+    for (const [bx, off] of beine) {
+      const fuss = 24 + bob - Math.max(0, off);
+      p.rect(bx, 19 + bob, 3, fuss - 19 - bob, shade(P.timber, 2));
+      p.rect(bx, 19 + bob, 1, fuss - 19 - bob, shade(P.timber, 3));
+      p.rect(bx - (off > 0 ? 1 : 0), fuss, 4, 2, shade(P.timber, 1));
+      p.rect(bx - (off > 0 ? 1 : 0), fuss + 1, 4, 1, shade(P.timber, 0));
+    }
   }
 
   // -------------------------------------------------------------- body
@@ -216,13 +233,21 @@ export function held(dir: Richtung, frame: number, a: Aussehen): Px {
   // and it is the story: this is a child who carries the light back
   // into a world that has gone dim.
   if (!hinten) {
-    const lx = seite ? cx - 7 : bx0 - 4;
-    const ly = koerperY + 4 + (seite ? 0 : arm);
+    // Held out in FRONT at chest height in profile, not down at the hip.
+    //
+    // At the hip it hangs over the back leg, and since the back leg is
+    // the whole walk cycle in a side view, the character stopped walking
+    // and started carrying a briefcase. Nobody could have seen that from
+    // a contact sheet of a standing sprite; it took watching him walk
+    // east for four seconds in the finished world.
+    const lx = seite ? cx - 8 : bx0 - 4;
+    const ly = koerperY + (seite ? 1 : 4 + arm);
+    if (seite) p.rect(lx + 3, ly + 2, bx0 - lx - 2, 2, shade(haut, 2));
     p.set(lx + 1, ly - 1, shade(P.timber, 1));
     p.rect(lx, ly, 3, 4, shade(P.glow, 3));
     p.rect(lx, ly + 1, 3, 2, shade(P.glow, 4));
     p.rect(lx, ly + 4, 3, 1, shade(P.slate, 1));
-    p.rect(lx, ly - 1, 3, 1, shade(P.slate, 2));
+    p.rect(lx, ly - 1, 3, 1, shade(P.slate, 3));
   }
 
   finish(p);

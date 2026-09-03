@@ -12,7 +12,7 @@
 import { P, INK, shade } from './palette.js';
 import { Px } from './px.js';
 
-export type Icon = 'stern' | 'bonbon';
+export type Icon = 'stern' | 'bonbon' | 'muenze' | 'zurueck' | 'zahnrad';
 
 /** A five-pointed star, filled by scanline so the points stay sharp. */
 function stern(): Px {
@@ -80,6 +80,71 @@ function bonbon(): Px {
   return p;
 }
 
+/**
+ * A coin.
+ *
+ * Muenzen are the spendable currency and they are NOT the sweets from
+ * the previous project, so they do not get the sweet's sprite. Drawn
+ * from the glow ramp, which is the family reserved for lit things — a
+ * coin should look like it is catching the lantern.
+ */
+function muenze(): Px {
+  const S = 17;
+  const p = new Px(S, S);
+  const c = (S - 1) / 2;
+  p.ellipse(c, c, 7, 7, shade(P.glow, 1));
+  p.ellipse(c, c, 6, 6, shade(P.glow, 2));
+  p.ellipse(c - 1, c - 1, 4, 4, shade(P.glow, 3));
+  p.ellipse(c - 2, c - 2, 2, 2, shade(P.glow, 4));
+  p.ellipse(c + 2, c + 3, 3, 2, shade(P.glow, 1));
+  p.outline(INK);
+  return p;
+}
+
+/**
+ * The two buttons the world screen needs, as pictures.
+ *
+ * AGENTS.md rule 14: no text is load-bearing, because the child cannot
+ * reliably read yet. A button labelled "Einstellungen" is a button a
+ * six-year-old cannot use, and one labelled with a glyph out of the
+ * system font is the one thing on screen that did not come from the
+ * palette.
+ */
+function zurueck(): Px {
+  const S = 17;
+  const p = new Px(S, S);
+  const hell = shade(P.plaster, 4);
+  for (const d of [0, 1, 2]) {
+    p.line(4 + d, 8, 10 + d, 2, hell);
+    p.line(4 + d, 8, 10 + d, 14, hell);
+  }
+  p.outline(INK);
+  return p;
+}
+
+function zahnrad(): Px {
+  const S = 17;
+  const p = new Px(S, S);
+  const c = (S - 1) / 2;
+  for (let a = 0; a < 8; a++) {
+    const w = (a * Math.PI) / 4;
+    p.rect(Math.round(c + Math.cos(w) * 7) - 1, Math.round(c + Math.sin(w) * 7) - 1,
+      3, 3, shade(P.stone, 3));
+  }
+  p.ellipse(c, c, 6, 6, shade(P.stone, 3));
+  p.ellipse(c - 1, c - 1, 5, 5, shade(P.stone, 4));
+  p.ellipse(c + 2, c + 2, 3, 3, shade(P.stone, 2));
+  for (let y = -2; y <= 2; y++) {
+    for (let x = -2; x <= 2; x++) if (x * x + y * y <= 5) p.clear(c + x, c + y);
+  }
+  p.outline(INK);
+  return p;
+}
+
+const ZEICHNER: Record<Icon, () => Px> = {
+  stern, bonbon, muenze, zurueck, zahnrad,
+};
+
 const cache = new Map<string, HTMLCanvasElement>();
 
 /** An icon at an integer scale, ready to drop into the DOM. */
@@ -88,7 +153,7 @@ export function iconCanvas(which: Icon, size: number): HTMLCanvasElement {
   const key = `${which}:${scale}`;
   let src = cache.get(key);
   if (!src) {
-    const px = which === 'stern' ? stern() : bonbon();
+    const px = ZEICHNER[which]();
     const base = px.toCanvas();
     src = document.createElement('canvas');
     src.width = base.width * scale;

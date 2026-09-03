@@ -96,6 +96,34 @@ export class Px {
     return this.data[((y | 0) * this.w + (x | 0)) * 4 + 3] > 8;
   }
 
+  /**
+   * Copy another buffer in at (x, y), skipping its transparent pixels.
+   *
+   * This is how a map gets built: 1728 tiles composited into one buffer
+   * ONCE, so that drawing the ground every frame is a single blit of a
+   * finished image rather than 1728 of them. Straight typed-array
+   * indexing rather than `set`, because the hex parse in `set` is fine
+   * for a sprite and is half a million string parses for a region.
+   */
+  draw(src: Px, x: number, y: number): void {
+    x |= 0; y |= 0;
+    for (let j = 0; j < src.h; j++) {
+      const dy = y + j;
+      if (dy < 0 || dy >= this.h) continue;
+      for (let i = 0; i < src.w; i++) {
+        const dx = x + i;
+        if (dx < 0 || dx >= this.w) continue;
+        const s = (j * src.w + i) * 4;
+        if (src.data[s + 3] < 8) continue;
+        const d = (dy * this.w + dx) * 4;
+        this.data[d] = src.data[s];
+        this.data[d + 1] = src.data[s + 1];
+        this.data[d + 2] = src.data[s + 2];
+        this.data[d + 3] = src.data[s + 3];
+      }
+    }
+  }
+
   rect(x: number, y: number, w: number, h: number, hex: string): void {
     for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) this.set(x + i, y + j, hex);
   }

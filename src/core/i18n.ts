@@ -46,6 +46,16 @@ const DE = {
   'welt.betreten': 'Hineingehen',
   'welt.zu': 'Noch zu',
   'welt.brauchtStufe': 'Ab Stufe {n} in {fach}',
+  'welt.muenzen': 'Münzen',
+
+  // The steering is a QUESTION, not a preference: nobody knows which of
+  // these a six-year-old gets on with, so both are built and the switch
+  // is two taps away. See src/spiel/steuerung.ts.
+  'ein.titel': 'Einstellungen',
+  'ein.steuerung': 'Laufen',
+  'ein.stick': 'Daumen',
+  'ein.tippen': 'Tippen',
+  'ein.fertig': 'Weiter spielen',
 
   // ------------------------------------------------------------ settings
   'ein.ton': 'Ton',

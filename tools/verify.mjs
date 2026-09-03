@@ -149,6 +149,151 @@ const andere = await page.evaluate(() => [
 ]);
 check('the other two slots are untouched', andere.every((x) => x === null));
 
+// --------------------------------------------------------------- world
+//
+// PLAN.md item 1, and the reason it gets this much of the suite: the
+// walking is the thing everything else will be built on top of, and
+// every one of its failure modes is silent. A hero who does not move, a
+// wall that is not solid, a steering mode that is wired to nothing —
+// all of them typecheck, none of them throws, and all of them are
+// obvious the moment something drives the game with a finger.
+
+/** Read the slot the way the app wrote it. */
+const slot = () => page.evaluate(() =>
+  JSON.parse(localStorage.getItem('funkelwelt.platz0.v1') ?? 'null'));
+
+/** Put the adventurer somewhere, so a check does not have to walk there. */
+async function stellAuf(x, y) {
+  await page.evaluate(([px, py]) => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.ort = { x: px, y: py };
+    localStorage.setItem(k, JSON.stringify(s));
+  }, [x, y]);
+}
+
+/** Open slot one and wait for the region to be composited. */
+async function inDieWelt() {
+  await page.goto(BASE);
+  await page.waitForTimeout(700);
+  await page.locator('.platz').first().tap();
+  await page.waitForTimeout(1200);
+}
+
+/** Walk with the keyboard, then leave — leaving is what saves the spot. */
+async function laufe(taste, ms) {
+  await page.keyboard.down(taste);
+  await page.waitForTimeout(ms);
+  await page.keyboard.up(taste);
+  await page.waitForTimeout(200);
+}
+
+await inDieWelt();
+check('opening an occupied slot opens the world, not a placeholder',
+  await page.locator('.hud').count() === 1 && await page.locator('.beutel').count() === 1);
+await measureButtons('world');
+
+{
+  // Put him down first. A fresh slot's `ort` is 0,0 and the world spawns
+  // him at the door instead, so measuring from the stored spot before
+  // he has ever been anywhere measures the spawn rather than the walk.
+  await stellAuf(14.5, 22.5);
+  await inDieWelt();
+  const vor = (await slot()).ort;
+  await laufe('ArrowRight', 1200);
+  await page.locator('.hudKnopf').first().tap();
+  await page.waitForTimeout(400);
+  const nach = (await slot()).ort;
+  check('the adventurer walks', nach.x - vor.x > 1.5,
+    `moved ${(nach.x - vor.x).toFixed(2)} tiles east`);
+  check('and the spot is still there after leaving',
+    Math.abs(nach.y - vor.y) < 0.5, `y ${vor.y.toFixed(2)} -> ${nach.y.toFixed(2)}`);
+}
+
+// The house is solid. Walking north out of the doorway for three
+// seconds would cover eight tiles if nothing stopped it.
+{
+  await inDieWelt();
+  await stellAuf(7.5, 22.5);
+  await inDieWelt();
+  await laufe('ArrowUp', 3000);
+  await page.locator('.hudKnopf').first().tap();
+  await page.waitForTimeout(400);
+  const ort = (await slot()).ort;
+  check('a wall is a wall — the house stops you at the doorstep',
+    ort.y > 19.4, `stopped at y ${ort.y.toFixed(2)}`);
+}
+
+// Touch, not clicks. A thumbstick driven by a mouse would pass on a
+// build no child can operate, so this one goes through real touch
+// events: down where the thumb lands, drag, hold, release.
+{
+  await inDieWelt();
+  await stellAuf(14.5, 22.5);
+  await inDieWelt();
+  const vor = (await slot()).ort;
+  const cdp = await ctx.newCDPSession(page);
+  const touch = (type, x, y) => cdp.send('Input.dispatchTouchEvent', {
+    type,
+    touchPoints: type === 'touchEnd' ? [] : [{ x, y, radiusX: 12, radiusY: 12, force: 1 }],
+  });
+  await touch('touchStart', 300, 600);
+  await touch('touchMove', 344, 600);
+  await page.waitForTimeout(1100);
+  await touch('touchEnd', 344, 600);
+  await page.waitForTimeout(200);
+  await page.locator('.hudKnopf').first().tap();
+  await page.waitForTimeout(400);
+  const nach = (await slot()).ort;
+  check('the thumbstick moves him under a real finger',
+    nach.x - vor.x > 1.2, `moved ${(nach.x - vor.x).toFixed(2)} tiles`);
+}
+
+// Tap-to-walk, the other half of HANDOVER.md's open question. It is no
+// use offering the choice if one of the two does nothing.
+{
+  await inDieWelt();
+  await stellAuf(14.5, 22.5);
+  await inDieWelt();
+  await page.locator('.hudKnopf').nth(1).tap();
+  await page.waitForTimeout(400);
+  await page.locator('button', { hasText: 'Tippen' }).first().tap();
+  await page.waitForTimeout(200);
+  await page.locator('button', { hasText: 'Weiter spielen' }).first().tap();
+  await page.waitForTimeout(300);
+  check('the steering choice is remembered', (await slot()).steuerung === 'tippen');
+  await page.touchscreen.tap(880, 420);
+  await page.waitForTimeout(2200);
+  await page.locator('.hudKnopf').first().tap();
+  await page.waitForTimeout(400);
+  const ort = (await slot()).ort;
+  check('tapping a spot walks him to it',
+    ort.x - 14.5 > 1.2, `moved ${(ort.x - 14.5).toFixed(2)} tiles towards the tap`);
+}
+
+// A lightspark is picked up by walking into it and pays coins — never
+// stars, which are the record of what has been learned.
+{
+  await inDieWelt();
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.ort = { x: 27.5, y: 15.9 };
+    s.funken = [];
+    s.muenzen = 0;
+    s.steuerung = 'stick';
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await inDieWelt();
+  await laufe('ArrowDown', 500);
+  const s = await slot();
+  check('walking into a lightspark picks it up',
+    s.funken.includes('f27,16'), `carrying ${JSON.stringify(s.funken)}`);
+  check('and it pays coins rather than stars',
+    s.muenzen === 3 && s.sterne.mathe === 0 && s.sterne.wort === 0,
+    `${s.muenzen} coins, ${s.sterne.mathe}/${s.sterne.wort} stars`);
+}
+
 // ------------------------------------------------------------- offline
 
 await page.goto(BASE);

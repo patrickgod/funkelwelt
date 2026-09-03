@@ -67,6 +67,11 @@ html, body {
   image-rendering: pixelated;
 }
 
+/* The thumbstick is a drag, and a drag on a touch screen is a scroll
+   unless it is told otherwise. `manipulation` on #app is enough to stop
+   double-tap zoom and is not enough to stop this. */
+#welt { touch-action: none; }
+
 /* Particles go ON TOP of the interface. LernInseln shipped them
    underneath and the one moment the whole reward was built around —
    stars flying into a counter — was hidden behind a panel. */
@@ -252,6 +257,56 @@ button.gefahr { background: var(--rot); color: var(--hell); }
   transform: translateY(-5px);
   box-shadow: 0 8px 0 var(--ink), 0 0 0 3px var(--gold);
 }
+
+/* ------------------------------------------------------- the world HUD */
+
+/* A bar, not a panel. The whole point of the world screen is the world,
+   so the interface is three things in a corner and the rest of the
+   screen is somewhere you can put your thumb — which means the bar
+   itself must be transparent to a tap and only its controls must not. */
+.hud {
+  position: absolute;
+  top: calc(var(--safe-t) + 10px);
+  left: calc(var(--safe-l) + 10px);
+  right: calc(var(--safe-r) + 10px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: none;
+}
+
+.hud > * { pointer-events: auto; }
+.hud .beutel { margin-right: auto; }
+
+.hudKnopf {
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tief);
+}
+
+.beutel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 64px;
+  padding: 0 18px 0 10px;
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  background: rgba(26, 22, 34, 0.78);
+  box-shadow: 0 4px 0 var(--ink);
+}
+
+.beutel .zahl { font-size: 28px; color: var(--gold); min-width: 34px; }
+
+.icon { image-rendering: pixelated; display: block; }
+
+/* The settings, over the world rather than instead of it. */
+.bildschirm.dunkel { background: rgba(26, 22, 34, 0.93); }
 
 .namensfeld {
   font: inherit;
