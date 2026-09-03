@@ -629,8 +629,8 @@ export function funke(frame: number): Px {
  * credit at the image API to exist.
  *
  * No letters on any of them — rule 14. Each plaque shows the thing the
- * child actually does inside, in the same visual language the round
- * screen uses: a ten-frame for the numbers house, the ear from the
+ * child actually does inside: counting dots for the numbers house, the
+ * sound coming out of the
  * listening exercises, a circle and a triangle for the shapes.
  */
 export function tafel(art: number): Px {
@@ -680,41 +680,22 @@ export function tafel(art: number): Px {
         p.rect(x + dx - 1, 9 + dy, 2, 1, hell);
       }
     }
-  } else if (art === 3) {
-    // A plus and a minus. Not letters, and not a sum either — a sum
-    // would be a question on a signboard, and a child who cannot do it
-    // yet would read the door as "not for you". These are the two marks
-    // the house is full of, and nothing more.
+  } else {
+    // ONE plus, filling the board, and nothing beside it.
     //
-    // ONE plus, filling the board, and no minus beside it.
-    //
-    // `schild()` already carries this lesson twenty lines further up —
-    // "The first version had a little house AND an arrow on a board
-    // fifteen pixels wide, and at the size it is actually seen the two
-    // merged into a smudge" — and this plaque made the same mistake in
-    // the same building. A plus and a minus sharing sixteen pixels left
-    // four-pixel arms with two-pixel notches, and the antialiasing in
+    // `schild()` already carries this lesson further up — "the first
+    // version had a little house AND an arrow on a board fifteen pixels
+    // wide, and at the size it is actually seen the two merged into a
+    // smudge" — and this plaque made the same mistake in the same
+    // building. A plus and a minus sharing sixteen pixels left arms
+    // four pixels long with two-pixel notches, and the antialiasing in
     // `finish` filled the notches: from the path it was a gold diamond.
     //
     // Alone, the plus gets eleven pixels and four-pixel notches, which
-    // survive. Both strokes are odd so they share one centre pixel.
+    // survive. Both strokes are odd, so they share one centre pixel.
     const zeichen = shade(P.glow, 1);
     p.rect(3, 7, 11, 3, zeichen);
     p.rect(7, 3, 3, 11, zeichen);
-  } else {
-    // A circle and a triangle, in the colours the shapes house gives
-    // them and keeps giving them — a child still learning the word
-    // "Dreieck" holds on to "the green one" while they learn it.
-    const kreis = shade(P.chalk, 3);
-    for (let y = -3; y <= 3; y++) {
-      const half = Math.round(Math.sqrt(Math.max(0, 9 - y * y)));
-      for (let x = -half; x <= half; x++) p.set(5 + x, 8 + y, kreis);
-    }
-    const drei = shade(P.backlit, 2);
-    for (let j = 0; j <= 6; j++) {
-      const w = Math.round((j / 6) * 3.5);
-      for (let i = -w; i <= w; i++) p.set(12 + i, 5 + j, drei);
-    }
   }
   finish(p);
   return p;

@@ -499,7 +499,6 @@ function zeigeHaus(tuer: Tuer): void {
   leeren();
   fx.clear();
   const haus = tuer === 'wort' ? runde.HAUS_ERSTE_LAUTE
-    : tuer === 'formen' ? runde.HAUS_FORMEN
     : tuer === 'rechnen' ? runde.HAUS_RECHENMEISTER
     : runde.HAUS_VERLIEBTE_ZAHLEN;
   runde.starten(ui, haus, () => {

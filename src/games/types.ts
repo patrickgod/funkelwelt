@@ -17,10 +17,6 @@ export type Prompt =
   | { kind: 'doppel'; n: number }
   /** A spoken word. The child hears it; nothing is written. */
   | { kind: 'wort'; wort: string; audio: string; zeige: boolean }
-  /** "Tippe auf den Kreis." The shape is named aloud, never written. */
-  | { kind: 'form'; frage: string }
-  /** A row of shapes with the last one missing. */
-  | { kind: 'muster'; reihe: string[] }
   /**
    * Write this, with a finger.
    *

@@ -836,17 +836,36 @@ async function beiTor(sterne, wort = 0) {
   await inDieWelt();
   await laufe('ArrowUp', 900);
   await page.waitForTimeout(900);
-  check('the fourth door opens Das Haus der Rechenmeister',
+  check('the third door opens Das Haus der Rechenmeister',
     await page.locator('.runde').count() === 1);
 
   const arten = new Set();
   let gestellt = 0;
+  let hoechste = 0;
   for (let i = 0; i < 16; i++) {
     if (await page.locator('.blatt').count()) break;
     await lumaWeg();
     const karten = page.locator('.karten button');
     if (await karten.count() === 0) break;
     gestellt++;
+
+    // NOTHING ABOVE TEN, anywhere on the screen.
+    //
+    // Not in the question, not on a card a child might tap, and not on
+    // a wrong card either — a distractor of fourteen teaches that
+    // fourteen is a plausible answer. This is the one constraint that
+    // drifts silently: every generator here takes a ceiling as an
+    // argument, and a ceiling is exactly the kind of number that gets
+    // raised by someone adding a game and copying the line above it.
+    // Leaf elements only. Reading `.karten` whole gives "71098" — four
+    // separate cards glued into one number — which the first version of
+    // this check duly reported as being above ten.
+    const zahlen = await page.locator('.buehne-q *, .karten button')
+      .evaluateAll((els) => els
+        .filter((e) => e.childElementCount === 0)
+        .flatMap((e) => (e.textContent ?? '').match(/[0-9]+/g) ?? [])
+        .map(Number));
+    for (const z of zahlen) hoechste = Math.max(hoechste, z);
     // Which of the three generators asked this one. All three draw a
     // different picture, which is the point of putting them in one
     // house: a round here is not ten of the same thing.
@@ -862,6 +881,8 @@ async function beiTor(sterne, wort = 0) {
   }
   check('a round here is not ten of the same thing',
     arten.size >= 2, `asked: ${[...arten].join(', ') || 'nothing recognised'}`);
+  check('and no number anywhere in it goes above ten',
+    hoechste > 0 && hoechste <= 10, `highest seen: ${hoechste}`);
   check('answering ten of them finishes the round',
     await page.locator('.blatt').count() === 1, `answered ${gestellt}`);
 
@@ -870,114 +891,6 @@ async function beiTor(sterne, wort = 0) {
   check('Das Haus der Rechenmeister pays Mathe-Sterne', sr.sterne.mathe > 0);
   check('the house counts how often it has been cleared',
     sr.geschafft['rechenmeister'] === 1, JSON.stringify(sr.geschafft));
-
-  await page.locator('button', { hasText: 'Zurück in die Welt' }).first().tap();
-  await page.waitForTimeout(600);
-}
-
-// -------------------------------------------------- Das Haus der Formen
-//
-// The third door, and the first house that asks two different KINDS of
-// question in one round. That is where the interesting failure lives:
-// `buildRound` resolves each question with the generator that made it,
-// and if it used the house's first game for all ten instead, every
-// pattern question would be answered by the shapes rule — which finds
-// nothing, falls back to card zero, and looks completely normal from
-// the outside. So the pattern question is answered here by READING THE
-// ROW, which is what the child does, rather than by asking the code
-// that sets the answer.
-
-{
-  await inDieWelt();
-  await stellAuf(40.5, 19.4);
-  await inDieWelt();
-  await laufe('ArrowUp', 900);
-  await page.waitForTimeout(900);
-  check('the third door opens Das Haus der Formen',
-    await page.locator('.runde').count() === 1);
-
-  // Rule 15: the sound is off-switchable in two taps, and this is the
-  // house to point a parent at in a waiting room. Lernkiste asked the
-  // shape question with a voice and an empty stage; here the shape is
-  // on screen, so the question survives the switch.
-  check('the shape question is SHOWN and not only spoken',
-    await page.locator('.formfrage canvas').count() === 1);
-
-  let sahForm = await page.locator('.formfrage canvas').count() > 0;
-  let sahMuster = 0;
-  let richtig = 0;
-  let gestellt = 0;
-
-  for (let i = 0; i < 16; i++) {
-    if (await page.locator('.blatt').count()) break;
-    await lumaWeg();
-    const karten = page.locator('.karten button');
-    const n = await karten.count();
-    if (n === 0) break;
-    gestellt++;
-
-    const reihe = await page.locator('.muster .zelle[aria-label]')
-      .evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')));
-
-    if (reihe.length) {
-      // Continue the row by finding the unit that repeats. This is the
-      // DEFINITION of a pattern rather than a copy of the generator:
-      // the shortest length whose repeat reproduces every cell, which
-      // is what the child is doing when they read along it.
-      let unit = reihe.length;
-      for (let u = 1; u <= reihe.length; u++) {
-        if (reihe.every((f, k) => f === reihe[k % u])) { unit = u; break; }
-      }
-      const weiter = reihe[reihe.length % unit];
-      const labels = await karten.evaluateAll(
-        (els) => els.map((e) => e.getAttribute('aria-label')));
-      const idx = labels.indexOf(weiter);
-      if (idx < 0) {
-        check('the pattern the child can read is on one of the cards',
-          false, `row ${reihe.join(',')} → ${weiter}; cards ${labels.join(',')}`);
-      } else {
-        sahMuster++;
-        await karten.nth(idx).tap();
-        await page.waitForTimeout(600);
-        if (await page.locator('.karten button.richtig').count() === 1) richtig++;
-      }
-      await page.waitForTimeout(2200);
-      continue;
-    }
-
-    if (await page.locator('.formfrage canvas').count()) sahForm = true;
-    await karten.first().tap();
-    await page.waitForTimeout(2400);
-  }
-
-  // EVERY pattern question in the round, not the first one.
-  //
-  // The first version checked only the first, and a sabotage that
-  // resolved every question with the house's first generator sailed
-  // through it: that bug falls back to card zero, and the row's
-  // continuation happened to BE card zero that run. One question is a
-  // coin toss with three sides; five of them is not.
-  check('every pattern question is right when answered by reading the row',
-    sahMuster > 0 && richtig === sahMuster, `${richtig} of ${sahMuster} correct`);
-
-  check('the round mixes both kinds of question rather than ten of one',
-    sahForm && sahMuster > 0, `shapes ${sahForm}, patterns ${sahMuster}`);
-  check('answering ten of them finishes the round',
-    await page.locator('.blatt').count() === 1, `answered ${gestellt}`);
-
-  await page.waitForTimeout(1800);
-  const sf = await slot();
-  // Shapes and patterns are maths — the same strand of the curriculum
-  // as counting — so this house pays the star that opens the Zahlen
-  // gate. A third currency would have told a child who sees shapes
-  // instantly and finds adding hard that the thing they are good at is
-  // a lesser subject.
-  check('Das Haus der Formen pays Mathe-Sterne',
-    sf.sterne.mathe > 0, `${sf.sterne.mathe} stars`);
-  check('and never Wort-Sterne, which it did not teach',
-    sf.sterne.wort === 0, `${sf.sterne.wort} Wort`);
-  check('the house counts how often it has been cleared',
-    sf.geschafft['formen'] === 1, JSON.stringify(sf.geschafft));
 
   await page.locator('button', { hasText: 'Zurück in die Welt' }).first().tap();
   await page.waitForTimeout(600);

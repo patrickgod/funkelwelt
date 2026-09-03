@@ -42,7 +42,7 @@
 // font, which together are about forty kilobytes of source for doors
 // that do not exist yet.
 //
-// Funkelwelt has THREE doors. Shipping the vocabulary for the rest of
+// Funkelwelt has three doors. Shipping the vocabulary for the rest of
 // them
 // to a child's iPad, with nothing calling it and nothing in the suite
 // looking at it, is worse than not shipping it: AGENTS.md's definition
@@ -51,7 +51,6 @@
 
 import type { Game, Question, Prompt } from './types.js';
 import { staerkeVon } from '../core/spielstand.js';
-import { FORMEN, musterZeile, type Form } from './formen.js';
 import { WOERTER } from './woerter.js';
 import { hasBild } from './wortbilder.js';
 
@@ -146,20 +145,27 @@ export const verliebteZahlen: Game = {
 
 export const zahlenreihe: Game = {
   id: 'zahlenreihe',
-  facts: () => Array.from({ length: 19 }, (_, i) => `zr:${i + 1}`),
+  // Nachbarzahlen, and the whole of this game lives at ten or below.
+  //
+  // It used to run to twenty. First grade meets the numbers to ten and
+  // stays there for a long while, and a child who is still finding the
+  // number that comes after seven does not need seventeen in the same
+  // exercise — the bigger numbers are not harder in kind, only in
+  // reading, which is a different lesson and not this one.
+  facts: () => Array.from({ length: 9 }, (_, i) => `zr:${i + 1}`),
   next(pick) {
     const fact = pick(this.facts());
     const missing = Number(fact.slice(3));
-    // A window of five around the gap, clipped to 0..20, gap in the
+    // A window of five around the gap, clipped to 0..10, gap in the
     // middle where possible — a gap at the end is a different and
     // harder task, and this house is not that house.
-    const start = Math.max(0, Math.min(16, missing - 2));
+    const start = Math.max(0, Math.min(6, missing - 2));
     const seq: (number | null)[] = [];
     for (let i = 0; i < 5; i++) seq.push(start + i === missing ? null : start + i);
     return {
       fact,
       prompt: { kind: 'reihe', seq },
-      choices: numberChoices(missing, 3, 4, 20),
+      choices: numberChoices(missing, 3, 4, 10),
       correct: -1,
       showOnMiss: { kind: 'reihe', seq: seq.map((v) => (v === null ? missing : v)) },
     } as Question;
@@ -178,37 +184,22 @@ export const rechenmeister: Game = {
   next(pick) {
     const fact = pick(this.facts());
     const [a, b] = fact.slice(3).split('+').map(Number);
-    // Some questions run backwards, because a child who can do 6+3 and
-    // cannot do 9-3 has learned a procedure, not a fact.
-    const minus = Math.random() < 0.4;
-    const prompt: Prompt = minus
-      ? { kind: 'rechnung', a: a + b, b, op: '-' }
-      : { kind: 'rechnung', a, b, op: '+' };
-    const answer = minus ? a : a + b;
+    // Addition, and only addition.
+    //
+    // Two in five of these used to run backwards as a subtraction, on
+    // the argument that a child who can do 6+3 and not 9-3 has learned
+    // a procedure rather than a fact. That argument is sound and it is
+    // for later: the ask here is addition to ten, and mixing the minus
+    // in means a child meets two operations in one round before they
+    // are fluent in either.
+    const prompt: Prompt = { kind: 'rechnung', a, b, op: '+' };
+    const answer = a + b;
     return {
       fact,
       prompt,
       choices: numberChoices(answer, 3, 4, 10),
       correct: -1,
       showOnMiss: { kind: 'tenframe', n: answer, numeral: true },
-    } as Question;
-  },
-};
-
-// ------------------------------------------------- Haus der Zwillinge
-
-export const zwillinge: Game = {
-  id: 'zwillinge',
-  facts: () => Array.from({ length: 11 }, (_, i) => `zw:${i}`),
-  next(pick) {
-    const fact = pick(this.facts());
-    const n = Number(fact.slice(3));
-    return {
-      fact,
-      prompt: { kind: 'doppel', n },
-      choices: numberChoices(n * 2, 4, 4, 20),
-      correct: -1,
-      showOnMiss: { kind: 'doppel', n },
     } as Question;
   },
 };
@@ -275,80 +266,6 @@ export const silben: Game = {
 
 // ---------------------------------------------------------------- glue
 
-// ------------------------------------------------------- Das Haus der Formen
-
-/**
- * Which pattern a row follows. Used to steer the generator towards the
- * kind the scheduler asked for.
- */
-function musterArt(row: Form[]): string {
-  if (row[0] === row[1]) return row[2] === row[1] ? 'ab' : 'aabb';
-  return row[1] === row[2] ? 'abb' : 'ab';
-}
-
-/**
- * Find the shape.
- *
- * The question is a grey silhouette and the cards are the coloured
- * shapes, so what is being asked is "which of these is this FORM",
- * independent of colour and size. See `silhouette()` for why it is not
- * simply spoken, which is how Lernkiste asked it.
- */
-export const formen: Game = {
-  id: 'formen',
-  facts: () => FORMEN.map((f) => `fo:${f}`),
-  next(pick) {
-    const fact = pick(this.facts());
-    const want = fact.slice(3) as Form;
-    const wrong = shuffle(FORMEN.filter((f) => f !== want)).slice(0, 3);
-    return {
-      fact,
-      prompt: { kind: 'form', frage: want },
-      choices: shuffle([want, ...wrong]).map((f) => `form:${f}`),
-      correct: -1,
-    } as Question;
-  },
-};
-
-/**
- * Continue the row.
- *
- * One of the genuinely load-bearing skills in early maths: it is the
- * same reasoning that becomes "what comes next in this number
- * sequence" years before any numbers are involved. It is also the one
- * exercise in the game that needs neither sound nor reading.
- */
-export const muster: Game = {
-  id: 'muster',
-  // The fact is the KIND of pattern rather than the shapes in it, so
-  // the scheduler practises the ones a child finds hard rather than
-  // hunting for a particular pair of colours.
-  facts: () => ['mu:ab', 'mu:aabb', 'mu:abb'],
-  next(pick) {
-    const fact = pick(this.facts());
-    const seed = Math.floor(Math.random() * 1e6);
-    let z = musterZeile(seed);
-    // Nudge the seed until the pattern is the kind that was asked for.
-    // Cheap, and much simpler than threading the kind through.
-    const wanted = fact.slice(3);
-    for (let i = 0; i < 40; i++) {
-      if (musterArt(z.row) === wanted) break;
-      z = musterZeile(seed + i * 7919);
-    }
-    const wrong = shuffle(FORMEN.filter((f) => f !== z.answer)).slice(0, 2);
-    return {
-      fact,
-      prompt: { kind: 'muster', reihe: z.row },
-      choices: shuffle([z.answer, ...wrong]).map((f) => `form:${f}`),
-      correct: -1,
-      // The whole row WITH the answer on the end, so the correction is
-      // the pattern completing itself rather than the word "wrong" —
-      // and so `answerOf` can read the answer back off it.
-      showOnMiss: { kind: 'muster', reihe: [...z.row, z.answer] },
-    } as Question;
-  },
-};
-
 /**
  * The correct index, resolved once here rather than in every generator.
  *
@@ -386,25 +303,13 @@ function expectedAnswer(gameId: string, q: Question): string {
       return q.fact.slice(3);
     case 'rechenmeister': {
       const p = q.prompt as Extract<Prompt, { kind: 'rechnung' }>;
-      return String(p.op === '+' ? p.a + p.b : p.a - p.b);
+      return String(p.a + p.b);
     }
-    case 'zwillinge':
-      return String(Number(q.fact.slice(3)) * 2);
     case 'anlaute':
       return q.fact.slice(3)[0].toUpperCase();
     case 'silben': {
       const w = WOERTER.find((x) => x.wort === q.fact.slice(3));
       return String(w ? w.silben : 2);
-    }
-    case 'formen':
-      return `form:${q.fact.slice(3)}`;
-    case 'muster': {
-      // The full row, answer included, is on `showOnMiss`; the last of
-      // it is what the row continues with. Derived from the same place
-      // the correction is drawn from, so the two cannot disagree.
-      const p = q.showOnMiss as Extract<Prompt, { kind: 'muster' }> | undefined;
-      if (!p) return q.choices[0];
-      return `form:${p.reihe[p.reihe.length - 1]}`;
     }
     default:
       return q.choices[0];
@@ -415,11 +320,8 @@ export const GAMES: Record<string, Game> = {
   'verliebte-zahlen': verliebteZahlen,
   'zahlenreihe': zahlenreihe,
   'rechenmeister': rechenmeister,
-  'zwillinge': zwillinge,
   'anlaute': anlaute,
   'silben': silben,
-  'formen': formen,
-  'muster': muster,
 };
 
 /** How many questions a round of this house has. About three minutes. */
@@ -431,10 +333,10 @@ export function rundenLaenge(_spiel: string | string[]): number {
 /**
  * Ten questions, from one generator or from several in rotation.
  *
- * A house may name more than one game. Das Haus der Formen does: find
- * the shape, continue the row, find the shape, continue the row. Ten of
- * either alone is a worksheet, and the two skills are close enough that
- * alternating them reads as one lesson rather than as two.
+ * A house may name more than one game. Das Haus der Rechenmeister does:
+ * Nachbarzahlen, then a sum, then Nachbarzahlen. Ten of either alone is
+ * a worksheet, and the two are close enough that alternating them reads
+ * as one lesson rather than as two.
  *
  * The rotation is by POSITION, not random, so the rhythm is the same
  * every time. A child who has worked out that the pattern one comes

@@ -178,16 +178,16 @@ import { tafel } from '../src/welt/kacheln.js';
 // AND at the scale a child sees them from the path. Rule 3: a sprite is
 // judged on the background it will actually be seen on.
 //
-// This sheet exists because the fourth plaque shipped as a gold blob.
+// This sheet exists because a plaque nearly shipped as a gold blob.
 // A plus and a minus were drawn on a board sixteen pixels wide, the
 // antialiasing filled the notches between the arms, and nobody would
 // have noticed until a screenshot of the whole world was cropped.
 const W = 18, H = 26;
-const NAMEN = ['Zahlen', 'Laute', 'Formen', 'Rechnen'];
+const NAMEN = ['Zahlen', 'Laute', 'Rechnen'];
 const SKALEN = [3, 6];
 
 const c = document.createElement('canvas');
-c.width = 40 + 4 * (W * 6 + 24);
+c.width = 40 + 3 * (W * 6 + 24);
 c.height = 60 + (H * 3 + H * 6) + 40;
 document.body.appendChild(c);
 const ctx = c.getContext('2d')!;
