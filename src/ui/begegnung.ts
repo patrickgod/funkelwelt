@@ -38,8 +38,18 @@ import { schatten as schattenPx, SW, SH } from '../spiel/schatten.js';
 import { el, tap, knopf, zentrumVon } from './dom.js';
 import * as luma from './luma.js';
 
-/** How many right answers fill the bar. Five is about ninety seconds. */
-const MUT_VOLL = 5;
+import * as laden from './laden.js';
+
+/**
+ * How many right answers fill the bar.
+ *
+ * Five, or four with the Mut-Band from the cart. Read fresh at the start
+ * of every encounter rather than captured once, so buying it changes the
+ * very next shadow.
+ */
+function mutVoll(): number {
+  return laden.mutVoll();
+}
 
 interface Lauf {
   id: string;
@@ -75,7 +85,7 @@ export function starten(ui: HTMLElement, id: string, zurueck: (weg: boolean) => 
     // Deliberately more questions than it can take, so the round never
     // runs out from under a child who is finding it hard. The encounter
     // ends when Mut is full, not when the questions do.
-    fragen: buildRound('verliebte-zahlen', MUT_VOLL * 4),
+    fragen: buildRound('verliebte-zahlen', mutVoll() * 4),
     i: 0,
     mut: 0,
     beschaeftigt: false,
@@ -115,7 +125,7 @@ function zeichnen(): void {
   // The shadow itself, shrinking as it is pushed back. It is never
   // marked, never reddened and never shown as hurt — it gets smaller
   // and its eyes dim, and then it is gone.
-  const wach = 1 - lauf.mut / MUT_VOLL;
+  const wach = 1 - lauf.mut / mutVoll();
   const buehne = el('div', 'buehne-q');
   const sBox = el('div', 'schatten');
   const sk = schattenSkala();
@@ -136,7 +146,7 @@ function zeichnen(): void {
   mut.appendChild(el('div', 'mut-name', t('runde.mut')));
   const balken = el('div', 'balken');
   const fuell = el('div', 'fuellung');
-  fuell.style.width = `${Math.round((lauf.mut / MUT_VOLL) * 100)}%`;
+  fuell.style.width = `${Math.round((lauf.mut / mutVoll()) * 100)}%`;
   balken.appendChild(fuell);
   mut.appendChild(balken);
   buehne.appendChild(mut);
@@ -187,7 +197,7 @@ function antwort(idx: number, btn: HTMLButtonElement, frage: HTMLElement, karten
     if (q.prompt.kind === 'tenframe' && q.prompt.n >= 0) {
       feld(frage, q.prompt.n, 10 - q.prompt.n);
     }
-    if (lauf.mut >= MUT_VOLL) { setTimeout(geschafft, 700); return; }
+    if (lauf.mut >= mutVoll()) { setTimeout(geschafft, 700); return; }
     setTimeout(weiter, 820);
     return;
   }

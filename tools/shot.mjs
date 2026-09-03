@@ -160,6 +160,31 @@ if (want('welt-einstellungen')) {
   await page.waitForTimeout(300);
 }
 
+// The cart, with coins for two of the four things on it.
+if (want('laden')) {
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.ort = { x: 12.5, y: 22.4 };
+    s.muenzen = 42;
+    s.ausruestung = ['hut'];
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await page.reload();
+  await page.waitForTimeout(800);
+  await starten();
+  await page.locator('.platz').first().tap();
+  await page.waitForTimeout(2400);
+  await lumaWeg();
+  await shot('laden-welt');
+  await page.keyboard.down('ArrowUp');
+  await page.waitForTimeout(400);
+  await page.keyboard.up('ArrowUp');
+  await page.waitForTimeout(1200);
+  await lumaWeg();
+  await shot('laden');
+}
+
 // The gate, shut and open, from the same spot — which is the whole
 // point of it: the world did not change, the child did.
 if (want('tor')) {

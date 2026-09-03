@@ -52,7 +52,7 @@ export const ZEILEN: readonly string[] = [
   '##...HHHHH"........"..=*ss~~~~~~~~~ss=........##',
   '##,..HHHHH..T.tT......=ss~~~~~~~~~~~s=.,...S..##',
   '##.....D..............=s~~~~~~~~~~~~~=..."....##',
-  '##.....=..^..*".."....=s~~~~~~~~~~~~~=.......F##',
+  '##.....=..^.K*".."....=s~~~~~~~~~~~~~=.......F##',
   '##.....================s~~~~~~~~~~~~~=...,....##',
   '##.,..."......=...,....ss~~~~~~~~~~~s=t.......##',
   '##..ffffffff..=.........ss~~~~~~~~~ss=..,.."",##',
@@ -79,7 +79,7 @@ export const GRAS = 0, BLUMEN = 1, HOCHGRAS = 2, WEG = 3,
   BRUECKE = 4, SAND = 5, WASSER = 6, FELS = 7;
 
 /** Everything a hero cannot walk through. */
-const FEST_ZEICHEN = '#~TtoHf^*G';
+const FEST_ZEICHEN = '#~TtoHf^*GK';
 /** Everything that reads as water for the purpose of drawing an edge. */
 const NASS = '~b';
 /** Everything that reads as path for the purpose of drawing an edge. */
@@ -164,6 +164,9 @@ export interface Tor {
 
 export const tore: Tor[] = [];
 
+/** The market cart. One, beside the path out of the house. */
+export let LADEN: { mitte: number; fuss: number } | null = null;
+
 /**
  * Gates that have been opened, so `festAn` can let the child through.
  *
@@ -244,6 +247,9 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
           break;
         case 'S':
           schatten.push({ id: `s${x},${y}`, x: x * KACHEL + 8, y: (y + 1) * KACHEL });
+          break;
+        case 'K':
+          LADEN = { mitte: x * KACHEL + 8, fuss: (y + 1) * KACHEL };
           break;
         case 'G':
           tore.push({

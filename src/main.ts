@@ -19,6 +19,7 @@ import { el, tap, knopf } from './ui/dom.js';
 import * as runde from './ui/runde.js';
 import * as luma from './ui/luma.js';
 import * as begegnung from './ui/begegnung.js';
+import * as laden from './ui/laden.js';
 
 const welt = document.getElementById('welt') as HTMLCanvasElement;
 const fxCanvas = document.getElementById('fx') as HTMLCanvasElement;
@@ -27,7 +28,7 @@ const ui = document.getElementById('ui') as HTMLDivElement;
 const ctx = welt.getContext('2d', { willReadFrequently: true })!;
 const fxCtx = fxCanvas.getContext('2d', { willReadFrequently: true })!;
 
-type Schirm = 'start' | 'titel' | 'editor' | 'welt' | 'haus' | 'schatten';
+type Schirm = 'start' | 'titel' | 'editor' | 'welt' | 'haus' | 'schatten' | 'laden';
 let schirm: Schirm = 'titel';
 let zeit = 0;
 let gestartet = 0;
@@ -388,6 +389,7 @@ function weltBauen(): void {
   // Both go through `einmal`, so neither becomes something a child
   // learns to walk through without listening.
   dieWelt.anTor = (offen) => luma.einmal(offen ? 'say.torAuf' : 'say.nochZu');
+  dieWelt.anKarren = () => zeigeLaden();
   muenzenGezeigt = -1;
   hudBauen();
   // The world arrives dark and opens. Long the first time, because that
@@ -429,6 +431,24 @@ function lernenZuLaufen(): void {
 function zeigeAufHaus(): void {
   if (stand.get().geschafft['verliebte-zahlen']) return;
   luma.einmal('say.erstesHaus');
+}
+
+/** The cart. Four things, no placing, and no way to spend badly. */
+function zeigeLaden(): void {
+  if (schirm !== 'welt' || !dieWelt) return;
+  luma.weg();
+  schirm = 'laden';
+  dieWelt.ortSichern();
+  leeren();
+  fx.clear();
+  laden.starten(ui, () => {
+    schirm = 'welt';
+    leeren();
+    fx.clear();
+    muenzenGezeigt = -1;
+    hudBauen();
+  });
+  luma.einmal('say.karren');
 }
 
 /**
@@ -531,6 +551,7 @@ function weltVerlassen(): void {
   luma.weg();
   runde.beenden();
   begegnung.beenden();
+  laden.beenden();
   if (dieWelt) dieWelt.ortSichern();
   if (dieSteuerung) dieSteuerung.loesen();
   dieWelt = null;

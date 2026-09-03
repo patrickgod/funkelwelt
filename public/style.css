@@ -655,6 +655,66 @@ button.gross {
 
 .pip.eben { animation: pip-fuellen 320ms ease-out; }
 
+/* --------------------------------------------------------- the cart */
+
+/* Four cards on one screen, no scrolling, no categories, no list.
+   The shop that failed the playtest had twenty-seven things in it. */
+.laden .titel { font-size: clamp(30px, 5vw, 52px); }
+
+.waren {
+  display: flex;
+  gap: clamp(10px, 2vw, 22px);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.ware {
+  width: clamp(140px, 19vw, 210px);
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 10px;
+  border-radius: 22px;
+  background: var(--tief);
+  color: var(--hell);
+}
+
+.ware canvas { image-rendering: pixelated; display: block; }
+.ware .wname { font-size: 17px; color: var(--creme); opacity: 0.85; }
+
+.ware .wpreis {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 24px;
+  color: var(--gold);
+}
+
+.ware .wdein { font-size: 18px; color: var(--gruen); }
+
+/* Owned: lit, not ticked. A tick is a thing to interpret. */
+.ware.hat {
+  background: #24402a;
+  border-color: var(--gruen);
+  opacity: 1;
+}
+
+/* Too dear: dimmed but still TAPPABLE, because a card a child taps and
+   nothing happens is a broken game as far as they are concerned. */
+.ware.zuteuer { opacity: 0.55; }
+.ware.zuteuer .wpreis { color: var(--stein); }
+
+@keyframes wackeln {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-6px); }
+  75%      { transform: translateX(6px); }
+}
+
+.ware.wackeln { animation: wackeln 260ms ease; }
+
 /* --------------------------------------------------- meeting a shadow */
 
 /* Dusk, not danger. The house is warm plaster because the lights are on

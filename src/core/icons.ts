@@ -12,7 +12,8 @@
 import { P, INK, shade } from './palette.js';
 import { Px } from './px.js';
 
-export type Icon = 'stern' | 'bonbon' | 'muenze' | 'zurueck' | 'zahnrad' | 'herz';
+export type Icon = 'stern' | 'bonbon' | 'muenze' | 'zurueck' | 'zahnrad' | 'herz'
+  | 'wLaterne' | 'wStiefel' | 'wMutband' | 'wHut';
 
 /** A five-pointed star, filled by scanline so the points stay sharp. */
 function stern(): Px {
@@ -179,8 +180,78 @@ function herz(): Px {
   return p;
 }
 
+// ------------------------------------------------------ what is for sale
+//
+// Drawn at 17 like every other icon and shown at 68, which is four
+// times. The child is choosing by PICTURE — none of them can read the
+// name underneath — so each one has to be recognisable as an object at a
+// glance and different in silhouette from the other three.
+
+function wLaterne(): Px {
+  const p = new Px(17, 17);
+  p.rect(6, 1, 5, 2, shade(P.slate, 2));
+  p.set(8, 0, shade(P.slate, 3));
+  p.rect(4, 3, 9, 10, shade(P.glow, 2));
+  p.rect(5, 4, 7, 8, shade(P.glow, 3));
+  p.rect(6, 5, 5, 6, shade(P.glow, 4));
+  p.rect(4, 3, 1, 10, shade(P.slate, 3));
+  p.rect(12, 3, 1, 10, shade(P.slate, 0));
+  p.rect(3, 13, 11, 2, shade(P.slate, 1));
+  p.outline(INK);
+  return p;
+}
+
+function wStiefel(): Px {
+  const p = new Px(17, 17);
+  // one boot, in profile — a pair at this size is two brown smudges
+  p.rect(5, 2, 5, 9, shade(P.timber, 2));
+  p.rect(5, 2, 2, 9, shade(P.timber, 3));
+  p.rect(3, 10, 10, 4, shade(P.timber, 1));
+  p.rect(3, 10, 10, 1, shade(P.timber, 3));
+  p.rect(2, 13, 12, 2, shade(P.timber, 0));
+  p.rect(5, 5, 5, 1, shade(P.glow, 3));
+  p.outline(INK);
+  return p;
+}
+
+function wMutband(): Px {
+  const p = new Px(17, 17);
+  // a ribbon with a heart on it — Mut is measured in hearts elsewhere
+  p.rect(1, 6, 15, 4, shade(P.candy, 2));
+  p.rect(1, 6, 15, 1, shade(P.candy, 3));
+  p.rect(1, 9, 15, 1, shade(P.candy, 1));
+  for (const x of [0, 14]) {
+    p.set(x + 1, 4, shade(P.candy, 1));
+    p.set(x + 1, 11, shade(P.candy, 1));
+  }
+  const M = ['.#.#.', '#####', '#####', '.###.', '..#..'];
+  for (let j = 0; j < M.length; j++) {
+    for (let i = 0; i < M[j].length; i++) {
+      if (M[j][i] !== '#') continue;
+      p.set(i + 6, j + 5, shade(P.fruit, i + j < 3 ? 4 : 2));
+    }
+  }
+  p.outline(INK);
+  return p;
+}
+
+function wHut(): Px {
+  const p = new Px(17, 17);
+  p.ellipse(8, 11, 8, 3, shade(P.leaf, 2));
+  p.ellipse(6, 10, 6, 2, shade(P.leaf, 3));
+  p.rect(4, 3, 9, 8, shade(P.leaf, 2));
+  p.rect(4, 3, 3, 8, shade(P.leaf, 3));
+  p.ellipse(8, 3, 5, 2, shade(P.leaf, 4));
+  p.rect(3, 8, 11, 2, shade(P.timber, 1));
+  // a feather, which is the whole silhouette cue
+  for (let i = 0; i < 6; i++) p.set(13 + Math.round(i * 0.4), 6 - i, shade(P.glow, 3));
+  p.outline(INK);
+  return p;
+}
+
 const ZEICHNER: Record<Icon, () => Px> = {
   stern, bonbon, muenze, zurueck, zahnrad, herz,
+  wLaterne, wStiefel, wMutband, wHut,
 };
 
 const cache = new Map<string, HTMLCanvasElement>();

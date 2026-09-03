@@ -521,6 +521,110 @@ await measureButtons('world');
     ort.x - 14.5 > 1.2, `moved ${(ort.x - 14.5).toFixed(2)} tiles towards the tap`);
 }
 
+// ---------------------------------------------------------------- shop
+//
+// The screen that failed the playtest which started this project, so
+// what is asserted here is mostly what it must NOT be: a catalogue, a
+// canvas, or a place a child can spend badly.
+
+{
+  await inDieWelt();
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.ort = { x: 12.5, y: 22.4 };
+    s.muenzen = 21;
+    s.ausruestung = [];
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await inDieWelt();
+  await laufe('ArrowUp', 400);
+  await page.waitForTimeout(900);
+  await lumaWeg();
+
+  check('walking into the cart opens it', await page.locator('.laden').count() === 1);
+  const karten = await page.locator('.ware').count();
+  check('four things, and only four', karten === 4, `${karten} on the cart`);
+  await measureButtons('cart');
+
+  // One screen. The shop that failed had twenty-seven things and a
+  // scroll bar, and a child who has to scroll to see the choices is
+  // being asked to hold a catalogue in their head.
+  const passt = await page.locator('.laden').evaluate(
+    (e) => e.scrollHeight <= e.clientHeight + 2);
+  check('and they all fit on one screen with no scrolling', passt);
+
+  // Derived, not hard-coded.
+  //
+  // The first version asserted "3 dimmed" from my own arithmetic on the
+  // prices, got 2, and was wrong — the check, not the shop. Reading the
+  // prices off the screen and counting the ones above the purse makes it
+  // a statement about the RELATIONSHIP, which is what was meant, and it
+  // survives every future price change.
+  const preise = await page.locator('.ware .wpreis').evaluateAll(
+    (els) => els.map((e) => Number((e.textContent || '').replace(/\D/g, '')) || 0));
+  const geld = (await slot()).muenzen;
+  const erwartet = preise.filter((p2) => p2 > geld).length;
+  const zuTeuer = await page.locator('.ware.zuteuer').count();
+  check('everything above the purse is dimmed, and nothing else is',
+    zuTeuer === erwartet && erwartet > 0,
+    `${zuTeuer} dimmed, ${erwartet} above ${geld} coins`);
+
+  // Tapping one you cannot afford must do something and take nothing.
+  await page.locator('.ware.zuteuer').first().tap();
+  await page.waitForTimeout(400);
+  const nachTipp = await slot();
+  check('tapping one you cannot afford takes nothing',
+    nachTipp.muenzen === 21 && nachTipp.ausruestung.length === 0,
+    `${nachTipp.muenzen} coins, ${nachTipp.ausruestung.length} owned`);
+
+  // Buying spends exactly the price.
+  await page.locator('.ware:not(.zuteuer):not(.hat)').first().tap();
+  await page.waitForTimeout(500);
+  const gekauft = await slot();
+  check('buying spends exactly the price and grants the thing',
+    gekauft.muenzen === 1 && gekauft.ausruestung.length === 1,
+    `${gekauft.muenzen} coins, ${JSON.stringify(gekauft.ausruestung)}`);
+
+  // And it cannot be bought twice — the card is owned and disabled.
+  const besitz = await page.locator('.ware.hat').count();
+  check('an owned thing shows as owned and cannot be bought again',
+    besitz === 1 && await page.locator('.ware.hat').first().isDisabled());
+
+  // Nothing here can ever leave a child worse off than they started.
+  check('and no amount of tapping goes below zero', gekauft.muenzen >= 0);
+
+  await page.locator('button', { hasText: 'Weiter' }).first().tap();
+  await page.waitForTimeout(600);
+  check('and it comes back out into the world',
+    await page.locator('.hud').count() === 1);
+}
+
+// What is bought has to be VISIBLE, or it is a number and this game does
+// not ask children to appreciate numbers. The boots are measured by
+// walking with them.
+{
+  async function weite(ausruestung) {
+    await inDieWelt();
+    await page.evaluate((a) => {
+      const k = 'funkelwelt.platz0.v1';
+      const s = JSON.parse(localStorage.getItem(k));
+      s.ort = { x: 14.5, y: 22.5 };
+      s.ausruestung = a;
+      localStorage.setItem(k, JSON.stringify(s));
+    }, ausruestung);
+    await inDieWelt();
+    await laufe('ArrowRight', 1200);
+    await page.locator('.hudKnopf').first().tap();
+    await page.waitForTimeout(400);
+    return (await slot()).ort.x - 14.5;
+  }
+  const ohne = await weite([]);
+  const mit = await weite(['stiefel']);
+  check('the boots are something you can feel',
+    mit > ohne * 1.15, `${ohne.toFixed(2)} tiles -> ${mit.toFixed(2)} tiles`);
+}
+
 // --------------------------------------------------------------- gates
 //
 // The moment the per-subject stars pay off, and the reason they are per

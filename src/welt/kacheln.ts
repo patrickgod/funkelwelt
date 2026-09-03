@@ -482,6 +482,42 @@ export function haus(): Px {
 }
 
 /**
+ * The market cart.
+ *
+ * KONZEPT.md is blunt about what this must not be: the playtest that
+ * started this whole project failed on a shop, and it failed because a
+ * child who had just answered ten questions was handed a catalogue of
+ * twenty-seven things and an empty meadow. So this is a CART — small,
+ * one of them, standing beside the path, with four things on it.
+ */
+export function karren(): Px {
+  const p = new Px(30, 30);
+  // wheels first, behind the body
+  for (const x of [4, 20]) {
+    p.ellipse(x + 3, 25, 4, 4, shade(P.timber, 1));
+    p.ellipse(x + 3, 25, 2, 2, shade(P.timber, 3));
+  }
+  // the box of the cart
+  p.rect(2, 15, 26, 9, shade(P.timber, 2));
+  p.rect(2, 15, 26, 2, shade(P.timber, 3));
+  p.rect(2, 22, 26, 2, shade(P.timber, 0));
+  for (let x = 4; x < 28; x += 5) p.rect(x, 17, 1, 5, shade(P.timber, 1));
+  // an awning, because a stall needs a roof to read as a stall
+  p.rect(1, 8, 28, 4, shade(P.terracotta, 3));
+  for (let x = 1; x < 29; x += 6) p.rect(x, 8, 3, 4, shade(P.plaster, 4));
+  p.rect(1, 11, 28, 1, shade(P.terracotta, 1));
+  p.rect(2, 9, 2, 14, shade(P.timber, 2));
+  p.rect(26, 9, 2, 14, shade(P.timber, 1));
+  // and the goods: three bright things, which is what says SHOP at
+  // thirty pixels far better than any sign would
+  p.ellipse(8, 14, 3, 2, shade(P.glow, 3));
+  p.ellipse(15, 13, 2, 2, shade(P.fruit, 3));
+  p.ellipse(21, 14, 3, 2, shade(P.chalk, 3));
+  finish(p);
+  return p;
+}
+
+/**
  * A gate.
  *
  * The moment the per-subject stars pay off, and the whole reason they

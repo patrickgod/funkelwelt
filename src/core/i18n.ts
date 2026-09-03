@@ -62,6 +62,15 @@ const DE = {
   'runde.mut': 'Mut',
   'runde.weg': 'Weg ist er!',
 
+  // ------------------------------------------------------------ the cart
+  'laden.titel': 'Der Karren',
+  'laden.fertig': 'Weiter',
+  'laden.dein': 'Gehört dir',
+  'laden.laterne': 'Bessere Laterne',
+  'laden.stiefel': 'Schnelle Stiefel',
+  'laden.mutband': 'Mut-Band',
+  'laden.hut': 'Hut mit Feder',
+
   // The steering is a QUESTION, not a preference: nobody knows which of
   // these a six-year-old gets on with, so both are built and the switch
   // is two taps away. See src/spiel/steuerung.ts.
@@ -125,6 +134,8 @@ const DE = {
   'say.nochZu': 'Da hinten ist es noch zu dunkel. Werde erst ein bisschen stärker.',
   'say.schatten': 'Ein Schatten! Keine Sorge — er tut dir nichts. Zeig ihm, was du kannst.',
   'say.schattenWeg': 'Weg ist er. Das hast du gut gemacht.',
+  'say.karren':
+    'Der Karren! Für die Münzen, die du findest, gibt es hier vier gute Sachen.',
   'say.torAuf':
     'Schau, das Tor ist offen! Du hast genug gelernt, um da hineinzukommen.',
   'say.hilfe': 'Das ist knifflig, oder? Schau, ich zeig es dir.',

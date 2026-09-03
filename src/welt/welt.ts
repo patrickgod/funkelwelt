@@ -50,6 +50,7 @@ import { schatten as schattenPx, schattenFleck, SW, SH } from '../spiel/schatten
 import * as k from './kacheln.js';
 import * as karte from './karte.js';
 import * as sprites from './sprites.js';
+import * as laden from '../ui/laden.js';
 
 /**
  * How far the lantern and a lamp post reach, in world pixels — an inner
@@ -165,6 +166,11 @@ export class Welt {
   private amTor: string | null = null;
   /** Said when the child pushes at a gate they cannot open yet. */
   anTor: ((offen: boolean) => void) | null = null;
+
+  /** The market cart. */
+  private karrenBild: HTMLCanvasElement | null = null;
+  private amKarren = false;
+  anKarren: (() => void) | null = null;
   private readonly weg = new Set<string>();
 
   /** Tap-to-walk. */
@@ -317,6 +323,7 @@ export class Welt {
     for (let f = 0; f < 2; f++) this.funkeBild.push(k.funke(f).toCanvas());
     for (let f = 0; f < 4; f++) this.kugelBild.push(kugel(f).toCanvas());
     for (let f = 0; f < 4; f++) this.schattenBilder.push(schattenPx(f, 7, 1).toCanvas());
+    this.karrenBild = k.karren().toCanvas();
     this.fleckBild = schattenFleck(1).toCanvas();
     this.schattenBild = heldSchatten().toCanvas();
   }
@@ -477,7 +484,8 @@ export class Welt {
         ? (v.x > 0 ? 'rechts' : 'links')
         : (v.y > 0 ? 'unten' : 'oben');
       const vorX = this.hx, vorY = this.hy;
-      this.bewege(v.x * TEMPO * dt, v.y * TEMPO * dt);
+      const schnell = TEMPO * laden.tempoFaktor();
+      this.bewege(v.x * schnell * dt, v.y * schnell * dt);
       this.schrittZeit += dt;
       // Dust off the feet, twice a second while walking.
       //
@@ -516,6 +524,7 @@ export class Welt {
     this.funkenPruefen();
     this.schattenPruefen();
     this.torPruefen();
+    this.karrenPruefen();
     this.tuerPruefen();
   }
 
@@ -590,7 +599,7 @@ export class Welt {
       if (Math.hypot(f.x - this.hx, f.y - (this.hy - 8)) > GREIF) continue;
       this.weg.add(f.id);
       stand.funkeGefunden(f.id);
-      stand.muenzen(3);
+      stand.muenzen(laden.funkeWert());
       const [sx, sy] = this.aufSchirm(f.x, f.y);
       fx.burst('funke', sx, sy, { n: 14, speed: 150, up: 0.5, life: 0.7 });
       fx.burst('stern', sx, sy, { n: 4, speed: 90, up: 0.8, life: 0.9 });
@@ -611,6 +620,19 @@ export class Welt {
         }
       }
     }
+  }
+
+  /** Standing at the cart. */
+  private karrenPruefen(): void {
+    const kk = karte.LADEN;
+    if (!kk) return;
+    const drin = Math.abs(kk.mitte - this.hx) < 15 && Math.abs(kk.fuss - this.hy) < 20;
+    if (drin === this.amKarren) return;
+    this.amKarren = drin;
+    if (!drin || !this.anKarren) return;
+    audio.sparkle(3);
+    const ruf = this.anKarren;
+    setTimeout(() => ruf(), 320);
   }
 
   /**
@@ -865,7 +887,9 @@ export class Welt {
     const flackern = Math.sin(this.zeit * 2.3) * 0.6 + Math.sin(this.zeit * 5.1) * 0.4;
     // Eased, so it opens quickly and settles rather than creeping.
     const auf = 1 - Math.pow(1 - this.oeffnung, 3);
-    const rh = (ring === 0 ? LICHT_HELD : LICHT_HELD_WEIT);
+    // A better lantern reaches further, and it is the most visible thing
+    // in the shop: the pool of light a child is standing in gets bigger.
+    const rh = (ring === 0 ? LICHT_HELD : LICHT_HELD_WEIT) * laden.lichtFaktor();
     const rz = Math.max(1, Math.round(rh * auf));
     // Nearest-neighbour on a hard 0/255 mask stays a hard 0/255 mask, so
     // scaling it costs nothing and softens nothing.
@@ -943,6 +967,12 @@ export class Welt {
     ctx: CanvasRenderingContext2D, hin: (x: number, y: number) => [number, number],
     S: number, hinten: boolean,
   ): void {
+    const kk = karte.LADEN;
+    if (kk && this.karrenBild && (kk.fuss <= this.hy) === hinten) {
+      const b = this.karrenBild;
+      const [sx, sy] = hin(kk.mitte - b.width / 2, kk.fuss - b.height + 3);
+      ctx.drawImage(b, sx, sy, b.width * S, b.height * S);
+    }
     for (const tor of karte.tore) {
       if ((tor.fuss <= this.hy) !== hinten) continue;
       const offen = karte.torIstOffen(tor.id);
