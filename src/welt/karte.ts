@@ -526,6 +526,80 @@ export function zielFuerTipp(zx: number, zy: number): { x: number; y: number } {
   return best ?? { x: zx, y: zy };
 }
 
+/** Something a tap can CHOOSE, and what happens when he gets there. */
+export interface Ziel {
+  art: 'tuer' | 'laden' | 'schatten';
+  /** The door, the cart, or the shadow's own id. */
+  id: string;
+  /** Where to walk to, in world pixels. */
+  x: number;
+  y: number;
+}
+
+/**
+ * What a tap at this point picks out, if anything.
+ *
+ * Patrick, after playing it: "wir sollten häuser, karren, gegner etc mit
+ * antippen aktiv auswählen. unser character läuft dann hin und die
+ * aktion tritt ein. einfach nur hinlaufen kann frustrierend sein, wenn
+ * es nicht funktioniert oder man unabsichtlich gegner oder karren
+ * auslöst."
+ *
+ * Everything used to trigger on TOUCH: cross a doorway and you were in
+ * a round, brush a shadow and you were in a fight. That is fine when
+ * you meant it and a trap when you did not — and the world gave a child
+ * no way to say "I am going past that, not into it".
+ *
+ * So a tap now CHOOSES, and only the chosen thing acts. This function
+ * is the whole of the choosing: it is deliberately generous, because a
+ * six-year-old aiming at a house on a tablet does not hit the doorway,
+ * they hit the roof.
+ */
+export function zielAn(zx: number, zy: number, weg: ReadonlySet<string>): Ziel | null {
+  const tx = Math.floor(zx / KACHEL), ty = Math.floor(zy / KACHEL);
+
+  // A shadow first: it is the smallest thing here and it stands in
+  // front of whatever is behind it, so a tap that could be either is a
+  // tap on the creature.
+  for (const sch of schatten) {
+    if (weg.has(sch.id)) continue;
+    if (Math.abs(sch.x - zx) < 14 && Math.abs(sch.y - 12 - zy) < 18) {
+      return { art: 'schatten', id: sch.id, x: sch.x, y: sch.y - 6 };
+    }
+  }
+
+  if (LADEN && Math.abs(LADEN.mitte - zx) < 20 && Math.abs(LADEN.fuss - 8 - zy) < 22) {
+    // Stand IN FRONT of the cart, not on it. The cart's own tile is
+    // solid — you cannot walk through a market stall — so routing to it
+    // came back with no route and the tap did nothing at all.
+    return { art: 'laden', id: 'laden', x: LADEN.mitte, y: LADEN.fuss + KACHEL / 2 };
+  }
+
+  // A house, whether the tap landed on the doorway or anywhere on the
+  // building. `tuerVon` maps any tile of a house to its door.
+  const haus = tuerVon(tx, ty);
+  const tuer = haus ?? (inTuer(zx, zy) ? { tx, ty } : null);
+  if (tuer && tuer.tx >= 0) {
+    const t = inTuer(tuer.tx * KACHEL + KACHEL / 2, tuer.ty * KACHEL + KACHEL / 2);
+    if (t) {
+      // The MIDDLE of the doorway, not its bottom edge.
+      //
+      // Aiming two pixels inside the tile put him two pixels outside it:
+      // the route follower counts a waypoint reached at 2.5 pixels, so
+      // he stopped short by more than the margin and stood one
+      // hundredth of a tile below the door, with nothing happening. A
+      // target has to be further inside the thing than the tolerance
+      // that decides you have arrived.
+      return {
+        art: 'tuer', id: t,
+        x: tuer.tx * KACHEL + KACHEL / 2,
+        y: tuer.ty * KACHEL + KACHEL / 2,
+      };
+    }
+  }
+  return null;
+}
+
 export function route(vx: number, vy: number, zx: number, zy: number): { x: number; y: number }[] | null {
   const zt = { x: Math.floor(zx / KACHEL), y: Math.floor(zy / KACHEL) };
   const vt = { x: Math.floor(vx / KACHEL), y: Math.floor(vy / KACHEL) };

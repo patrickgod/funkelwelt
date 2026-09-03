@@ -204,6 +204,14 @@ export class Welt {
   private zielFunke = -1;
   /** Time since the held finger last asked for a route. */
   private haltenAlter = 0;
+  /**
+   * What the child has CHOSEN by tapping it, and has not reached yet.
+   *
+   * Nothing in this world acts on being touched any more. A door, the
+   * cart and a shadow each act only if they are the thing that was
+   * picked, which means walking past them is walking past them.
+   */
+  private auswahl: karte.Ziel | null = null;
   /** Seconds since the last puff of dust off the adventurer's feet. */
   private seitStaub = 0;
 
@@ -483,14 +491,31 @@ export class Welt {
       this.haltenAlter = 0;
       const zx = this.camX + tipp.x / this.skala;
       const zy = this.camY + tipp.y / this.skala;
+
+      // A TAP chooses; a held finger only walks.
+      //
+      // That split is the whole of the fix. Holding is how a child
+      // crosses the meadow, and crossing the meadow must be able to go
+      // straight past a shadow without picking a fight with it.
+      if (!halten) {
+        const gewaehlt = karte.zielAn(zx, zy, this.wegSchatten);
+        this.auswahl = gewaehlt;
+        if (gewaehlt) audio.chimeSoft();
+      }
+
       // What the finger MEANT: a tap on a house is its door, and a tap
       // on a cliff is the foot of the cliff. Taken literally, both used
       // to route to a solid tile, come back null, and do nothing at all.
-      const z = karte.zielFuerTipp(zx, zy);
+      const z = this.auswahl && !halten
+        ? { x: this.auswahl.x, y: this.auswahl.y }
+        : karte.zielFuerTipp(zx, zy);
       const r = karte.route(this.hx, this.hy, z.x, z.y);
       if (r) { this.route = r; this.routeI = 0; this.festGefahren = 0; if (!halten) audio.click(); }
       else if (!halten) { this.route = null; audio.chimeSoft(); }
     }
+
+    // Steering by hand means going somewhere, not going to a THING.
+    if ((st.vektor().x || st.vektor().y) && this.auswahl) this.auswahl = null;
 
     let v = st.vektor();
     if (v.x || v.y) this.route = null;          // a thumb always wins
@@ -657,9 +682,11 @@ export class Welt {
     const kk = karte.LADEN;
     if (!kk) return;
     const drin = Math.abs(kk.mitte - this.hx) < 15 && Math.abs(kk.fuss - this.hy) < 20;
-    if (drin === this.amKarren) return;
-    this.amKarren = drin;
-    if (!drin || !this.anKarren) return;
+    if (!drin) { this.amKarren = false; return; }
+    if (this.amKarren || !this.anKarren) return;
+    if (this.auswahl?.art !== 'laden') return;
+    this.amKarren = true;
+    this.auswahl = null;
     audio.sparkle(3);
     const ruf = this.anKarren;
     setTimeout(() => ruf(), 320);
@@ -714,9 +741,15 @@ export class Welt {
         break;
       }
     }
-    if (drin === this.amSchatten) return;
+    // The latch is only consumed once the encounter is ACTUALLY going
+    // to happen. See `tuerPruefen` for why that ordering matters.
+    if (!drin) { this.amSchatten = null; return; }
+    if (drin === this.amSchatten || !this.anSchatten) return;
+    // Only the shadow that was chosen. Brushing past one on the way
+    // somewhere else is walking past it.
+    if (this.auswahl?.art !== 'schatten' || this.auswahl.id !== drin) return;
     this.amSchatten = drin;
-    if (!drin || !this.anSchatten) return;
+    this.auswahl = null;
     const sch = karte.schatten.find((x) => x.id === drin)!;
     const [sx, sy] = this.aufSchirm(sch.x, sch.y - 10);
     fx.burst('staub', sx, sy, { n: 10, speed: 90, up: 0.4, gravity: 160, life: 0.6 });
@@ -745,9 +778,19 @@ export class Welt {
    */
   private tuerPruefen(): void {
     const drin = karte.inTuer(this.hx, this.hy);
+    // THE ORDER HERE IS THE WHOLE THING.
+    //
+    // The latch that stops this firing twice must NOT be consumed by a
+    // visit that is refused for want of a selection. The first version
+    // set it first, so a child standing at the cart before tapping it
+    // could never open it again: the latch said "already here" for ever
+    // and the tap had nothing left to trigger. Refuse first, latch only
+    // when it is really going to happen.
+    if (!drin) { this.inTuer = null; return; }
     if (drin === this.inTuer) return;
+    if (this.auswahl?.art !== 'tuer' || this.auswahl.id !== drin) return;
     this.inTuer = drin;
-    if (!drin) return;
+    this.auswahl = null;
     const [sx, sy] = this.aufSchirm(this.hx, this.hy - 10);
     fx.burst('funke', sx, sy, { n: 16, speed: 130, up: 0.9, life: 0.8 });
     fx.burst('staub', sx, sy + 8, { n: 8, speed: 70, up: 0.1, gravity: 200, life: 0.5 });
@@ -848,6 +891,33 @@ export class Welt {
       const b = this.funkeBild[ff];
       const [sx, sy] = hin(f.x - 5, f.y - 5 + bob);
       ctx.drawImage(b, sx, sy, b.width * S, b.height * S);
+    }
+
+    // 4a. what the CHILD has chosen, if anything.
+    //
+    // A different mark from the one the game uses to ask for something,
+    // deliberately: that one is a filled pool of light and shouts, this
+    // one is a thin ring that waits. They mean opposite things — "go
+    // here, I am telling you" against "here is where you said" — and a
+    // child who cannot read has only the shape to tell them apart.
+    if (this.auswahl) {
+      const [ax, ay] = hin(this.auswahl.x, this.auswahl.y);
+      const puls = 1 + Math.sin(this.zeit * 4.4) * 0.09;
+      ctx.save();
+      ctx.globalAlpha = 0.9;
+      ctx.strokeStyle = '#fff6cf';
+      ctx.lineWidth = Math.max(2, Math.round(S * 0.8));
+      ctx.beginPath();
+      ctx.ellipse(ax, ay, 11 * S * puls, 6 * S * puls, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      // Two ticks of light at the sides, so it reads as a selection and
+      // not as a puddle.
+      ctx.globalAlpha = 0.75;
+      ctx.fillStyle = '#ffe08a';
+      for (const sx2 of [-1, 1]) {
+        ctx.fillRect(ax + sx2 * 13 * S * puls - S, ay - S, 2 * S, 2 * S);
+      }
+      ctx.restore();
     }
 
     // 4b. the ring, if the game is asking for something

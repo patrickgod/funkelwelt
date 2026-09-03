@@ -270,6 +270,24 @@ async function inDieWelt() {
 }
 
 /** Walk with the keyboard, then leave — leaving is what saves the spot. */
+/**
+ * Tap a thing in the world to CHOOSE it, then wait while he walks there.
+ *
+ * Nothing acts on being touched any more — a door, the cart and a
+ * shadow each act only if they were tapped first. So every check that
+ * used to walk into something now has to pick it, the same way a child
+ * does. That the old checks all failed the moment selection landed is
+ * the evidence the feature works.
+ */
+async function waehle(tx, ty, ms = 3000) {
+  const p = await page.evaluate(
+    ([x, y]) => window.weltOrt?.(x, y) ?? null, [tx * 16 + 8, ty * 16 + 8]);
+  if (!p) return false;
+  await page.mouse.click(p[0], p[1]);
+  await page.waitForTimeout(ms);
+  return true;
+}
+
 async function laufe(taste, ms) {
   await page.keyboard.down(taste);
   await page.waitForTimeout(ms);
@@ -430,9 +448,9 @@ await measureButtons('world');
   await inDieWelt();
   await stellAuf(7.5, 22.4);
   await inDieWelt();
-  await laufe('ArrowUp', 900);
-  await page.waitForTimeout(900);
-  check('walking into the door opens the house',
+  await lumaWeg();
+  await waehle(7, 20);
+  check('tapping the door and walking there opens the house',
     await page.locator('.runde').count() === 1);
   check('and it asks ten things', await page.locator('.pip').count() === 10);
   await measureButtons('house');
@@ -572,8 +590,8 @@ await measureButtons('world');
     localStorage.setItem(k, JSON.stringify(s));
   });
   await inDieWelt();
-  await laufe('ArrowUp', 700);
-  await page.waitForTimeout(1400);
+  await lumaWeg();
+  await waehle(17, 17);
   await lumaWeg();
 
   check('the middle door opens Das Haus der Nachbarzahlen',
@@ -695,11 +713,12 @@ await measureButtons('world');
     localStorage.setItem(k, JSON.stringify(s));
   });
   await inDieWelt();
-  await laufe('ArrowUp', 400);
-  await page.waitForTimeout(900);
+  await lumaWeg();
+  await waehle(12, 21);
   await lumaWeg();
 
-  check('walking into the cart opens it', await page.locator('.laden').count() === 1);
+  check('tapping the cart and walking there opens it',
+    await page.locator('.laden').count() === 1);
   const karten = await page.locator('.ware').count();
   check('four things, and only four', karten === 4, `${karten} on the cart`);
   await measureButtons('cart');
@@ -863,8 +882,8 @@ async function beiTor(sterne, wort = 0) {
   await inDieWelt();
   await stellAuf(40.5, 19.4);
   await inDieWelt();
-  await laufe('ArrowUp', 900);
-  await page.waitForTimeout(900);
+  await lumaWeg();
+  await waehle(40, 18);
   check('the east door opens Das Haus von links und rechts',
     await page.locator('.runde').count() === 1);
 
@@ -927,6 +946,64 @@ async function beiTor(sterne, wort = 0) {
     sv.sterne.mathe > 0, `${sv.sterne.mathe} stars`);
   await page.locator('button', { hasText: 'Zurück in die Welt' }).first().tap();
   await page.waitForTimeout(600);
+}
+
+// ------------------------------------ walking past is walking past
+//
+// The other half of tap-to-choose, and the half that is the point of
+// it. Patrick: "einfach nur hinlaufen kann frustrierend sein, wenn es
+// nicht funktioniert oder man unabsichtlich gegner oder karren
+// auslöst."
+//
+// Every check above proves a chosen thing acts. These prove an UNCHOSEN
+// thing does not — which is the behaviour that was actually asked for,
+// and the one that a future refactor is most likely to undo, because
+// "trigger when you touch it" is the obvious way to write it.
+
+{
+  // Straight over the doorway with the arrow keys, choosing nothing.
+  await inDieWelt();
+  await stellAuf(7.5, 22.4);
+  await inDieWelt();
+  await lumaWeg();
+  await laufe('ArrowUp', 1400);
+  await page.waitForTimeout(1200);
+  check('walking over a doorway without choosing it opens nothing',
+    await page.locator('.runde').count() === 0);
+
+  // And past a shadow.
+  await inDieWelt();
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.schatten = [];
+    s.ort = { x: 18.5, y: 9.6 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await inDieWelt();
+  await lumaWeg();
+  await laufe('ArrowDown', 1600);
+  await page.waitForTimeout(1200);
+  check('walking right through a shadow without choosing it starts nothing',
+    await page.locator('.begegnung').count() === 0);
+
+  // A held finger crosses the meadow the same way — it walks, it does
+  // not pick. This is how a child gets ANYWHERE without being grabbed
+  // by whatever is in the way.
+  await inDieWelt();
+  await stellAuf(7.5, 22.4);
+  await inDieWelt();
+  await lumaWeg();
+  const oben = await page.evaluate(() => window.weltOrt?.(7 * 16 + 8, 17 * 16 + 8) ?? null);
+  if (oben) {
+    await page.mouse.move(oben[0], oben[1]);
+    await page.mouse.down();
+    await page.waitForTimeout(2400);
+    await page.mouse.up();
+    await page.waitForTimeout(900);
+    check('and holding a finger towards a house walks, it does not enter',
+      await page.locator('.runde').count() === 0);
+  }
 }
 
 // ------------------------------------------------------------ the map
@@ -1165,8 +1242,8 @@ async function beiTor(sterne, wort = 0) {
   await inDieWelt();
   await stellAuf(7.5, 13.4);
   await inDieWelt();
-  await laufe('ArrowUp', 900);
-  await page.waitForTimeout(900);
+  await lumaWeg();
+  await waehle(7, 12);
   check('the north door opens Das Haus der Addition',
     await page.locator('.runde').count() === 1);
 
@@ -1319,11 +1396,12 @@ async function beiTor(sterne, wort = 0) {
     localStorage.setItem(k, JSON.stringify(s));
   });
   await inDieWelt();
-  await laufe('ArrowDown', 700);
-  await page.waitForTimeout(1200);
+  await lumaWeg();
+  await waehle(18, 11, 3400);
   await lumaWeg();
 
-  check('walking into a shadow meets it', await page.locator('.begegnung').count() === 1);
+  check('tapping a shadow and walking to it meets it',
+    await page.locator('.begegnung').count() === 1);
 
   // A shadow asks whatever the meadow teaches, not always the same
   // thing.
@@ -1355,11 +1433,19 @@ async function beiTor(sterne, wort = 0) {
   await page.locator('.begegnung .weg, .begegnung button').last().tap().catch(() => {});
   await page.waitForTimeout(500);
   await inDieWelt();
-  await stellAuf(18.5, 9.6);
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    // Put the shadow BACK. The block above answers eight questions at
+    // it, which is enough to fill Mut and chase it away — so without
+    // this the next check taps an empty patch of grass.
+    s.schatten = [];
+    s.ort = { x: 18.5, y: 9.6 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
   await inDieWelt();
   await lumaWeg();
-  await laufe('ArrowDown', 900);
-  await page.waitForTimeout(900);
+  await waehle(18, 11, 3400);
   await measureButtons('shadow');
   check('there is a Mut bar, and it starts empty',
     await page.locator('.mut .fuellung').count() === 1
@@ -1479,8 +1565,8 @@ async function beiTor(sterne, wort = 0) {
     localStorage.setItem(k, JSON.stringify(s));
   });
   await inDieWelt();
-  await laufe('ArrowDown', 700);
-  await page.waitForTimeout(1200);
+  await lumaWeg();
+  await waehle(18, 11, 3400);
   await lumaWeg();
   await page.locator('.begegnung button', { hasText: 'Zurück' }).first().tap();
   await page.waitForTimeout(700);
