@@ -74,7 +74,9 @@ node tools/iconsheet.mjs      # the home-screen icon at the sizes iOS draws
 node tools/devlog.mjs         # reassemble DEVLOG.md from devlog/*/article.md
 node tools/messen.mjs         # what it costs to open the world and to walk
 node tools/genvoice.mjs       # Luma's lines, from i18n.ts, at build time
-node tools/genluma.mjs --varianten   # four portraits of her to choose from
+node tools/genkunst.mjs --was luma --varianten   # four portraits to pick from
+node tools/genkunst.mjs --was titel --varianten  # four opening pictures
+node tools/pixbatch.mjs       # generate + pixelise the whole sprite set
 node tools/contact.mjs luma   # the coded fallback, at the sizes it is seen
 ```
 
@@ -151,9 +153,37 @@ costs 0.81 ms of script per frame — on a desktop under software
 rendering, so read it as a bound on the work rather than as a frame rate
 on an iPad. `node tools/messen.mjs` takes it again.
 
+## The art, and where the line is
+
+There are three kinds of picture in this game and the difference is a
+SIZE, not a principle. AGENTS.md has the full argument; the short version:
+
+* **Generated, then forced onto the palette.** Anything over about 24
+  pixels: the house, the trees, the lamp post, the signpost, the rock.
+  `node tools/pixbatch.mjs`. The pixeliser snaps every pixel to the
+  closed palette, so `welt.ts` cannot tell these from the drawn ones —
+  both are `Px` buffers and both get stepped down a ramp for the lantern.
+* **Drawn in code.** Anything under it: the adventurer, every 16×16
+  ground tile, Luma's companion bubble, the lightsparks, the ten-frame,
+  the icons, the effects. A 16px bush came back from generation as a
+  pink smear, which is where the line was measured.
+* **Painted.** Luma's portrait and the opening picture. Not on the
+  palette at all, because they are not in the world — they are in front
+  of it.
+
+Both generators need keys. ElevenLabs (voice) is at
+`c:/development/fallennights2d/.env`; Gemini (pictures) at
+`C:\Development\shortsmith\.env`. **The Gemini key ran out of
+prepayment credit** — top up at <https://ai.studio/projects>.
+
 ## What to do next
 
-**Play it.** PLAN.md item 1, and it is now the whole loop rather than
+**The adventurer.** PLAN.md item 1: he is now the crudest thing on
+screen, and the question — does a generated character survive being
+downsampled to 26 pixels, or does he need to get bigger — is a
+measurement waiting on Gemini credit.
+
+**Play it.** PLAN.md item 2, and it is now the whole loop rather than
 half of it: walk, find the door, answer ten things, come out stronger,
 watch the bar move. The question the world was built early to answer —
 *is walking around worth doing* — is still open, and it finally has

@@ -69,9 +69,54 @@ it.** A risk you have not built is a risk you are still carrying.
   walking on the spot on the title screen. All of it a RESPONSE to
   something the child did; none of it fires on a mistake.
 
+* **Generated sprites, forced onto the palette.** `tools/pixelise.mjs`
+  and `tools/pixbatch.mjs`, lifted from Tidegarden: the model draws it,
+  the pixeliser finds the grid it implied, averages down and snaps every
+  pixel to the closed palette, with `--ramps` naming which drawers it
+  may land in. House, three trees, lamp post, signpost, rock.
+
+  The line is a SIZE and it is measured: 100px house ✓, 34px tree ✓,
+  24px signpost ✓, **16px bush = pink smear**. Below about 24 pixels the
+  drawn version still wins, which is where Tidegarden landed from the
+  other side.
+
+* **A door to come in through.** One painted picture, the title, and one
+  button. Then the slots, with a line saying what they are for.
+
+* **Onboarding.** The world wakes up — the lantern opens out of the dark.
+  Luma flies at the child's shoulder from the first second. Tap-to-walk
+  is the default (rule 13), and the game teaches it by putting a glowing
+  ring on the path and asking, once, in whichever control the slot is
+  set to.
+
 ## Next, in order
 
-### 1. Play it, before building anything on it
+### 1. The adventurer is now the crudest thing on screen
+
+He is 18×26 and drawn, and everything around him has just got much
+better — which is exactly what happened to Tidegarden's terrace walls
+when the ground was finished.
+
+Two ways, and the answer is a measurement rather than an opinion:
+
+* **A generated sprite sheet at his current size.** Patrick is right
+  that Zelda and the early Final Fantasies did characters as sheets —
+  but those were hand-pixelled, and the open question here is whether a
+  DOWNSAMPLED generation survives at 26 pixels. The 24px signpost did;
+  the 16px bush did not.
+* **Make him bigger** — 34 or 44 — where generation certainly survives.
+  That is a real art-direction decision: it moves the look from Link's
+  Awakening towards Secret of Mana.
+
+Generate one pose, pixelise it at 26 / 34 / 44, put them side by side
+and pick. Then build the sheet cutter — raw sheet, slice the grid, run
+each cell through the pixeliser at a fixed cell size so the frames do
+not jitter, reassemble.
+
+**Blocked:** the Gemini key ran out of prepayment credit mid-session.
+<https://ai.studio/projects>
+
+### 2. Play it, before building anything on it
 
 The whole reason the world came first was to find out whether walking
 around is worth doing. That question is still open — it just has
@@ -100,7 +145,12 @@ something to answer it with now.
 ten things, come out stronger, watch the bar move — with no combat and
 no fairy, and that is enough to be worth a real playtest.
 
-### 2. Shadows
+### 3. Shadows
+
+The sprite is drawn already — `src/spiel/schatten.ts`, soft dark shape,
+two worried eyes, no teeth — and nothing calls it yet. It shrinks rather
+than being wounded as it is pushed back, because it is chased away and
+never killed.
 
 * Visible on the map and **walked into on purpose**, not sprung from
   the grass. KONZEPT.md's worry about the interruption tax is real.
@@ -108,13 +158,13 @@ no fairy, and that is enough to be worth a real playtest.
 * **Mut** fills; full Mut ends it at once.
 * Coins on the way out.
 
-### 3. Gates, and a second region
+### 4. Gates, and a second region
 
 * A gate that wants `Mathe` level 3. The world visibly gets bigger.
 * This is the moment the per-subject experience pays off, and the first
   time a child sees that being good at something opened something.
 
-### 4. The shop
+### 5. The shop
 
 * Three or four things at a time. Cloak, boots, lantern, Mut capacity.
 * Everything available to every character.
