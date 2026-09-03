@@ -13,7 +13,7 @@ import { P, INK, shade } from './palette.js';
 import { Px } from './px.js';
 
 export type Icon = 'stern' | 'bonbon' | 'muenze' | 'zurueck' | 'zahnrad' | 'herz'
-  | 'wLaterne' | 'wStiefel' | 'wMutband' | 'wHut';
+  | 'wLaterne' | 'wStiefel' | 'wMutband' | 'wHut' | 'ohr';
 
 /** A five-pointed star, filled by scanline so the points stay sharp. */
 function stern(): Px {
@@ -249,9 +249,46 @@ function wHut(): Px {
   return p;
 }
 
+/**
+ * Hear it again.
+ *
+ * A speaker or a "play" triangle both mean "media control" to an adult
+ * and nothing at all to a six-year-old. An EAR means listen.
+ */
+function ohr(): Px {
+  const p = new Px(17, 17);
+  // Bold and simple. At seventeen pixels an ear has room for exactly one
+  // curve and one hole, and the first two attempts both spent that room
+  // on anatomy nobody can see: a tragus and a lobe came out as a smudge.
+  // What reads is the C of the outer ear and the dark of the canal.
+  const tief = INK;
+  for (let y = 1; y <= 15; y++) {
+    for (let x = 4; x <= 15; x++) {
+      const dx = (x - 9.5) / 5.5, dy = (y - 8) / 7;
+      const d = dx * dx + dy * dy;
+      if (d <= 1) p.set(x, y, tief);
+    }
+  }
+  // the hollow, open towards the sound
+  for (let y = 4; y <= 12; y++) {
+    for (let x = 7; x <= 14; x++) {
+      const dx = (x - 11) / 3.2, dy = (y - 8) / 4.2;
+      if (dx * dx + dy * dy <= 1) p.set(x, y, shade(P.glow, 4));
+    }
+  }
+  p.rect(7, 6, 3, 5, tief);
+  // two waves arriving
+  for (const [r, h] of [[1, 2], [3, 4]] as [number, number][]) {
+    for (let i = -h; i <= h; i++) {
+      p.set(r + Math.round(Math.abs(i) * 0.35), 8 + i, tief);
+    }
+  }
+  return p;
+}
+
 const ZEICHNER: Record<Icon, () => Px> = {
   stern, bonbon, muenze, zurueck, zahnrad, herz,
-  wLaterne, wStiefel, wMutband, wHut,
+  wLaterne, wStiefel, wMutband, wHut, ohr,
 };
 
 const cache = new Map<string, HTMLCanvasElement>();

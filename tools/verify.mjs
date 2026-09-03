@@ -521,6 +521,96 @@ await measureButtons('world');
     ort.x - 14.5 > 1.2, `moved ${(ort.x - 14.5).toFixed(2)} tiles towards the tap`);
 }
 
+// ------------------------------------------------- the language house
+//
+// Until this door existed nothing in the game could award a Wort-Stern,
+// so "Wörter 1" sat on the title screen for ever and half the design —
+// the whole reason the stars are per SUBJECT — was a promise.
+
+{
+  await inDieWelt();
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.ort = { x: 17.5, y: 18.4 };
+    s.sterne = { mathe: 0, wort: 0 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await inDieWelt();
+  await laufe('ArrowUp', 700);
+  await page.waitForTimeout(1400);
+  await lumaWeg();
+
+  check('the second door opens the language house',
+    await page.locator('.runde').count() === 1
+    && await page.locator('.karten button').count() === 4);
+  await measureButtons('language house');
+
+  // The question is a PICTURE and a sound, never a written word. A
+  // child who could read the word would not need to be asked what it
+  // starts with.
+  check('it asks with a picture, not with the written word',
+    await page.locator('.wortbild canvas').count() === 1
+    && await page.locator('.wortzeile').count() === 0);
+  check('and there is a way to hear it again',
+    await page.locator('.hoeren').count() === 1);
+
+  // Answer it out, and see which star it pays.
+  for (let i = 0; i < 14; i++) {
+    if (await page.locator('.blatt').count()) break;
+    const n = await page.locator('.karten button').count();
+    if (!n) break;
+    await page.locator('.karten button').first().tap();
+    await page.waitForTimeout(2400);
+  }
+  await page.waitForTimeout(1600);
+  const s5 = await slot();
+  check('a round here pays Wort-Sterne', s5.sterne.wort > 0, `${s5.sterne.wort} Wort`);
+  check('and never Mathe-Sterne, which it did not teach',
+    s5.sterne.mathe === 0, `${s5.sterne.mathe} Mathe`);
+}
+
+// The hat has to be ON HIS HEAD.
+//
+// The cart shipped saying it was, and it was drawn on nothing at all —
+// so this compares the actual pixels above the adventurer with the hat
+// and without it. "Every effect is visible" is the shop's whole promise
+// and it is the one that was quietly false.
+{
+  async function kopf(ausruestung) {
+    await inDieWelt();
+    await page.evaluate((a) => {
+      const k = 'funkelwelt.platz0.v1';
+      const s = JSON.parse(localStorage.getItem(k));
+      s.ort = { x: 14.5, y: 22.5 };
+      s.ausruestung = a;
+      localStorage.setItem(k, JSON.stringify(s));
+    }, ausruestung);
+    await inDieWelt();
+    await page.waitForTimeout(600);
+    return page.evaluate(() => {
+      const c = document.getElementById('welt');
+      const x = c.getContext('2d', { willReadFrequently: true });
+      // A band across the top of his HEAD, in device pixels.
+      //
+      // The first version sampled from the centre downwards, which is
+      // his body — so it compared two identical torsos and reported that
+      // a hat which was in fact drawn was not there. The adventurer's
+      // feet sit a little below the middle and he is about two hundred
+      // device pixels tall, so the head is well above centre.
+      const d = x.getImageData(Math.round(c.width / 2) - 100, Math.round(c.height / 2) - 230,
+        200, 190).data;
+      let sum = 0;
+      for (let i = 0; i < d.length; i += 4) sum += d[i] + d[i + 1] * 3 + d[i + 2] * 7;
+      return sum;
+    });
+  }
+  const ohne = await kopf([]);
+  const mit = await kopf(['hut']);
+  check('the hat is actually on his head',
+    ohne !== mit, ohne === mit ? 'the pixels above him are identical' : 'the picture changed');
+}
+
 // ---------------------------------------------------------------- shop
 //
 // The screen that failed the playtest which started this project, so
@@ -706,13 +796,15 @@ async function beiTor(sterne) {
   await page.evaluate(() => {
     const k = 'funkelwelt.platz0.v1';
     const s = JSON.parse(localStorage.getItem(k));
-    s.ort = { x: 18.5, y: 12.6 };
+    // From the NORTH. The language house was built directly below this
+    // shadow, so the old approach seeded him inside a wall.
+    s.ort = { x: 18.5, y: 10.4 };
     s.schatten = [];
     s.muenzen = 20;
     localStorage.setItem(k, JSON.stringify(s));
   });
   await inDieWelt();
-  await laufe('ArrowUp', 700);
+  await laufe('ArrowDown', 700);
   await page.waitForTimeout(1200);
   await lumaWeg();
 
@@ -793,13 +885,15 @@ async function beiTor(sterne) {
   await page.evaluate(() => {
     const k = 'funkelwelt.platz0.v1';
     const s = JSON.parse(localStorage.getItem(k));
-    s.ort = { x: 18.5, y: 12.6 };
+    // From the NORTH. The language house was built directly below this
+    // shadow, so the old approach seeded him inside a wall.
+    s.ort = { x: 18.5, y: 10.4 };
     s.schatten = [];
     s.muenzen = 20;
     localStorage.setItem(k, JSON.stringify(s));
   });
   await inDieWelt();
-  await laufe('ArrowUp', 700);
+  await laufe('ArrowDown', 700);
   await page.waitForTimeout(1200);
   await lumaWeg();
   await page.locator('.begegnung button', { hasText: 'Zurück' }).first().tap();

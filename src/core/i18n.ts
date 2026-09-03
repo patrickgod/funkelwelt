@@ -51,6 +51,7 @@ const DE = {
 
   // ------------------------------------------------------- the houses
   'haus.verliebteZahlen': 'Das Haus der verliebten Zahlen',
+  'haus.ersteLaute': 'Das Haus der ersten Laute',
 
   // -------------------------------------------------------- a round
   'runde.raus': 'Zurück',

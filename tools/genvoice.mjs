@@ -171,6 +171,25 @@ function shrink(path) {
   }
 }
 
+/**
+ * The words, for the language houses.
+ *
+ * A single word read in isolation comes out clipped, because the model
+ * reads it as a list item. A full stop after it gives it a sentence to
+ * land, and the beat of quiet that leaves is exactly what a listening
+ * exercise wants anyway.
+ */
+function woerter() {
+  const src = readFileSync('src/games/woerter.ts', 'utf8');
+  const out = {};
+  for (const m of src.matchAll(/\{\s*wort:\s*'([^']+)'/g)) {
+    const stem = 'wort-' + m[1].toLowerCase()
+      .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
+    out[stem] = `${m[1]}.`;
+  }
+  return out;
+}
+
 // ------------------------------------------------------------------ go
 
 if (SAMPLES) {
@@ -195,9 +214,9 @@ if (SAMPLES) {
 
 mkdirSync('assets/voice', { recursive: true });
 
-const alle = spokenLines();
+const alle = { ...spokenLines(), ...woerter() };
 const stems = Object.keys(alle).sort();
-console.log(`  ${stems.length} lines from src/core/i18n.ts`);
+console.log(`  ${stems.length} lines from src/core/i18n.ts and src/games/woerter.ts`);
 
 let gemacht = 0, uebersprungen = 0, kaputt = 0;
 for (const stem of stems) {

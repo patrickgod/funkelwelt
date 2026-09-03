@@ -25,7 +25,16 @@
 //
 // WHAT IS HERE AND WHAT IS NOT
 //
-// The four NUMBER houses, and nothing else. LernInseln also has the
+// The four number houses and the first two LANGUAGE ones — Anlaute and
+// Silben, which came across when their door did. They brought the word
+// list and the word pictures with them, and both of those are code, so
+// they copied verbatim like everything else.
+//
+// Still over in LernInseln: the first words, the rhymes, the shapes, the
+// patterns and the two writing houses. Same rule as before — they cross
+// when their doors do.
+//
+// The four NUMBER houses, and the two language ones. LernInseln also has the
 // letters, the syllables, the first words, the rhymes, the shapes, the
 // patterns and the two writing houses, and every one of them implements
 // the same `Game` interface and will drop in unchanged — but each also
@@ -41,6 +50,13 @@
 
 import type { Game, Question, Prompt } from './types.js';
 import { staerkeVon } from '../core/spielstand.js';
+import { WOERTER } from './woerter.js';
+import { hasBild } from './wortbilder.js';
+
+/** One at random. The language games pick their distractors this way. */
+function pickOne<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
 
 function shuffle<T>(arr: T[]): T[] {
   const a = arr.slice();
@@ -195,6 +211,66 @@ export const zwillinge: Game = {
   },
 };
 
+// --------------------------------------------- Haus der ersten Laute
+
+export const anlaute: Game = {
+  id: 'anlaute',
+  // Only words that have a picture. The question is "which letter does
+  // this word START with", and without a picture the only way to know
+  // WHICH word is to hear it — which makes the whole house stop working
+  // the moment a parent turns the sound off in a waiting room. A house
+  // that breaks when you use a switch the app itself offers is broken.
+  facts: () => WOERTER.filter((w) => hasBild(w.wort)).map((w) => `an:${w.wort}`),
+  next(pick) {
+    const fact = pick(this.facts());
+    const w = WOERTER.find((x) => `an:${x.wort}` === fact) ?? WOERTER[0];
+    const letter = w.wort[0].toUpperCase();
+    // Distractors are letters that actually confuse a beginner — the
+    // ones that sound close, then any others.
+    const confusable: Record<string, string[]> = {
+      B: ['P', 'D'], P: ['B', 'T'], D: ['T', 'B'], T: ['D', 'P'],
+      G: ['K', 'C'], K: ['G', 'C'], F: ['V', 'W'], V: ['F', 'W'],
+      W: ['V', 'M'], M: ['N', 'W'], N: ['M', 'H'], S: ['Z', 'F'],
+      Z: ['S', 'T'], L: ['R', 'N'], R: ['L', 'N'], H: ['N', 'K'],
+      A: ['O', 'E'], E: ['A', 'I'], I: ['E', 'U'], O: ['A', 'U'], U: ['O', 'I'],
+    };
+    const near = (confusable[letter] ?? ['M', 'S']).slice();
+    const pool = 'ABDEFGHIKLMNOPRSTUWZ'.split('').filter((c) => c !== letter);
+    while (near.length < 3) {
+      const c = pickOne(pool);
+      if (!near.includes(c)) near.push(c);
+    }
+    return {
+      fact,
+      prompt: { kind: 'wort', wort: w.wort, audio: w.wort.toLowerCase(), zeige: false },
+      choices: shuffle([letter, ...near.slice(0, 3)]),
+      correct: -1,
+      showOnMiss: { kind: 'wort', wort: w.wort, audio: w.wort.toLowerCase(), zeige: true },
+    } as Question;
+  },
+};
+
+// -------------------------------------------------- Haus der Silben
+
+export const silben: Game = {
+  id: 'silben',
+  facts: () => WOERTER.map((w) => `si:${w.wort}`),
+  next(pick) {
+    const fact = pick(this.facts());
+    const w = WOERTER.find((x) => `si:${x.wort}` === fact) ?? WOERTER[0];
+    // The word IS shown here, because clapping a word you can see is
+    // the exercise the teacher actually sets — and a first-grader who
+    // is learning to read gains from seeing it while hearing it.
+    return {
+      fact,
+      prompt: { kind: 'wort', wort: w.wort, audio: w.wort.toLowerCase(), zeige: true },
+      choices: ['1', '2', '3', '4'],
+      correct: -1,
+      showOnMiss: { kind: 'wort', wort: w.wort, audio: w.wort.toLowerCase(), zeige: true },
+    } as Question;
+  },
+};
+
 // ---------------------------------------------------------------- glue
 
 /**
@@ -223,6 +299,12 @@ function expectedAnswer(gameId: string, q: Question): string {
     }
     case 'zwillinge':
       return String(Number(q.fact.slice(3)) * 2);
+    case 'anlaute':
+      return q.fact.slice(3)[0].toUpperCase();
+    case 'silben': {
+      const w = WOERTER.find((x) => x.wort === q.fact.slice(3));
+      return String(w ? w.silben : 2);
+    }
     default:
       return q.choices[0];
   }
@@ -233,6 +315,8 @@ export const GAMES: Record<string, Game> = {
   'zahlenreihe': zahlenreihe,
   'rechenmeister': rechenmeister,
   'zwillinge': zwillinge,
+  'anlaute': anlaute,
+  'silben': silben,
 };
 
 /** How many questions a round of this house has. About three minutes. */

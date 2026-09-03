@@ -28,6 +28,7 @@ import * as fx from '../core/fx.js';
 import { iconCanvas } from '../core/icons.js';
 import { tenFrameCanvas } from '../core/tenframe.js';
 import { buildRound, rundenLaenge, bekanntePaare } from '../games/games.js';
+import { hasBild, bildCanvas } from '../games/wortbilder.js';
 import type { Prompt, Question } from '../games/types.js';
 import { el, tap, knopf, zentrumVon } from './dom.js';
 import * as luma from './luma.js';
@@ -42,12 +43,25 @@ export interface Haus {
   fach: stand.Fach;
 }
 
-/** The one door that exists. PLAN.md item 2. */
+/** The two doors that exist. */
 export const HAUS_VERLIEBTE_ZAHLEN: Haus = {
   id: 'verliebte-zahlen',
   spiel: 'verliebte-zahlen',
   name: 'haus.verliebteZahlen',
   fach: 'mathe',
+};
+
+/**
+ * Das Haus der ersten Laute.
+ *
+ * The first house that pays Wort-Sterne, and until it existed the
+ * per-subject design had exactly one subject.
+ */
+export const HAUS_ERSTE_LAUTE: Haus = {
+  id: 'anlaute',
+  spiel: 'anlaute',
+  name: 'haus.ersteLaute',
+  fach: 'wort',
 };
 
 interface Lauf {
@@ -98,6 +112,12 @@ function form(): 'perle' | 'herz' {
   return lauf?.haus.spiel === 'verliebte-zahlen' ? 'herz' : 'perle';
 }
 
+/** Letters and numbers want different card shapes. */
+function kartenKlasse(q: Question): string {
+  if (q.choices.some((c) => c.length > 2)) return ' worte';
+  return '';
+}
+
 /**
  * How big the ten-frame is drawn.
  *
@@ -109,6 +129,16 @@ function form(): 'perle' | 'herz' {
  * is the tighter, and keeps to whole numbers because a pixel drawing at
  * a fractional scale has some lines two pixels thick and some three.
  */
+/** File stems have no umlauts, because file names on a server do not. */
+export function stamm(wort: string): string {
+  return wort.toLowerCase()
+    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
+}
+
+function bildSkala(): number {
+  return Math.max(2, Math.min(6, Math.floor(window.innerHeight / 190)));
+}
+
 function rahmenSkala(): number {
   const nachBreite = (window.innerWidth * 0.5) / 68;
   const nachHoehe = (window.innerHeight * 0.22) / 30;
@@ -176,7 +206,7 @@ function frageZeichnen(): void {
   buehne.appendChild(fragebild(q.prompt, q));
   s.appendChild(buehne);
 
-  const karten = el('div', 'karten');
+  const karten = el('div', `karten${kartenKlasse(q)}`);
   q.choices.forEach((label, idx) => {
     const b = el('button', undefined, label);
     tap(b, () => antwort(idx, b, buehne, karten));
@@ -256,10 +286,36 @@ function fragebild(p: Prompt, q: Question): HTMLElement {
       box.appendChild(zwei);
       break;
     }
+    case 'wort': {
+      // A picture AND a spoken word — two channels for the same thing,
+      // and both are here on purpose. AGENTS.md rule 15 says the sound
+      // must be switchable off in two taps, and an exercise that stops
+      // working when a parent uses that switch in a waiting room is a
+      // broken exercise. So the picture carries it when the sound is
+      // off, and the ear button is there for a child who is not sure
+      // what the drawing is.
+      const bild = hasBild(p.wort) ? bildCanvas(p.wort, bildSkala()) : null;
+      if (bild) {
+        const holder = el('div', 'wortbild');
+        holder.appendChild(bild);
+        box.appendChild(holder);
+      }
+      const hoeren = el('button', 'hoeren');
+      hoeren.appendChild(iconCanvas('ohr', 68));
+      tap(hoeren, () => audio.say(`wort-${stamm(p.wort)}`, p.wort));
+      box.appendChild(hoeren);
+      // The word is shown in the syllable house and hidden in the
+      // letters house: clapping a word you can SEE is the exercise a
+      // teacher actually sets, and guessing a first sound from a written
+      // word is not a listening exercise at all.
+      if (p.zeige) box.appendChild(el('div', 'wortzeile', p.wort));
+      setTimeout(() => audio.say(`wort-${stamm(p.wort)}`, p.wort), 260);
+      break;
+    }
     default:
-      // The letters, syllables, shapes and writing houses use the other
-      // prompt kinds. Their generators are still in LernInseln and come
-      // across when their doors do; see src/games/games.ts.
+      // The shapes, patterns and writing houses use the remaining prompt
+      // kinds. Their generators are still in LernInseln and come across
+      // when their doors do; see src/games/games.ts.
       break;
   }
   return box;

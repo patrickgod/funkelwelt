@@ -179,7 +179,7 @@ export class Welt {
   private festGefahren = 0;
 
   /** So the door reacts once per visit rather than sixty times a second. */
-  private inTuer = false;
+  private inTuer: 'mathe' | 'wort' | null = null;
 
   /**
    * Waking up: how far open the lantern is, 0 to 1.
@@ -228,7 +228,7 @@ export class Welt {
    * answers — a chime and a burst of sparks — because a child who walks
    * into a door and gets nothing at all decides the door is scenery.
    */
-  anTuer: (() => void) | null = null;
+  anTuer: ((fach: 'mathe' | 'wort') => void) | null = null;
 
   /** Where the purse is on screen, so a coin knows where to fly. */
   anBeutel: (() => { x: number; y: number } | null) | null = null;
@@ -403,10 +403,11 @@ export class Welt {
   }
 
   private heldC(dir: Richtung, frame: number): HTMLCanvasElement {
-    const key = `${dir}${frame}`;
+    const hut = laden.hat('hut');
+    const key = `${dir}${frame}${hut ? 'h' : ''}`;
     let c = this.heldBild.get(key);
     if (!c) {
-      c = held(dir, frame, this.aussehen).toCanvas();
+      c = held(dir, frame, this.aussehen, hut).toCanvas();
       this.heldBild.set(key, c);
     }
     return c;
@@ -731,7 +732,7 @@ export class Welt {
     // The sparks first, then the house. Going straight in swallows the
     // reaction to the tap, and the half second is what makes stepping
     // through a door feel like stepping through a door.
-    if (this.anTuer) setTimeout(this.anTuer, 480);
+    if (this.anTuer) { const f = this.anTuer; setTimeout(() => f(drin), 480); }
   }
 
   private aufSchirm(x: number, y: number): [number, number] {

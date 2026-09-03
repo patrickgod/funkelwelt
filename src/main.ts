@@ -383,7 +383,7 @@ function weltBauen(): void {
   // left. #ui is transparent to pointers except where a control is.
   dieSteuerung = new Steuerung(welt);
   dieSteuerung.modus = stand.get().steuerung;
-  dieWelt.anTuer = () => zeigeHaus();
+  dieWelt.anTuer = (fach) => zeigeHaus(fach);
   dieWelt.anSchatten = (id) => zeigeSchatten(id);
   // A shut gate explains itself once; an open one is celebrated once.
   // Both go through `einmal`, so neither becomes something a child
@@ -489,7 +489,7 @@ function zeigeSchatten(id: string): void {
  * is answering — including the arrow keys, which would otherwise walk
  * him about behind the round screen.
  */
-function zeigeHaus(): void {
+function zeigeHaus(fach: 'mathe' | 'wort'): void {
   if (schirm !== 'welt' || !dieWelt) return;
   luma.weg();
   audio.whoosh(0.3, 1200);
@@ -497,7 +497,8 @@ function zeigeHaus(): void {
   dieWelt.ortSichern();
   leeren();
   fx.clear();
-  runde.starten(ui, runde.HAUS_VERLIEBTE_ZAHLEN, () => {
+  const haus = fach === 'wort' ? runde.HAUS_ERSTE_LAUTE : runde.HAUS_VERLIEBTE_ZAHLEN;
+  runde.starten(ui, haus, () => {
     schirm = 'welt';
     audio.whoosh(0.34, 900);
     leeren();

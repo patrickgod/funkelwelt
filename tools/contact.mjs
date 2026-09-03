@@ -93,7 +93,11 @@ dirs.forEach((d, col) => {
 looks.forEach((lk, i) => {
   const x = 10 + i * CELL_W;
   const y = 26 + 3 * CELL_H + 24;
-  ctx.drawImage(held('unten', 0, lk).toCanvas(), x, y, W * SCALE, H * SCALE);
+  // Every other one wearing the hat from the cart, so that the shop's
+  // promise — every effect is visible — can be looked at rather than
+  // asserted. It shipped once saying the hat was on his head when it
+  // was drawn on nothing at all.
+  ctx.drawImage(held('unten', 0, lk, i % 2 === 1).toCanvas(), x, y, W * SCALE, H * SCALE);
 });
 
 (window as any).ready = true;

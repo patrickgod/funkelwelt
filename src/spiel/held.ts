@@ -87,7 +87,7 @@ function finish(p: Px): void {
  *     wrapping the back of the skull;
  *   * and a lantern, which gives the silhouette something no shrub has.
  */
-export function held(dir: Richtung, frame: number, a: Aussehen): Px {
+export function held(dir: Richtung, frame: number, a: Aussehen, hut = false): Px {
   const p = new Px(W, H);
   const haut = HAUT[a.haut % HAUT.length];
   const haar = HAAR[a.haar % HAAR.length];
@@ -248,6 +248,26 @@ export function held(dir: Richtung, frame: number, a: Aussehen): Px {
     p.rect(lx, ly + 1, 3, 2, shade(P.glow, 4));
     p.rect(lx, ly + 4, 3, 1, shade(P.slate, 1));
     p.rect(lx, ly - 1, 3, 1, shade(P.slate, 3));
+  }
+
+  // ------------------------------------------------------------- the hat
+  //
+  // Bought at the cart, and this is the half of that purchase that was
+  // MISSING: the shop shipped saying "the hat is on your head" and it
+  // was on nothing at all. An upgrade a child cannot see is a number,
+  // and this one was not even that.
+  if (hut) {
+    const kw2 = seite ? 4 : 5;
+    const hy = kopfY + 1;
+    p.ellipse(cx - (seite ? 1 : 0), hy + 3, kw2 + 3, 2, shade(P.leaf, 1));
+    p.ellipse(cx - 2, hy + 2, kw2 + 1, 1, shade(P.leaf, 2));
+    p.rect(cx - kw2 + 1, hy - 2, kw2 * 2 - 2, 5, shade(P.leaf, 2));
+    p.rect(cx - kw2 + 1, hy - 2, kw2 - 1, 5, shade(P.leaf, 3));
+    p.rect(cx - kw2 + 1, hy + 1, kw2 * 2 - 2, 1, shade(P.timber, 1));
+    // the feather, which is the whole silhouette cue at this size
+    for (let i = 0; i < 4; i++) {
+      p.set(cx + kw2 - 2 + Math.round(i * 0.5), hy - 2 - i, shade(P.glow, 3));
+    }
   }
 
   finish(p);

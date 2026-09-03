@@ -43,12 +43,12 @@ export const ZEILEN: readonly string[] = [
   '##..F............t.,,.=....,s~~~s....=..."..####',
   '##.".......,.".,...,..=.."..s~~~s....=T....".###',
   '##....".......,..oS,.,=.tt..s~~~s..".=.....".###',
-  '##.T,S.,..............=.....s~~~s..S.=........##',
-  '##."............"....*=.....s~~~s....=......F.##',
-  '##.,.".......,...,....="....s~~~s...*=,.".....##',
-  '##...HHHHH......".....=...,,s~~~s"...=........##',
-  '##o."HHHHH............=...sFs~~~sss."=.....t..##',
-  '##"."HHHHH............=,.ss~~~~~~~ss.=........##',
+  '##.T,S.,.......WWWWW..=.....s~~~s..S.=........##',
+  '##."...........WWWWW.*=.....s~~~s....=......F.##',
+  '##.,.".......,.WWWWW..="....s~~~s...*=,.".....##',
+  '##...HHHHH.....WWWWW..=...,,s~~~s"...=........##',
+  '##o."HHHHH.....WWWWW..=...sFs~~~sss."=.....t..##',
+  '##"."HHHHH.......E....=,.ss~~~~~~~ss.=........##',
   '##...HHHHH"........"..=*ss~~~~~~~~~ss=........##',
   '##,..HHHHH..T.tT......=ss~~~~~~~~~~~s=.,...S..##',
   '##.....D..............=s~~~~~~~~~~~~~=..."....##',
@@ -79,7 +79,7 @@ export const GRAS = 0, BLUMEN = 1, HOCHGRAS = 2, WEG = 3,
   BRUECKE = 4, SAND = 5, WASSER = 6, FELS = 7;
 
 /** Everything a hero cannot walk through. */
-const FEST_ZEICHEN = '#~TtoHf^*GK';
+const FEST_ZEICHEN = '#~TtoHf^*GKW';
 /** Everything that reads as water for the purpose of drawing an edge. */
 const NASS = '~b';
 /** Everything that reads as path for the purpose of drawing an edge. */
@@ -184,9 +184,11 @@ export function torIstOffen(id: string): boolean {
   return offen.has(id);
 }
 
-/** Where a new adventurer starts, and where the one door is. */
+/** Where a new adventurer starts, and where each door is. */
 export let START = { x: 0, y: 0 };
 export let TUER = { tx: 0, ty: 0 };
+/** The language house's door. */
+export let TUER_WORT = { tx: -1, ty: -1 };
 
 function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void {
   const mitte = tx * KACHEL + (tiles * KACHEL) / 2;
@@ -211,6 +213,7 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
   if (ZEILEN.length !== KH) throw new Error(`the map is ${ZEILEN.length} rows, not ${KH}`);
 
   let hausX0 = KW, hausX1 = -1, hausY1 = -1;
+  let wortX0 = KW, wortX1 = -1, wortY1 = -1;
 
   for (let y = 0; y < KH; y++) {
     for (let x = 0; x < KW; x++) {
@@ -224,7 +227,7 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
         case '.': b = GRAS; break;
         case ',': b = BLUMEN; break;
         case '"': b = HOCHGRAS; break;
-        case '=': case 'D': case 'G': b = WEG; break;
+        case '=': case 'D': case 'E': case 'G': b = WEG; break;
         case 'b': b = BRUECKE; break;
         case 's': b = SAND; break;
         case '~': b = WASSER; break;
@@ -265,6 +268,14 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
           // walks the wrong way out of.
           START = { x: x * KACHEL + 8, y: (y + 2) * KACHEL + 8 };
           break;
+        case 'E':
+          TUER_WORT = { tx: x, ty: y };
+          break;
+        case 'W':
+          wortX0 = Math.min(wortX0, x);
+          wortX1 = Math.max(wortX1, x);
+          wortY1 = Math.max(wortY1, y);
+          break;
         case 'H':
           hausX0 = Math.min(hausX0, x);
           hausX1 = Math.max(hausX1, x);
@@ -277,6 +288,7 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
 
   if (hausX1 < 0) throw new Error('the map has no house');
   stell('haus', hausX0, hausY1, 1, hausX1 - hausX0 + 1);
+  if (wortX1 >= 0) stell('haus', wortX0, wortY1, 2, wortX1 - wortX0 + 1);
 
   // Back to front. Sorted once here rather than every frame: the world
   // is authored and nothing in it ever moves, so the order it is drawn
@@ -414,7 +426,17 @@ export function route(vx: number, vy: number, zx: number, zy: number): { x: numb
   return glatt;
 }
 
-/** Is this point standing in the doorway? */
-export function inTuer(x: number, y: number): boolean {
-  return Math.floor(x / KACHEL) === TUER.tx && Math.floor(y / KACHEL) === TUER.ty;
+/**
+ * Which doorway this point is standing in, if any.
+ *
+ * Two now, and the second is the whole reason the stars were made
+ * per-subject in the first place: until today nothing in the game could
+ * award a Wort-Stern, so "Wörter 1" sat on the title screen for ever
+ * and half the design was a promise.
+ */
+export function inTuer(x: number, y: number): 'mathe' | 'wort' | null {
+  const tx = Math.floor(x / KACHEL), ty = Math.floor(y / KACHEL);
+  if (tx === TUER.tx && ty === TUER.ty) return 'mathe';
+  if (tx === TUER_WORT.tx && ty === TUER_WORT.ty) return 'wort';
+  return null;
 }

@@ -583,6 +583,37 @@ button.gross {
 .zahlenreihe span.luecke { background: var(--kreide-blass); color: var(--kreide-hell); }
 
 .zehnerfeld canvas { image-rendering: pixelated; display: block; }
+.wortbild canvas { image-rendering: pixelated; display: block; }
+
+.wortzeile {
+  font-size: clamp(34px, 6vh, 62px);
+  color: var(--kreide);
+  letter-spacing: 0.04em;
+}
+
+/* Hear it again. An ear, not a speaker: a speaker means "media control"
+   to an adult and nothing at all to a six-year-old. */
+.hoeren {
+  width: 92px;
+  height: 92px;
+  min-width: 92px;
+  border-radius: 999px;
+  background: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.hoeren canvas { image-rendering: pixelated; display: block; }
+
+/* Letters and numbers want the same card; whole words want a wider one. */
+.karten.worte button {
+  width: auto;
+  min-width: clamp(120px, 18vw, 190px);
+  font-size: clamp(30px, 5vh, 52px);
+  padding: 0 22px;
+}
 .doppelfeld { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
 
 /* Answer cards live in the lower two-thirds and never in the top
