@@ -135,6 +135,11 @@ export function stamm(wort: string): string {
     .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
 }
 
+/** Which star this house pays. Two subjects, two stars. */
+function sternIcon(fach: stand.Fach): 'stern' | 'sternWort' {
+  return fach === 'wort' ? 'sternWort' : 'stern';
+}
+
 function bildSkala(): number {
   return Math.max(2, Math.min(6, Math.floor(window.innerHeight / 190)));
 }
@@ -220,7 +225,7 @@ function frageZeichnen(): void {
 function beutel(sterne: number, muenzen: number): HTMLElement {
   const p = el('div', 'beutel-q');
   const a = el('div', 'muenzchen');
-  a.append(iconCanvas('stern', 30), el('span', undefined, String(sterne)));
+  a.append(iconCanvas(sternIcon(lauf!.haus.fach), 30), el('span', undefined, String(sterne)));
   const b = el('div', 'muenzchen');
   b.append(iconCanvas('muenze', 30), el('span', undefined, String(muenzen)));
   p.append(a, b);
@@ -518,7 +523,7 @@ function blattZeigen(
   const kasse = el('div', 'kasse');
   const sternMuenze = el('div', 'muenzchen gross');
   const sternZahl = el('span', undefined, String(sterneVorher));
-  sternMuenze.append(iconCanvas('stern', 40), sternZahl);
+  sternMuenze.append(iconCanvas(sternIcon(fach), 40), sternZahl);
   const geldMuenze = el('div', 'muenzchen gross');
   const geldZahl = el('span', undefined, String(muenzenVorher));
   geldMuenze.append(iconCanvas('muenze', 40), geldZahl);
@@ -527,7 +532,7 @@ function blattZeigen(
 
   const lohn = el('div', 'lohn');
   const l1 = el('div', 'muenzchen');
-  l1.append(iconCanvas('stern', 34), el('span', undefined, `+${sterne}`));
+  l1.append(iconCanvas(sternIcon(fach), 34), el('span', undefined, `+${sterne}`));
   const l2 = el('div', 'muenzchen');
   l2.append(iconCanvas('muenze', 34), el('span', undefined, `+${muenzen}`));
   lohn.append(l1, l2);

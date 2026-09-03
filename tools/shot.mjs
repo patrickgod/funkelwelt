@@ -208,6 +208,30 @@ if (want('laden')) {
   await shot('laden');
 }
 
+// Both gates side by side, shut: one wants numbers, one wants words,
+// and a child has to be able to tell which is which before they can
+// tell how many.
+if (want('tore')) {
+  for (const [name, ort] of [['tor-zahlen', { x: 43.5, y: 9.6 }],
+                             ['tor-woerter', { x: 39.4, y: 29.5 }]]) {
+    await page.evaluate((o) => {
+      const k = 'funkelwelt.platz0.v1';
+      const s = JSON.parse(localStorage.getItem(k));
+      s.ort = o;
+      s.sterne = { mathe: 0, wort: 0 };
+      s.gehoert = ['say.willkommen', 'say.tippen'];
+      localStorage.setItem(k, JSON.stringify(s));
+    }, ort);
+    await page.reload();
+    await page.waitForTimeout(800);
+    await starten();
+    await page.locator('.platz').first().tap();
+    await page.waitForTimeout(2400);
+    await lumaWeg();
+    await shot(name);
+  }
+}
+
 // The gate, shut and open, from the same spot — which is the whole
 // point of it: the world did not change, the child did.
 if (want('tor')) {

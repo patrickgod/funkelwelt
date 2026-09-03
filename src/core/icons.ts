@@ -12,7 +12,7 @@
 import { P, INK, shade } from './palette.js';
 import { Px } from './px.js';
 
-export type Icon = 'stern' | 'bonbon' | 'muenze' | 'zurueck' | 'zahnrad' | 'herz'
+export type Icon = 'stern' | 'sternWort' | 'bonbon' | 'muenze' | 'zurueck' | 'zahnrad' | 'herz'
   | 'wLaterne' | 'wStiefel' | 'wMutband' | 'wHut' | 'ohr';
 
 /** A five-pointed star, filled by scanline so the points stay sharp. */
@@ -77,6 +77,40 @@ function bonbon(): Px {
   // a stripe, because a sweet has a wrapper
   p.line(c - 2, c + 3, c + 3, c - 2, shade(P.candy, 4));
 
+  p.outline(INK);
+  return p;
+}
+
+/**
+ * The Wort-Stern.
+ *
+ * Two subjects, two stars, and until now they were the same gold
+ * five-pointed one — so a gate asking for three stars did not say WHICH
+ * three, and the counter in a language round showed the maths icon.
+ *
+ * Different in SHAPE as well as colour, because a child sorting these
+ * at speed is reading the silhouette: four long points instead of five
+ * short ones, and the learning blue that the ten-frame and the answer
+ * cards already use for nothing else.
+ */
+function sternWort(): Px {
+  const S = 17;
+  const p = new Px(S, S);
+  const c = (S - 1) / 2;
+  for (let y = 0; y < S; y++) {
+    for (let x = 0; x < S; x++) {
+      const dx = Math.abs(x - c), dy = Math.abs(y - c);
+      // A four-pointed sparkle: the two axes stay wide near the middle
+      // and pinch away fast, which is what gives it long points.
+      const t = Math.min(dx, dy) / 7;
+      const l = Math.max(dx, dy) / 8;
+      if (l <= 1 && t <= (1 - l) * (1 - l) * 0.9) {
+        const d = (x - c) + (y - c);
+        p.set(x, y, shade(P.chalk, d < -4 ? 4 : d > 4 ? 2 : 3));
+      }
+    }
+  }
+  p.set(c - 1, c - 1, shade(P.plaster, 4));
   p.outline(INK);
   return p;
 }
@@ -287,7 +321,7 @@ function ohr(): Px {
 }
 
 const ZEICHNER: Record<Icon, () => Px> = {
-  stern, bonbon, muenze, zurueck, zahnrad, herz,
+  stern, sternWort, bonbon, muenze, zurueck, zahnrad, herz,
   wLaterne, wStiefel, wMutband, wHut, ohr,
 };
 

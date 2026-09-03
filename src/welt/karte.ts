@@ -59,10 +59,10 @@ export const ZEILEN: readonly string[] = [
   '##T.t.....T...=T..T......ss~~~~~~~ss.=.......T##',
   '##.....T.t..T.=*,t..t.,...sssssssss..=.o########',
   '##TTTF...,,...=o...T...T.,....o.....*=..########',
-  '##..T.t.S.t...=..,T.T..T.,"........."=,.########',
-  '##TTT.........=..T.......,..,....."..=..########',
-  '##..T.........========================.#########',
-  '##..T.,".....tTt.TTo...,".S..,....,...,#########',
+  '##..T.t.S.t...=..,T.T..T.,"........."=,.#.F..###',
+  '##TTT.........=..T.......,..,....."..=..g..*.###',
+  '##..T.........========================.##....###',
+  '##..T.,".....tTt.TTo...,".S..,....,...,##.S.F###',
   '##.T.....F.....ot.TF......."...T.......#########',
   '##...T"..t."...,T,t.t......".....,F.."##########',
   '################################################',
@@ -79,7 +79,7 @@ export const GRAS = 0, BLUMEN = 1, HOCHGRAS = 2, WEG = 3,
   BRUECKE = 4, SAND = 5, WASSER = 6, FELS = 7;
 
 /** Everything a hero cannot walk through. */
-const FEST_ZEICHEN = '#~TtoHf^*GKW';
+const FEST_ZEICHEN = '#~TtoHf^*GgKW';
 /** Everything that reads as water for the purpose of drawing an edge. */
 const NASS = '~b';
 /** Everything that reads as path for the purpose of drawing an edge. */
@@ -227,7 +227,7 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
         case '.': b = GRAS; break;
         case ',': b = BLUMEN; break;
         case '"': b = HOCHGRAS; break;
-        case '=': case 'D': case 'E': case 'G': b = WEG; break;
+        case '=': case 'D': case 'E': case 'G': case 'g': b = WEG; break;
         case 'b': b = BRUECKE; break;
         case 's': b = SAND; break;
         case '~': b = WASSER; break;
@@ -254,11 +254,18 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
         case 'K':
           LADEN = { mitte: x * KACHEL + 8, fuss: (y + 1) * KACHEL };
           break;
+        // Two gates, one per subject, and that is the entire argument
+        // for making the stars per subject in the first place: a child
+        // who loves letters and finds numbers hard opens a DIFFERENT
+        // door from one who is the other way round, and neither of them
+        // is behind.
         case 'G':
+        case 'g':
           tore.push({
             id: `g${x},${y}`, tx: x, ty: y,
             mitte: x * KACHEL + 8, fuss: (y + 1) * KACHEL,
-            fach: 'mathe', stufe: 3,
+            fach: c === 'g' ? 'wort' : 'mathe',
+            stufe: c === 'g' ? 2 : 3,
           });
           break;
         case 'D':
@@ -308,7 +315,8 @@ export function festAn(tx: number, ty: number): boolean {
   if (fest[ty * KW + tx] !== 1) return false;
   // A gate is solid until it is not. Everything else in `fest` is a
   // fact about the map; this one is a fact about the child.
-  if (ZEILEN[ty][tx] === 'G' && offen.has(`g${tx},${ty}`)) return false;
+  const z = ZEILEN[ty][tx];
+  if ((z === 'G' || z === 'g') && offen.has(`g${tx},${ty}`)) return false;
   return true;
 }
 

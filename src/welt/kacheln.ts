@@ -531,7 +531,7 @@ export function karren(): Px {
  * the gate opens they light up, which is the only feedback needed:
  * the thing you were short of, you now have.
  */
-export function tor(offen: boolean, sterne: number): Px {
+export function tor(offen: boolean, sterne: number, fach: 'mathe' | 'wort' = 'mathe'): Px {
   const p = new Px(22, 30);
   // Two stone posts, set into the cliff either side.
   for (const x of [0, 17]) {
@@ -546,11 +546,13 @@ export function tor(offen: boolean, sterne: number): Px {
     // is broken, nothing is destroyed — it is simply open now.
     p.rect(5, 5, 12, 2, shade(P.timber, 2));
     p.rect(5, 5, 12, 1, shade(P.timber, 4));
+    // Lit, and in the colour of the subject they came from.
+    const hell = fach === 'wort' ? P.chalk : P.glow;
     for (let i = 0; i < sterne; i++) {
       const sx = 4 + i * 5;
-      p.set(sx + 1, 13, shade(P.glow, 4));
-      p.line(sx, 13, sx + 2, 13, shade(P.glow, 3));
-      p.line(sx + 1, 12, sx + 1, 14, shade(P.glow, 3));
+      p.set(sx + 1, 13, shade(hell, 4));
+      p.line(sx, 13, sx + 2, 13, shade(hell, 3));
+      p.line(sx + 1, 12, sx + 1, 14, shade(hell, 3));
     }
   } else {
     // Three bars across, and the stars it is waiting for.
@@ -559,11 +561,27 @@ export function tor(offen: boolean, sterne: number): Px {
       p.rect(4, y, 14, 1, shade(P.timber, 3));
       p.rect(4, y + 2, 14, 1, shade(P.timber, 0));
     }
+    // Unlit, but still the right SHAPE: four long points for words,
+    // five short ones for numbers, so a child can tell which gate this
+    // is before they can tell how many.
+    // Unlit, but already the subject's own COLOUR — dim gold for
+    // numbers, dim blue for words.
+    //
+    // Shape alone was not enough: at gate size the difference between a
+    // four-pointed mark and a five-pointed one is two pixels, and the
+    // two gates were indistinguishable in a screenshot taken from where
+    // a child would be standing. Dim is what says "not yet"; the hue is
+    // what says "of what".
+    const matt = fach === 'wort' ? P.chalk : P.glow;
     for (let i = 0; i < sterne; i++) {
       const sx = 5 + i * 5;
-      p.line(sx, 14, sx + 2, 14, shade(P.stone, 4));
-      p.line(sx + 1, 13, sx + 1, 15, shade(P.stone, 4));
-      p.set(sx + 1, 14, shade(P.plaster, 4));
+      p.line(sx, 14, sx + 2, 14, shade(matt, 1));
+      p.line(sx + 1, 13, sx + 1, 15, shade(matt, 1));
+      if (fach === 'wort') {
+        p.set(sx, 13, shade(matt, 0));
+        p.set(sx + 2, 15, shade(matt, 0));
+      }
+      p.set(sx + 1, 14, shade(matt, 2));
     }
   }
   finish(p);

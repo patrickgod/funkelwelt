@@ -980,7 +980,7 @@ export class Welt {
       const key = `${tor.id}:${offen ? 1 : 0}`;
       let b = this.torBild.get(key);
       if (!b) {
-        b = k.tor(offen, tor.stufe).toCanvas();
+        b = k.tor(offen, tor.stufe, tor.fach).toCanvas();
         this.torBild.set(key, b);
       }
       const [sx, sy] = hin(tor.mitte - b.width / 2, tor.fuss - b.height + 4);

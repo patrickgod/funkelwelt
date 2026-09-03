@@ -722,15 +722,15 @@ await measureButtons('world');
 // first time the game says "being good at something opened something",
 // so what it must never do is open early or stay shut late.
 
-async function beiTor(sterne) {
+async function beiTor(sterne, wort = 0) {
   await inDieWelt();
-  await page.evaluate((st) => {
+  await page.evaluate(([st, w]) => {
     const k = 'funkelwelt.platz0.v1';
     const s = JSON.parse(localStorage.getItem(k));
     s.ort = { x: 43.5, y: 9.6 };
-    s.sterne = { mathe: st, wort: 0 };
+    s.sterne = { mathe: st, wort: w };
     localStorage.setItem(k, JSON.stringify(s));
-  }, sterne);
+  }, [sterne, wort]);
   await inDieWelt();
   // Luma explains the gate when he pushes at it, and she holds the world
   // still while she does — so a check that just holds the key down
@@ -778,6 +778,48 @@ async function beiTor(sterne) {
   const drin = (await slot()).funken;
   check('and there is something behind it worth the walk',
     drin.length > 0, `picked up ${JSON.stringify(drin)}`);
+}
+
+// The second gate wants the OTHER subject, and that is the whole point
+// of making the stars per subject: a child who loves letters and finds
+// numbers hard opens a different door from one who is the other way
+// round, and neither of them is behind.
+{
+  async function beiWortTor(mathe, wort) {
+    await inDieWelt();
+    await page.evaluate(([m, w]) => {
+      const k = 'funkelwelt.platz0.v1';
+      const s = JSON.parse(localStorage.getItem(k));
+      s.ort = { x: 39.4, y: 29.5 };
+      s.sterne = { mathe: m, wort: w };
+      localStorage.setItem(k, JSON.stringify(s));
+    }, [mathe, wort]);
+    await inDieWelt();
+    await laufe('ArrowRight', 500);
+    await lumaWeg();
+    await laufe('ArrowRight', 2000);
+    await lumaWeg();
+    await page.locator('.hudKnopf').first().tap();
+    await page.waitForTimeout(400);
+    return (await slot()).ort;
+  }
+
+  const zu = await beiWortTor(0, 0);
+  check('the Wörter gate is shut to a child who has not earned it',
+    zu.x < 41, `stopped at x ${zu.x.toFixed(2)}`);
+
+  // THE ASSERTION THE WHOLE PER-SUBJECT DESIGN RESTS ON.
+  //
+  // A mountain of Mathe stars must not open the Wörter gate. If it did,
+  // the two subjects would be one currency with two labels, and a child
+  // who is strong at numbers would quietly be handed everything.
+  const nurMathe = await beiWortTor(200, 0);
+  check('and being brilliant at numbers does not open it',
+    nurMathe.x < 41, `stopped at x ${nurMathe.x.toFixed(2)}`);
+
+  const auf = await beiWortTor(0, 12);
+  check('but eight Wort-Sterne does',
+    auf.x > 41, `walked through to x ${auf.x.toFixed(2)}`);
 }
 
 // ------------------------------------------------------------- shadows
