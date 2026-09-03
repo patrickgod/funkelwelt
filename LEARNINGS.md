@@ -268,6 +268,28 @@ before it measures it.** A check whose failure mode is a timeout is a
 check nobody reads the output of, and it takes the rest of the suite
 with it.
 
+## A generated character and a character editor want different things
+
+**Signature:** the art is good, the pipeline works, and switching it on
+would delete a feature.
+
+A generated 34px sprite sheet of the adventurer came out well — three
+directions, three walk frames, one consistent child. Wiring it in would
+have removed the character editor, and the reason is that the pixeliser
+snaps to whichever palette colour is NEAREST, and it does not know which
+part of the picture it is looking at. Sampled against the palette, hair,
+tunic and boots had all landed on `timber`. Recolouring the tunic
+recolours the hair.
+
+Generalises: **generated art is a photograph of a decision, not the
+decision.** Anything the game needs to VARY at runtime has to be varied
+in a dimension the generator was told about — a separate ramp, a
+separate layer, a separate generation — and if it was not, the variation
+is gone and no amount of post-processing gets it back.
+
+The measurement is what made this a decision instead of an argument: six
+lines of Python sampling six regions of the sheet against the palette.
+
 ## Committing before deliberately breaking things
 
 **Signature:** twenty minutes of work gone, and the tool that ate it was

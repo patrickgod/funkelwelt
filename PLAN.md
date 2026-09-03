@@ -91,32 +91,55 @@ it.** A risk you have not built is a risk you are still carrying.
 
 ## Next, in order
 
-### 1. The adventurer is now the crudest thing on screen
+### 1. The adventurer: a decision for Patrick
 
-He is 18×26 and drawn, and everything around him has just got much
-better — which is exactly what happened to Tidegarden's terrace walls
-when the ground was finished.
+The sheet is built and it is good. `assets/sprites/held.png` is a 3×3 of
+34×34 frames — front, back and profile, three walk frames each, one
+consistent child with a green tunic and a big gold lantern. It is not
+wired in, and the reason is a measurement rather than a doubt.
 
-Two ways, and the answer is a measurement rather than an opinion:
+**What was learned.** A generated character DOES survive downsampling,
+at 34 pixels and not at 26 — and only with a brief that makes the
+lantern a quarter of his height, because at 26 the face is mush and the
+lantern is gone entirely. Patrick was right that sprite sheets are how
+Zelda and the early Final Fantasies did characters; the thing that
+needed testing was whether a downsampled generation survives, and it
+does, one size up.
 
-* **A generated sprite sheet at his current size.** Patrick is right
-  that Zelda and the early Final Fantasies did characters as sheets —
-  but those were hand-pixelled, and the open question here is whether a
-  DOWNSAMPLED generation survives at 26 pixels. The 24px signpost did;
-  the 16px bush did not.
-* **Make him bigger** — 34 or 44 — where generation certainly survives.
-  That is a real art-direction decision: it moves the look from Link's
-  Awakening towards Secret of Mana.
+**Why it is not switched on.** It collides with the character editor,
+and the collision was measured rather than guessed. Sampling the sheet
+against the palette:
 
-Generate one pose, pixelise it at 26 / 34 / 44, put them side by side
-and pick. Then build the sheet cutter — raw sheet, slice the grid, run
-each cell through the pixeliser at a fixed cell size so the frames do
-not jitter, reassemble.
+```
+hair      skin[0], timber[2], timber[1]
+tunic     timber[2], pine[4], leaf[3]
+boots     timber[0], timber[2], skin[0]
+face      skin[3], pine[4]
+```
 
-**Blocked:** the Gemini key ran out of prepayment credit mid-session.
+Hair, tunic and boots all land on `timber`. So the obvious trick —
+swap one ramp for another to recolour the character — would repaint all
+three together, and choosing blue hair would give blue boots. There is
+no recolour that preserves four independent sliders on this sheet.
+
+**Three ways out, and Patrick picks:**
+
+1. **Presets instead of sliders.** Generate four or five complete
+   adventurers and let the child choose one. For a six-year-old "which
+   one is you" is an easier decision than four sliders, and KONZEPT's
+   actual promise — *a child who picks slot two sees THEIR adventurer* —
+   survives intact. Cheapest, and probably the best game.
+2. **Generate for separability.** One more pass that puts every
+   customisable part on its own ramp — hair on `fur`, tunic on `leaf`,
+   skin on `skin`, trousers on `chalk`, boots on `earth` — and then the
+   ramp swap gives the whole editor back. Needs the model to hold five
+   colour families apart, which is the part that failed this time.
+3. **Keep him drawn.** The editor is worth more than the sprite.
+
+**Also blocked on credit** either way:
 <https://ai.studio/projects>
 
-### 2. Play it, before building anything on it
+### 2. Play it, before building anything on it### 2. Play it, before building anything on it
 
 The whole reason the world came first was to find out whether walking
 around is worth doing. That question is still open — it just has

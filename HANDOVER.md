@@ -77,6 +77,8 @@ node tools/genvoice.mjs       # Luma's lines, from i18n.ts, at build time
 node tools/genkunst.mjs --was luma --varianten   # four portraits to pick from
 node tools/genkunst.mjs --was titel --varianten  # four opening pictures
 node tools/pixbatch.mjs       # generate + pixelise the whole sprite set
+node tools/blatt.mjs in.png out.png --spalten 3 --zeilen 1 --hoch 34
+                              # cut a generated sprite SHEET into frames
 node tools/contact.mjs luma   # the coded fallback, at the sizes it is seen
 ```
 
@@ -178,10 +180,13 @@ prepayment credit** — top up at <https://ai.studio/projects>.
 
 ## What to do next
 
-**The adventurer.** PLAN.md item 1: he is now the crudest thing on
-screen, and the question — does a generated character survive being
-downsampled to 26 pixels, or does he need to get bigger — is a
-measurement waiting on Gemini credit.
+**The adventurer.** PLAN.md item 1, and it is now a DECISION rather
+than an experiment. The sheet exists and is good —
+`assets/sprites/held.png`, 3×3 frames of 34×34, front/back/profile —
+and it is not wired in because it collides with the character editor:
+hair, tunic and boots all snapped onto the `timber` ramp, so no recolour
+can keep four independent sliders. PLAN.md lists the three ways out.
+The likely best one is presets instead of sliders.
 
 **Play it.** PLAN.md item 2, and it is now the whole loop rather than
 half of it: walk, find the door, answer ten things, come out stronger,
