@@ -489,7 +489,7 @@ function zeigeSchatten(id: string): void {
  * is answering — including the arrow keys, which would otherwise walk
  * him about behind the round screen.
  */
-function zeigeHaus(fach: 'mathe' | 'wort'): void {
+function zeigeHaus(tuer: 'mathe' | 'wort' | 'formen'): void {
   if (schirm !== 'welt' || !dieWelt) return;
   luma.weg();
   audio.whoosh(0.3, 1200);
@@ -497,7 +497,9 @@ function zeigeHaus(fach: 'mathe' | 'wort'): void {
   dieWelt.ortSichern();
   leeren();
   fx.clear();
-  const haus = fach === 'wort' ? runde.HAUS_ERSTE_LAUTE : runde.HAUS_VERLIEBTE_ZAHLEN;
+  const haus = tuer === 'wort' ? runde.HAUS_ERSTE_LAUTE
+    : tuer === 'formen' ? runde.HAUS_FORMEN
+    : runde.HAUS_VERLIEBTE_ZAHLEN;
   runde.starten(ui, haus, () => {
     schirm = 'welt';
     audio.whoosh(0.34, 900);

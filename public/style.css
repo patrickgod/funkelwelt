@@ -616,6 +616,57 @@ button.gross {
 }
 .doppelfeld { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
 
+/* Das Haus der Formen. The card IS the shape, so it carries a canvas
+   rather than a glyph — and it keeps the same footprint as a card with
+   a number on it, because rule 12's 64-pixel touch target does not care
+   what is printed on the thing being tapped. */
+.karten.formen button canvas {
+  image-rendering: pixelated;
+  display: block;
+  margin: 0 auto;
+}
+
+/* The question shape, in grey. Set apart from the cards by a little
+   breathing room rather than by a border: a frame around it would read
+   as one more card. */
+.formfrage {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0 10px;
+}
+.formfrage canvas { image-rendering: pixelated; display: block; }
+
+/* The pattern row. It scrolls sideways rather than wrapping, because a
+   pattern that wraps onto a second line stops being a row — and the
+   whole exercise is reading along one. */
+.muster {
+  display: flex;
+  gap: clamp(4px, 1vw, 10px);
+  align-items: center;
+  justify-content: flex-start;
+  overflow-x: auto;
+  max-width: 100%;
+  padding: 6px 2px;
+}
+.muster .zelle {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.muster .zelle canvas { image-rendering: pixelated; display: block; }
+
+/* The gap, drawn as an empty frame so the question is "what goes HERE".
+   Dashed, and in the same ink as everything else, so it reads as a
+   waiting space rather than as a mistake. */
+.muster .luecke {
+  border: 3px dashed var(--kreide);
+  border-radius: 12px;
+  opacity: 0.65;
+  font-size: clamp(24px, 4vh, 44px);
+  color: var(--kreide);
+}
+
 /* Answer cards live in the lower two-thirds and never in the top
    corners: a child holds a tablet at the sides, with thumbs low. */
 .karten {

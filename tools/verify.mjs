@@ -788,6 +788,111 @@ async function beiTor(sterne, wort = 0) {
     drin.length > 0, `picked up ${JSON.stringify(drin)}`);
 }
 
+// -------------------------------------------------- Das Haus der Formen
+//
+// The third door, and the first house that asks two different KINDS of
+// question in one round. That is where the interesting failure lives:
+// `buildRound` resolves each question with the generator that made it,
+// and if it used the house's first game for all ten instead, every
+// pattern question would be answered by the shapes rule — which finds
+// nothing, falls back to card zero, and looks completely normal from
+// the outside. So the pattern question is answered here by READING THE
+// ROW, which is what the child does, rather than by asking the code
+// that sets the answer.
+
+{
+  await inDieWelt();
+  await stellAuf(40.5, 19.4);
+  await inDieWelt();
+  await laufe('ArrowUp', 900);
+  await page.waitForTimeout(900);
+  check('the third door opens Das Haus der Formen',
+    await page.locator('.runde').count() === 1);
+
+  // Rule 15: the sound is off-switchable in two taps, and this is the
+  // house to point a parent at in a waiting room. Lernkiste asked the
+  // shape question with a voice and an empty stage; here the shape is
+  // on screen, so the question survives the switch.
+  check('the shape question is SHOWN and not only spoken',
+    await page.locator('.formfrage canvas').count() === 1);
+
+  let sahForm = await page.locator('.formfrage canvas').count() > 0;
+  let sahMuster = false;
+  let geprueft = false;
+  let gestellt = 0;
+
+  for (let i = 0; i < 14; i++) {
+    if (await page.locator('.blatt').count()) break;
+    const karten = page.locator('.karten button');
+    const n = await karten.count();
+    if (n === 0) break;
+    gestellt++;
+
+    const reihe = await page.locator('.muster .zelle[aria-label]')
+      .evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')));
+
+    if (reihe.length) {
+      sahMuster = true;
+      // Continue the row by finding the unit that repeats. This is the
+      // definition of a pattern rather than a copy of the generator:
+      // the shortest length whose repeat reproduces every cell.
+      let unit = reihe.length;
+      for (let u = 1; u <= reihe.length; u++) {
+        if (reihe.every((f, k) => f === reihe[k % u])) { unit = u; break; }
+      }
+      const weiter = reihe[reihe.length % unit];
+
+      if (!geprueft) {
+        const labels = await karten.evaluateAll(
+          (els) => els.map((e) => e.getAttribute('aria-label')));
+        const idx = labels.indexOf(weiter);
+        check('the pattern the child can read is on one of the cards',
+          idx >= 0, `row ${reihe.join(',')} → ${weiter}; cards ${labels.join(',')}`);
+        if (idx >= 0) {
+          await karten.nth(idx).tap();
+          await page.waitForTimeout(500);
+          // THE ONE THAT MATTERS. If the round resolved this question
+          // with the shapes rule instead of the pattern rule, the card
+          // a child would correctly choose is marked wrong.
+          check('and answering a pattern question by reading the row is RIGHT',
+            await page.locator('.karten button.richtig').count() === 1,
+            `tapped ${weiter}`);
+          geprueft = true;
+          await page.waitForTimeout(1900);
+          continue;
+        }
+      }
+    } else if (await page.locator('.formfrage canvas').count()) {
+      sahForm = true;
+    }
+
+    await karten.first().tap();
+    await page.waitForTimeout(2400);
+  }
+
+  check('the round mixes both kinds of question rather than ten of one',
+    sahForm && sahMuster, `shapes ${sahForm}, patterns ${sahMuster}`);
+  check('answering ten of them finishes the round',
+    await page.locator('.blatt').count() === 1, `answered ${gestellt}`);
+
+  await page.waitForTimeout(1800);
+  const sf = await slot();
+  // Shapes and patterns are maths — the same strand of the curriculum
+  // as counting — so this house pays the star that opens the Zahlen
+  // gate. A third currency would have told a child who sees shapes
+  // instantly and finds adding hard that the thing they are good at is
+  // a lesser subject.
+  check('Das Haus der Formen pays Mathe-Sterne',
+    sf.sterne.mathe > 0, `${sf.sterne.mathe} stars`);
+  check('and never Wort-Sterne, which it did not teach',
+    sf.sterne.wort === 0, `${sf.sterne.wort} Wort`);
+  check('the house counts how often it has been cleared',
+    sf.geschafft['formen'] === 1, JSON.stringify(sf.geschafft));
+
+  await page.locator('button', { hasText: 'Zurück in die Welt' }).first().tap();
+  await page.waitForTimeout(600);
+}
+
 // The second gate wants the OTHER subject, and that is the whole point
 // of making the stars per subject: a child who loves letters and finds
 // numbers hard opens a different door from one who is the other way

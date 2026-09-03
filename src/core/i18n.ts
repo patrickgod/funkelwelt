@@ -52,6 +52,7 @@ const DE = {
   // ------------------------------------------------------- the houses
   'haus.verliebteZahlen': 'Das Haus der verliebten Zahlen',
   'haus.ersteLaute': 'Das Haus der ersten Laute',
+  'haus.formen': 'Das Haus der Formen',
 
   // -------------------------------------------------------- a round
   'runde.raus': 'Zurück',
@@ -139,6 +140,16 @@ const DE = {
     'Der Karren! Für die Münzen, die du findest, gibt es hier vier gute Sachen.',
   'say.torAuf':
     'Schau, das Tor ist offen! Du hast genug gelernt, um da hineinzukommen.',
+  // The six shapes, as instructions rather than as bare nouns. The
+  // silhouette on the stage says WHICH one; the sentence says what to
+  // do with it and gives the model something to land on — a single word
+  // read alone comes out clipped, because it is read as a list item.
+  'say.formKreis': 'Tippe auf den Kreis.',
+  'say.formDreieck': 'Tippe auf das Dreieck.',
+  'say.formQuadrat': 'Tippe auf das Quadrat.',
+  'say.formRechteck': 'Tippe auf das Rechteck.',
+  'say.formStern': 'Tippe auf den Stern.',
+  'say.formHerz': 'Tippe auf das Herz.',
   'say.hilfe': 'Das ist knifflig, oder? Schau, ich zeig es dir.',
 
   // No slots, on purpose. Every one of these becomes a fixed MP3 at

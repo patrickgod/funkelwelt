@@ -42,7 +42,8 @@
 // font, which together are about forty kilobytes of source for doors
 // that do not exist yet.
 //
-// Funkelwelt has ONE door. Shipping the vocabulary for six more of them
+// Funkelwelt has THREE doors. Shipping the vocabulary for the rest of
+// them
 // to a child's iPad, with nothing calling it and nothing in the suite
 // looking at it, is worse than not shipping it: AGENTS.md's definition
 // of done requires somebody to have LOOKED at a thing, and nobody can
@@ -50,6 +51,7 @@
 
 import type { Game, Question, Prompt } from './types.js';
 import { staerkeVon } from '../core/spielstand.js';
+import { FORMEN, musterZeile, type Form } from './formen.js';
 import { WOERTER } from './woerter.js';
 import { hasBild } from './wortbilder.js';
 
@@ -273,6 +275,80 @@ export const silben: Game = {
 
 // ---------------------------------------------------------------- glue
 
+// ------------------------------------------------------- Das Haus der Formen
+
+/**
+ * Which pattern a row follows. Used to steer the generator towards the
+ * kind the scheduler asked for.
+ */
+function musterArt(row: Form[]): string {
+  if (row[0] === row[1]) return row[2] === row[1] ? 'ab' : 'aabb';
+  return row[1] === row[2] ? 'abb' : 'ab';
+}
+
+/**
+ * Find the shape.
+ *
+ * The question is a grey silhouette and the cards are the coloured
+ * shapes, so what is being asked is "which of these is this FORM",
+ * independent of colour and size. See `silhouette()` for why it is not
+ * simply spoken, which is how Lernkiste asked it.
+ */
+export const formen: Game = {
+  id: 'formen',
+  facts: () => FORMEN.map((f) => `fo:${f}`),
+  next(pick) {
+    const fact = pick(this.facts());
+    const want = fact.slice(3) as Form;
+    const wrong = shuffle(FORMEN.filter((f) => f !== want)).slice(0, 3);
+    return {
+      fact,
+      prompt: { kind: 'form', frage: want },
+      choices: shuffle([want, ...wrong]).map((f) => `form:${f}`),
+      correct: -1,
+    } as Question;
+  },
+};
+
+/**
+ * Continue the row.
+ *
+ * One of the genuinely load-bearing skills in early maths: it is the
+ * same reasoning that becomes "what comes next in this number
+ * sequence" years before any numbers are involved. It is also the one
+ * exercise in the game that needs neither sound nor reading.
+ */
+export const muster: Game = {
+  id: 'muster',
+  // The fact is the KIND of pattern rather than the shapes in it, so
+  // the scheduler practises the ones a child finds hard rather than
+  // hunting for a particular pair of colours.
+  facts: () => ['mu:ab', 'mu:aabb', 'mu:abb'],
+  next(pick) {
+    const fact = pick(this.facts());
+    const seed = Math.floor(Math.random() * 1e6);
+    let z = musterZeile(seed);
+    // Nudge the seed until the pattern is the kind that was asked for.
+    // Cheap, and much simpler than threading the kind through.
+    const wanted = fact.slice(3);
+    for (let i = 0; i < 40; i++) {
+      if (musterArt(z.row) === wanted) break;
+      z = musterZeile(seed + i * 7919);
+    }
+    const wrong = shuffle(FORMEN.filter((f) => f !== z.answer)).slice(0, 2);
+    return {
+      fact,
+      prompt: { kind: 'muster', reihe: z.row },
+      choices: shuffle([z.answer, ...wrong]).map((f) => `form:${f}`),
+      correct: -1,
+      // The whole row WITH the answer on the end, so the correction is
+      // the pattern completing itself rather than the word "wrong" —
+      // and so `answerOf` can read the answer back off it.
+      showOnMiss: { kind: 'muster', reihe: [...z.row, z.answer] },
+    } as Question;
+  },
+};
+
 /**
  * The correct index, resolved once here rather than in every generator.
  *
@@ -305,6 +381,16 @@ function expectedAnswer(gameId: string, q: Question): string {
       const w = WOERTER.find((x) => x.wort === q.fact.slice(3));
       return String(w ? w.silben : 2);
     }
+    case 'formen':
+      return `form:${q.fact.slice(3)}`;
+    case 'muster': {
+      // The full row, answer included, is on `showOnMiss`; the last of
+      // it is what the row continues with. Derived from the same place
+      // the correction is drawn from, so the two cannot disagree.
+      const p = q.showOnMiss as Extract<Prompt, { kind: 'muster' }> | undefined;
+      if (!p) return q.choices[0];
+      return `form:${p.reihe[p.reihe.length - 1]}`;
+    }
     default:
       return q.choices[0];
   }
@@ -317,23 +403,42 @@ export const GAMES: Record<string, Game> = {
   'zwillinge': zwillinge,
   'anlaute': anlaute,
   'silben': silben,
+  'formen': formen,
+  'muster': muster,
 };
 
 /** How many questions a round of this house has. About three minutes. */
-export function rundenLaenge(_gameId: string): number {
+export function rundenLaenge(_spiel: string | string[]): number {
   return 10;
 }
 
 /** Build a whole round: ten questions, no fact twice in a row. */
-export function buildRound(gameId: string, n = 10): Question[] {
-  const g = GAMES[gameId];
+/**
+ * Ten questions, from one generator or from several in rotation.
+ *
+ * A house may name more than one game. Das Haus der Formen does: find
+ * the shape, continue the row, find the shape, continue the row. Ten of
+ * either alone is a worksheet, and the two skills are close enough that
+ * alternating them reads as one lesson rather than as two.
+ *
+ * The rotation is by POSITION, not random, so the rhythm is the same
+ * every time. A child who has worked out that the pattern one comes
+ * after the shape one is a child who is being taught by the structure.
+ */
+export function buildRound(spiel: string | string[], n = 10): Question[] {
+  const ids = Array.isArray(spiel) ? spiel : [spiel];
   const out: Question[] = [];
   let last = '';
   let guard = 0;
   while (out.length < n && guard++ < n * 20) {
-    const q = g.next(weightedPick);
+    // The id of the generator that actually made this question, so the
+    // answer is resolved by the game that asked. Passing the house's
+    // first game here would silently answer every pattern question
+    // with a shape.
+    const id = ids[out.length % ids.length];
+    const q = GAMES[id].next(weightedPick);
     if (q.fact === last) continue;
-    q.correct = answerOf(gameId, q);
+    q.correct = answerOf(id, q);
     out.push(q);
     last = q.fact;
   }

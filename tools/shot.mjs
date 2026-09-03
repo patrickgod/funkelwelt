@@ -183,6 +183,39 @@ if (want('laute')) {
   await shot('laute');
 }
 
+// Das Haus der Formen: the approach with the plaque, then both kinds of
+// question inside. The pattern one is the reason to look — it is the
+// only exercise in the game that needs neither sound nor reading, and
+// nobody has seen it in this app.
+if (want('formen')) {
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.ort = { x: 40.5, y: 19.4 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await page.reload();
+  await page.waitForTimeout(800);
+  await starten();
+  await page.locator('.platz').first().tap();
+  await page.waitForTimeout(2400);
+  await lumaWeg();
+  await shot('formen-welt');
+  await page.keyboard.down('ArrowUp');
+  await page.waitForTimeout(700);
+  await page.keyboard.up('ArrowUp');
+  await page.waitForTimeout(1600);
+  await lumaWeg();
+  await shot('formen');
+  // The second question is the pattern one: the round alternates, so
+  // answering one — right or wrong, it does not matter here — walks
+  // straight into it.
+  await page.locator('.karten button').first().tap();
+  await page.waitForTimeout(1900);
+  await lumaWeg();
+  await shot('formen-muster');
+}
+
 // The cart, with coins for two of the four things on it.
 if (want('laden')) {
   await page.evaluate(() => {

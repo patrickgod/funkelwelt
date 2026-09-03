@@ -28,6 +28,7 @@ import * as fx from '../core/fx.js';
 import { iconCanvas } from '../core/icons.js';
 import { tenFrameCanvas } from '../core/tenframe.js';
 import { buildRound, rundenLaenge, bekanntePaare } from '../games/games.js';
+import { formCanvas, silhouetteCanvas, type Form } from '../games/formen.js';
 import { hasBild, bildCanvas } from '../games/wortbilder.js';
 import type { Prompt, Question } from '../games/types.js';
 import { el, tap, knopf, zentrumVon } from './dom.js';
@@ -36,14 +37,17 @@ import * as luma from './luma.js';
 export interface Haus {
   /** Save-slot key, so a house can count how often it has been cleared. */
   id: string;
-  /** Which generator in `src/games/games.ts`. */
-  spiel: string;
+  /**
+   * Which generator in `src/games/games.ts`, or several in rotation.
+   * See `buildRound` for why the rotation is by position.
+   */
+  spiel: string | string[];
   /** i18n key for the name shown over the door. */
   name: string;
   fach: stand.Fach;
 }
 
-/** The two doors that exist. */
+/** The three doors that exist. */
 export const HAUS_VERLIEBTE_ZAHLEN: Haus = {
   id: 'verliebte-zahlen',
   spiel: 'verliebte-zahlen',
@@ -62,6 +66,30 @@ export const HAUS_ERSTE_LAUTE: Haus = {
   spiel: 'anlaute',
   name: 'haus.ersteLaute',
   fach: 'wort',
+};
+
+/**
+ * Das Haus der Formen.
+ *
+ * Shapes and patterns are maths — they are in the same strand of the
+ * curriculum as counting — so this house pays Mathe-Sterne rather than
+ * introducing a third kind of star and a third gate.
+ *
+ * That is not a filing decision, it is the design one. A child who
+ * finds adding hard and sees shapes instantly now has a second way to
+ * earn the star that opens the Zahlen gate, and can be visibly good at
+ * maths without being fast at sums. A third currency would have said
+ * the opposite: that the thing they are good at is a different, lesser
+ * subject.
+ *
+ * It is also the only house that works with the sound switched off, so
+ * it is the one to point a parent at in a waiting room.
+ */
+export const HAUS_FORMEN: Haus = {
+  id: 'formen',
+  spiel: ['formen', 'muster'],
+  name: 'haus.formen',
+  fach: 'mathe',
 };
 
 interface Lauf {
@@ -114,8 +142,21 @@ function form(): 'perle' | 'herz' {
 
 /** Letters and numbers want different card shapes. */
 function kartenKlasse(q: Question): string {
+  if (q.choices.some((c) => c.startsWith('form:'))) return ' formen';
   if (q.choices.some((c) => c.length > 2)) return ' worte';
   return '';
+}
+
+/**
+ * How big a shape is drawn on a card.
+ *
+ * Derived from the viewport rather than fixed, for the same reason the
+ * ten-frame is: this runs on a phone in a waiting room and on an iPad
+ * on a kitchen table, and rule 12 wants the card to stay a 64-pixel
+ * touch target on both.
+ */
+function formSkala(): number {
+  return Math.max(2, Math.min(6, Math.floor((window.innerHeight * 0.13) / 34)));
 }
 
 /**
@@ -213,7 +254,17 @@ function frageZeichnen(): void {
 
   const karten = el('div', `karten${kartenKlasse(q)}`);
   q.choices.forEach((label, idx) => {
-    const b = el('button', undefined, label);
+    const b = el('button');
+    if (label.startsWith('form:')) {
+      // The card IS the shape. Nothing is written on it, which is the
+      // whole point of this house — rule 14, and a six-year-old who
+      // cannot yet read "Rechteck" can still answer every question in
+      // here correctly.
+      b.appendChild(formCanvas(label.slice(5) as Form, formSkala()));
+      b.setAttribute('aria-label', label.slice(5));
+    } else {
+      b.textContent = label;
+    }
     tap(b, () => antwort(idx, b, buehne, karten));
     karten.appendChild(b);
   });
@@ -289,6 +340,53 @@ function fragebild(p: Prompt, q: Question): HTMLElement {
         zwei.appendChild(f);
       }
       box.appendChild(zwei);
+      break;
+    }
+    case 'form': {
+      // The question is the shape in flat grey, at a different size
+      // from the cards, with its name spoken over it. See
+      // `silhouette()` in games/formen.ts for why it is shown at all:
+      // Lernkiste asked this with a voice and an empty stage, which
+      // stops being a question the moment a parent switches the sound
+      // off — and this is the house to point a parent at in a waiting
+      // room precisely because it does not need the sound.
+      const holder = el('div', 'formfrage');
+      holder.appendChild(silhouetteCanvas(p.frage as Form, formSkala() + 1));
+      box.appendChild(holder);
+      const key = `say.form${p.frage[0].toUpperCase()}${p.frage.slice(1)}`;
+      const hoeren = el('button', 'hoeren');
+      hoeren.appendChild(iconCanvas('ohr', 68));
+      tap(hoeren, () => audio.say(key.replace(/\./g, '-').toLowerCase(), t(key)));
+      box.appendChild(hoeren);
+      setTimeout(() => audio.say(key.replace(/\./g, '-').toLowerCase(), t(key)), 260);
+      break;
+    }
+    case 'muster': {
+      const skala = formSkala();
+      const zeile = el('div', 'muster');
+      for (const f of p.reihe) {
+        const zelle = el('div', 'zelle');
+        // Named as well as drawn. A screen reader gets a row it can
+        // read out, and `tools/verify.mjs` gets a way to work out what
+        // the row continues with WITHOUT asking the code that answers
+        // it — which is the only way that check is worth anything.
+        zelle.setAttribute('aria-label', f);
+        zelle.appendChild(formCanvas(f as Form, skala));
+        zeile.appendChild(zelle);
+      }
+      // The gap is at the END and it is drawn as an empty frame, so the
+      // question reads as "what goes HERE" rather than as "what comes
+      // after" — which is a question about the row rather than about
+      // the last shape in it.
+      const luecke = el('div', 'zelle luecke');
+      // Sized from the same scale the shapes were drawn at rather than
+      // from its own clamp, so the gap is exactly one shape wide at
+      // every viewport instead of nearly one.
+      luecke.style.width = `${34 * skala}px`;
+      luecke.style.height = `${34 * skala}px`;
+      luecke.textContent = '?';
+      zeile.appendChild(luecke);
+      box.appendChild(zeile);
       break;
     }
     case 'wort': {

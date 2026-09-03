@@ -611,3 +611,78 @@ export function funke(frame: number): Px {
   p.set(5, 5, shade(P.plaster, 4));
   return p;
 }
+
+
+/**
+ * A plaque beside a door, saying what is done inside.
+ *
+ * Three doors now, and `haus.png` is one generated sprite used for all
+ * of them — so from the path they are the same building three times.
+ * A child who wants the shapes house and has to walk into two wrong
+ * ones first is being asked to remember a map instead of reading one,
+ * and "the level design says it, not a sentence" is the bet this whole
+ * project rests on.
+ *
+ * The signpost could not carry it: `schild` is a generated sprite, so
+ * anything drawn onto the coded version would never be seen. This is a
+ * separate small object, drawn in code, which also means it needs no
+ * credit at the image API to exist.
+ *
+ * No letters on any of them — rule 14. Each plaque shows the thing the
+ * child actually does inside, in the same visual language the round
+ * screen uses: a ten-frame for the numbers house, the ear from the
+ * listening exercises, a circle and a triangle for the shapes.
+ */
+export function tafel(art: number): Px {
+  const B = 18, H = 26;
+  const p = new Px(B, H);
+  // post
+  p.rect(8, 14, 2, 12, shade(P.timber, 2));
+  p.rect(8, 14, 1, 12, shade(P.timber, 4));
+  // board
+  p.rect(1, 2, 16, 14, shade(P.plaster, 3));
+  p.rect(1, 2, 16, 2, shade(P.plaster, 4));
+  p.rect(1, 14, 16, 2, shade(P.plaster, 1));
+
+  if (art === 0) {
+    // A ten-frame with four filled — the picture the numbers house
+    // asks every one of its questions with.
+    const rahmen = shade(P.timber, 1);
+    p.rect(3, 5, 12, 8, rahmen);
+    p.rect(4, 6, 10, 6, shade(P.plaster, 4));
+    p.line(9, 6, 9, 11, rahmen);
+    for (let i = 0; i < 4; i++) {
+      const cx = 5 + (i % 2) * 5, cy = 7 + Math.floor(i / 2) * 3;
+      p.rect(cx, cy, 2, 2, shade(P.glow, 2));
+      p.set(cx, cy, shade(P.glow, 3));
+    }
+  } else if (art === 1) {
+    // An ear. The listening house asks with a picture and a voice, and
+    // the ear is already the button a child taps to hear it again.
+    const haut = shade(P.skin, 1);
+    // An ellipse rather than a rectangle with the corners knocked off:
+    // `set` writes a colour and there is no way to write "nothing", so
+    // the shape has to be drawn round in the first place.
+    p.ellipse(9, 9, 4, 5, haut);
+    const tief = shade(P.skin, 0);
+    p.rect(8, 6, 3, 5, tief);
+    p.rect(9, 7, 1, 3, shade(P.timber, 0));
+    p.rect(7, 11, 3, 2, tief);
+  } else {
+    // A circle and a triangle, in the colours the shapes house gives
+    // them and keeps giving them — a child still learning the word
+    // "Dreieck" holds on to "the green one" while they learn it.
+    const kreis = shade(P.chalk, 3);
+    for (let y = -3; y <= 3; y++) {
+      const half = Math.round(Math.sqrt(Math.max(0, 9 - y * y)));
+      for (let x = -half; x <= half; x++) p.set(5 + x, 8 + y, kreis);
+    }
+    const drei = shade(P.backlit, 2);
+    for (let j = 0; j <= 6; j++) {
+      const w = Math.round((j / 6) * 3.5);
+      for (let i = -w; i <= w; i++) p.set(12 + i, 5 + j, drei);
+    }
+  }
+  finish(p);
+  return p;
+}

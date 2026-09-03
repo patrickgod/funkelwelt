@@ -44,15 +44,15 @@ export const ZEILEN: readonly string[] = [
   '##.".......,.".,...,..=.."..s~~~s....=T....".###',
   '##....".......,..oS,.,=.tt..s~~~s..".=.....".###',
   '##.T,S.,.......WWWWW..=.....s~~~s..S.=........##',
-  '##."...........WWWWW.*=.....s~~~s....=......F.##',
-  '##.,.".......,.WWWWW..="....s~~~s...*=,.".....##',
-  '##...HHHHH.....WWWWW..=...,,s~~~s"...=........##',
-  '##o."HHHHH.....WWWWW..=...sFs~~~sss."=.....t..##',
-  '##"."HHHHH.......E....=,.ss~~~~~~~ss.=........##',
-  '##...HHHHH"........"..=*ss~~~~~~~~~ss=........##',
-  '##,..HHHHH..T.tT......=ss~~~~~~~~~~~s=.,...S..##',
-  '##.....D..............=s~~~~~~~~~~~~~=..."....##',
-  '##.....=..^.K*".."....=s~~~~~~~~~~~~~=.......F##',
+  '##."...........WWWWW.*=.....s~~~s....=MMMMM.F.##',
+  '##.,.".......,.WWWWW..="....s~~~s...*=MMMMM...##',
+  '##...HHHHH.....WWWWW..=...,,s~~~s"...=MMMMM...##',
+  '##o."HHHHH.....WWWWW..=...sFs~~~sss."=MMMMMt..##',
+  '##"."HHHHH.......E.2..=,.ss~~~~~~~ss.=MMMMM...##',
+  '##...HHHHH"........"..=*ss~~~~~~~~~ss=..m.....##',
+  '##,..HHHHH..T.tT......=ss~~~~~~~~~~~s====*.S..##',
+  '##.....D..............=s~~~~~~~~~~~~~=3.."....##',
+  '##.....=1.^.K*".."....=s~~~~~~~~~~~~~=.......F##',
   '##.....================s~~~~~~~~~~~~~=...,....##',
   '##.,..."......=...,....ss~~~~~~~~~~~s=t.......##',
   '##..ffffffff..=.........ss~~~~~~~~~ss=..,.."",##',
@@ -79,7 +79,7 @@ export const GRAS = 0, BLUMEN = 1, HOCHGRAS = 2, WEG = 3,
   BRUECKE = 4, SAND = 5, WASSER = 6, FELS = 7;
 
 /** Everything a hero cannot walk through. */
-const FEST_ZEICHEN = '#~TtoHf^*GgKW';
+const FEST_ZEICHEN = '#~TtoHf^*GgKWM123';
 /** Everything that reads as water for the purpose of drawing an edge. */
 const NASS = '~b';
 /** Everything that reads as path for the purpose of drawing an edge. */
@@ -106,7 +106,8 @@ function amWasser(x: number, y: number): boolean {
 
 // ------------------------------------------------------------ the things
 
-export type Art = 'baum' | 'busch' | 'stein' | 'haus' | 'zaun' | 'schild' | 'laterne';
+export type Art =
+  | 'baum' | 'busch' | 'stein' | 'haus' | 'zaun' | 'schild' | 'laterne' | 'tafel';
 
 export interface Ding {
   art: Art;
@@ -190,6 +191,9 @@ export let TUER = { tx: 0, ty: 0 };
 /** The language house's door. */
 export let TUER_WORT = { tx: -1, ty: -1 };
 
+/** Das Haus der Formen. */
+export let TUER_FORMEN = { tx: -1, ty: -1 };
+
 function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void {
   const mitte = tx * KACHEL + (tiles * KACHEL) / 2;
   const fuss = (ty + 1) * KACHEL;
@@ -214,6 +218,7 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
 
   let hausX0 = KW, hausX1 = -1, hausY1 = -1;
   let wortX0 = KW, wortX1 = -1, wortY1 = -1;
+  let formX0 = KW, formX1 = -1, formY1 = -1;
 
   for (let y = 0; y < KH; y++) {
     for (let x = 0; x < KW; x++) {
@@ -227,7 +232,8 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
         case '.': b = GRAS; break;
         case ',': b = BLUMEN; break;
         case '"': b = HOCHGRAS; break;
-        case '=': case 'D': case 'E': case 'G': case 'g': b = WEG; break;
+        case '=': case 'D': case 'E': case 'm':
+        case 'G': case 'g': b = WEG; break;
         case 'b': b = BRUECKE; break;
         case 's': b = SAND; break;
         case '~': b = WASSER; break;
@@ -278,10 +284,25 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
         case 'E':
           TUER_WORT = { tx: x, ty: y };
           break;
+        case 'm':
+          TUER_FORMEN = { tx: x, ty: y };
+          break;
+        // The plaques beside the three doors. Not decoration: the house
+        // sprite is the same building three times, so without these the
+        // only way to find the shapes house is to walk into two wrong
+        // ones and remember which. See `tafel()` in kacheln.ts.
+        case '1': stell('tafel', x, y, 0); break;
+        case '2': stell('tafel', x, y, 1); break;
+        case '3': stell('tafel', x, y, 2); break;
         case 'W':
           wortX0 = Math.min(wortX0, x);
           wortX1 = Math.max(wortX1, x);
           wortY1 = Math.max(wortY1, y);
+          break;
+        case 'M':
+          formX0 = Math.min(formX0, x);
+          formX1 = Math.max(formX1, x);
+          formY1 = Math.max(formY1, y);
           break;
         case 'H':
           hausX0 = Math.min(hausX0, x);
@@ -296,6 +317,7 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
   if (hausX1 < 0) throw new Error('the map has no house');
   stell('haus', hausX0, hausY1, 1, hausX1 - hausX0 + 1);
   if (wortX1 >= 0) stell('haus', wortX0, wortY1, 2, wortX1 - wortX0 + 1);
+  if (formX1 >= 0) stell('haus', formX0, formY1, 3, formX1 - formX0 + 1);
 
   // Back to front. Sorted once here rather than every frame: the world
   // is authored and nothing in it ever moves, so the order it is drawn
@@ -442,9 +464,10 @@ export function route(vx: number, vy: number, zx: number, zy: number): { x: numb
  * award a Wort-Stern, so "Wörter 1" sat on the title screen for ever
  * and half the design was a promise.
  */
-export function inTuer(x: number, y: number): 'mathe' | 'wort' | null {
+export function inTuer(x: number, y: number): 'mathe' | 'wort' | 'formen' | null {
   const tx = Math.floor(x / KACHEL), ty = Math.floor(y / KACHEL);
   if (tx === TUER.tx && ty === TUER.ty) return 'mathe';
   if (tx === TUER_WORT.tx && ty === TUER_WORT.ty) return 'wort';
+  if (tx === TUER_FORMEN.tx && ty === TUER_FORMEN.ty) return 'formen';
   return null;
 }
