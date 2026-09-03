@@ -120,6 +120,17 @@ it.** A risk you have not built is a risk you are still carrying.
   things it must not be are what the suite asserts: not a catalogue, not
   a canvas, not somewhere a child can spend badly.
 
+* **The language house, and the hat.** Das Haus der ersten Laute — the
+  second door, and the first thing in this game that can award a
+  Wort-Stern. Until it existed "Wörter 1" sat on the title screen for
+  ever and the per-subject design had exactly one subject. The word list,
+  the word pictures and the Anlaute/Silben generators came across from
+  LernInseln verbatim; forty-four words recorded.
+
+  And the hat from the cart is now actually on his head. It was drawn on
+  nothing at all, which made the shop's one promise — every effect is
+  visible — false for the single item whose entire point is being seen.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick
@@ -199,7 +210,23 @@ something to answer it with now.
 ten things, come out stronger, watch the bar move — with no combat and
 no fairy, and that is enough to be worth a real playtest.
 
-### 3. A second region
+### 3. A second gate, for the other subject
+
+The Mathe gate proves the mechanism. A second one wanting **Wort 2**
+would prove the point of the design: a child who loves letters and finds
+numbers hard opens a different door from one who is the other way round,
+and neither of them is behind.
+
+Cheap now that both houses exist — a gate, a pocket, and one more entry
+in `karte.tore`.
+
+### 4. More of LernInseln's houses
+
+Still over there and all of them code: the first words, the rhymes, the
+shapes, the patterns, and the two writing houses (which also need the
+tracing surface). Each is a door, a generator and a prompt kind.
+
+### 5. A second region
 
 The gate proves the mechanism on twelve tiles. What it opens onto should
 eventually be somewhere, not a walled garden — and the honest note is

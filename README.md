@@ -141,6 +141,13 @@ ever rises; a wrong answer moves nothing at all; leaving costs nothing.
 It is chased away, never killed, and it leaves a light where it stood —
 so the world gets brighter as you clear them.
 
+There are two houses. One teaches the pairs that make ten and pays
+**Mathe-Sterne**; the other asks which letter a word starts with — a
+picture and a voice, never the written word — and pays **Wort-Sterne**.
+That is the whole reason the stars are per subject: a child who loves
+numbers and finds letters hard is visibly good at something rather than
+behind, and the gates that open are the ones they earned.
+
 A cart beside the path sells four things — a better lantern, fast boots,
 a Mut band, a hat. One screen, nothing to place, and every one is better
 than nothing while none is better than another, so there is no wrong

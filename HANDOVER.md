@@ -150,6 +150,17 @@ taken away and nothing marked.
 And when a pair to ten comes good in **both** directions, that outranks
 the payout and is shown first. That is the thing the whole app is for.
 
+There are **two houses**. The lit door west opens *Das Haus der
+verliebten Zahlen* and pays Mathe-Sterne; the door east opens *Das Haus
+der ersten Laute* and pays Wort-Sterne. The second one is what makes the
+per-subject stars mean anything — before it existed nothing could award
+a Wort-Stern at all.
+
+The language house asks with a PICTURE and a spoken word, never with the
+written word, and the picture is not decoration: rule 15 says the sound
+is switchable off in two taps, and an exercise that stops working when a
+parent uses that switch in a waiting room is a broken exercise.
+
 A **cart** stands beside the path out of the house with four things on
 it. Read `src/ui/laden.ts` before changing it: every rule in there is a
 reaction to the shop that failed the playtest which created this
