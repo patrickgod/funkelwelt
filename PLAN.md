@@ -152,34 +152,35 @@ it.** A risk you have not built is a risk you are still carrying.
   and a five-pointed mark is two pixels, so from where a child actually
   stands the two gates were the same door twice.
 
-* **Das Haus der Formen, and a plaque on every door.** The third door.
-  Shapes and patterns came across from Lernkiste with their generators
-  and their flat drawings; a house may now name several games, so a
-  round alternates find-the-shape and continue-the-row rather than
-  being ten of either.
+* **Das Haus der Rechenmeister, and a plaque on every door.** The third
+  door. It takes Nachbarzahlen and addition — the step up from the
+  pairs that make ten — and stands next to that house on purpose, so
+  the beginner's door and the harder one are neighbours.
 
-  It pays **Mathe-Sterne**, which is the design decision and not a
-  filing one: shapes and patterns are the same strand of the curriculum
-  as counting, so a child who finds adding hard and sees shapes
-  instantly has a second way to earn the star that opens the Zahlen
-  gate. A third currency would have said their strength was a lesser
-  subject.
-
-  Two things were changed on the way over rather than copied. The shape
-  question was spoken and nothing else, which stops being a question the
-  moment a parent uses the sound switch — it is a grey silhouette now,
-  which is also a better exercise, because matching a silhouette to a
-  coloured shape is recognising the form apart from its colour. And the
-  star shape was `glow`, the exact colour of a Mathe-Stern, sitting
-  among the answer cards of a game whose reward is a gold star; it is
-  purple.
+  Four generators had been shipping with no door at all: they sat in
+  GAMES, bundled into every download, unreachable, contradicting the
+  comment at the top of their own file. Two now have doors, two were
+  out of scope and are gone. The check that stops it coming back is
+  structural — every generator in GAMES must be named by some house.
 
   The plaques are the readability half. `haus.png` is one sprite used
-  for all three doors, so finding the shapes house meant walking into
-  two wrong ones and remembering which — a child memorising a map
-  instead of reading one. Each door now has a small coded plaque saying
-  what is done inside: a ten-frame, an ear, a circle and a triangle. No
-  letters on any of them.
+  for every door, so telling the houses apart meant walking into the
+  wrong ones and remembering which. Each door has a small coded plaque
+  saying what is done inside: counting dots, sound coming out, a plus.
+  No letters on any of them. The contact sheet earned its keep the hour
+  it was written — two of the four first drafts were unreadable at the
+  size they are actually seen, and one of them was a brown smudge.
+
+* **The scope, set by Patrick, and enforced.** Maths is verliebte
+  Zahlen, Nachbarzahlen and addition, all at ten or below; German is
+  the syllables. Das Haus der Formen was built and removed inside an
+  hour. Nachbarzahlen came down from twenty, the subtraction came out
+  of the addition house, and the doubles went with their answers of
+  twelve to twenty.
+
+  "Nothing above ten" is a check rather than an intention: every number
+  on the question stage and on every card, including the wrong ones,
+  because a distractor of fourteen teaches that fourteen is plausible.
 
 ## Next, in order
 
@@ -260,19 +261,28 @@ something to answer it with now.
 ten things, come out stronger, watch the bar move — with no combat and
 no fairy, and that is enough to be worth a real playtest.
 
-### 3. More of Lernkiste's houses
+### 3. The rest of Deutsch: Silben lesen and Silben schreiben
 
-Still over there and all of them code: the first words, the rhymes, and
-the two writing houses (which also need the tracing surface). Each is a
-door, a generator and a prompt kind, and a house may now name more than
-one of them.
+The two that Patrick named and that do not exist yet.
 
-The shapes and the patterns have crossed. What that cost, for
-estimating the rest: a morning, of which the generators were twenty
-minutes and the two things that had to be REDESIGNED rather than copied
-were most of the remainder. Assume the same for each of the others —
-none of them arrives unchanged, because Lernkiste answered to a menu
-and this one answers to a world.
+**Silben lesen** is the cheaper one: the word split at the join, shown,
+and the child picks the one they hear — or hears the syllables and picks
+the word. It needs no new surface, only a generator and a prompt kind,
+and the word list with its syllable counts is already here.
+
+**Silben schreiben** needs the tracing surface from Lernkiste
+(`src/games/schrift.ts`, 313 lines) and the writing font that goes with
+it. It is the only prompt in the design with no answer cards at all —
+the answer IS the tracing, and the round moves on when the last stroke
+lands. `types.ts` still carries the `schreiben` prompt kind, waiting.
+
+That is the whole of the ask that is still outstanding.
+
+**Also open, and Patrick's to say:** Das Haus der ersten Laute asks
+which letter a word starts with. It is not on the list of three, and it
+was not asked to be removed either — it is still standing, and it is
+the one place a Wort-Stern comes from, so removing it would leave the
+Wörter gate unopenable until Silben lesen exists.
 
 ### 4. A second region
 

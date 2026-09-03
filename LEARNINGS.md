@@ -455,3 +455,39 @@ round became ten shape questions and a different check caught it. That
 felt like success and was not: the bug I meant to test had never been
 built. **A sabotage has to break exactly one thing**, or what you have
 proved is that the suite notices something, not that it notices this.
+
+## Look at the whole set, not the one you just drew
+
+**Signature:** three door plaques shipped, and only one of them had ever
+been looked at.
+
+Each of the three houses got a small emblem beside its door — a
+ten-frame, an ear, a circle and a triangle. The shapes one was checked
+in a screenshot of the world, read perfectly, and that was taken as
+evidence the approach worked. A fourth was added a day later and a
+contact sheet was finally written for all of them.
+
+Two of the four were unusable at the size they are actually seen. The
+ear was a brown smudge — an ear is all internal detail and sixteen
+pixels has room for none of it. The ten-frame was a white box with two
+specks, because ten cells and a divider do not fit either. Both had
+been in the game, in front of a child's door, saying nothing.
+
+The one that read was the one that had been looked at. That is not a
+coincidence and it is not luck: **the check was applied to the sample,
+not to the population.**
+
+Generalises: `tools/contact.mjs` exists precisely for this and the rule
+is to write the sheet BEFORE drawing the second one of anything. A
+single sprite gets looked at in situ and passes; a set only reveals its
+weak members side by side, at two sizes, on the ground they will stand
+on.
+
+There is a smaller lesson inside it. The fourth plaque first carried a
+plus AND a minus, and the antialiasing filled the notches between the
+arms into a gold diamond. Twenty lines above it, `schild()` already
+carried the same lesson in its own comment — "the first version had a
+little house AND an arrow on a board fifteen pixels wide, and at the
+size it is actually seen the two merged into a smudge." **A lesson
+written down in the file you are editing is not the same as a lesson
+learned**, and the thing that catches it is looking, not remembering.

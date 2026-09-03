@@ -150,42 +150,49 @@ taken away and nothing marked.
 And when a pair to ten comes good in **both** directions, that outranks
 the payout and is shown first. That is the thing the whole app is for.
 
-There are **three houses**. The lit door west opens *Das Haus der
-verliebten Zahlen* and pays Mathe-Sterne; the door in the middle opens
-*Das Haus der ersten Laute* and pays Wort-Sterne; the door east, off the
-north-south path, opens *Das Haus der Formen* and pays Mathe-Sterne
-again. The second one is what makes the per-subject stars mean anything
-— before it existed nothing could award a Wort-Stern at all.
+There are **three houses**, and the scope of what they may teach is set
+and is not yours to widen: **maths is verliebte Zahlen, Nachbarzahlen
+and addition, all at ten or below; German is the syllables.** Patrick
+set that after a fourth house had been built, and it was removed the
+same hour. If a fifth idea seems obviously good, it probably seemed
+obviously good then too — ask him.
 
-The shapes house paying MATHE-Sterne is deliberate and is the sort of
-thing to argue with before changing. Shapes and patterns sit in the same
-strand of the curriculum as counting, so a child who finds adding hard
-and sees shapes instantly has a second road to the star that opens the
-Zahlen gate. Giving them a third currency would have told them that the
-thing they are good at is a different, lesser subject.
+The lit door west opens *Das Haus der verliebten Zahlen* and pays
+Mathe-Sterne. The door in the middle opens *Das Haus der ersten Laute*
+and pays Wort-Sterne. Its neighbour to the north opens *Das Haus der
+Rechenmeister* — Nachbarzahlen and addition — and pays Mathe-Sterne
+again; it is the step up, and it stands beside the beginner's house on
+purpose.
 
-It is also the only house that works with the sound switched off, which
-makes it the one to point a parent at in a waiting room. That is not
-luck — Lernkiste asked its shape question with a voice and an empty
-stage, and it had to be redrawn as a silhouette to survive rule 15.
+Nothing gates the harder door. A child who is not ready walks in, finds
+it hard, and walks out, and neither leaving nor a wrong answer costs
+them anything, which is what makes it safe to leave open.
 
-A house may name SEVERAL generators (`Haus.spiel` takes a list), and the
-shapes house does: find-the-shape, continue-the-row, alternating by
-position. If you add a house like that, read the note on `answerOf` in
+**Nothing above ten**, anywhere: not in the question, not on the right
+card, and not on a wrong one either, because a distractor of fourteen
+teaches a child that fourteen is a plausible answer. It is a check in
+`tools/verify.mjs`, not a convention, because a ceiling is exactly the
+kind of number somebody raises by copying the line above it.
+
+A house may name SEVERAL generators (`Haus.spiel` takes a list) and
+both maths houses do. If you add one, read the note on `answerOf` in
 `src/games/games.ts` first — it falls back to marking the first card
 correct, which is right for a child and very good at hiding this exact
 class of bug from you.
 
-The language house asks with a PICTURE and a spoken word, never with the
-written word, and the picture is not decoration: rule 15 says the sound
-is switchable off in two taps, and an exercise that stops working when a
-parent uses that switch in a waiting room is a broken exercise.
+**Every generator in GAMES must have a door.** Four of them shipped for
+weeks with none: bundled into every download, unreachable, and
+contradicting the comment at the top of their own file. That is a check
+now too.
 
 Each door has a small **plaque** beside it saying what is done inside —
-a ten-frame, an ear, a circle and a triangle, and no letters on any of
-them. They are not decoration: `haus.png` is one generated sprite used
-for all three doors, so without them the only way to find the shapes
-house is to walk into two wrong ones and remember which.
+counting dots, sound coming out, a plus, and no letters on any of them.
+They are not decoration: `haus.png` is one generated sprite used for
+every door, so without them the only way to find the right house is to
+walk into the wrong ones and remember which. Run
+`node tools/contact.mjs tafel` before changing one. Two of the first
+four drafts were unreadable at the size they are actually seen, and
+that sheet is the only reason anybody found out.
 
 A **cart** stands beside the path out of the house with four things on
 it. Read `src/ui/laden.ts` before changing it: every rule in there is a
