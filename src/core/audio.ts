@@ -22,6 +22,7 @@
 // downloaded.
 
 import { get } from './spielstand.js';
+import { t } from './i18n.js';
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -299,6 +300,26 @@ export function say(id: string, text = ''): void {
     // back here would double up with the error handler above, so this
     // deliberately does nothing.
   });
+}
+
+/**
+ * Speak an i18n line.
+ *
+ * The stem is the key with its dots turned to dashes, which is the
+ * convention `tools/genvoice.mjs` writes files under — so a line that is
+ * in the table is a line that has an MP3, and a line that is not cannot
+ * be spoken at all. The German text goes along with it so the
+ * synthesiser fallback has something to say when the file has not been
+ * generated yet, which keeps the rule that matters: a child who cannot
+ * read is never shown an instruction they cannot hear.
+ */
+export function sagen(key: string): void {
+  say(key.replace(/\./g, '-').toLowerCase(), t(key));
+}
+
+/** One of several, at random. See the three praise lines in i18n.ts. */
+export function sagEinesVon(keys: string[]): void {
+  sagen(keys[Math.floor(Math.random() * keys.length)]);
 }
 
 export function stopSaying(): void {

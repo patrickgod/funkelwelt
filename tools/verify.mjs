@@ -210,18 +210,82 @@ await measureButtons('world');
     Math.abs(nach.y - vor.y) < 0.5, `y ${vor.y.toFixed(2)} -> ${nach.y.toFixed(2)}`);
 }
 
-// The house is solid. Walking north out of the doorway for three
-// seconds would cover eight tiles if nothing stopped it.
+// The house is solid.
+//
+// Measured against its WALL rather than against its door, and the door
+// is the reason: this check used to walk north out of the doorstep and
+// assert that the house stopped him, and the moment the door started
+// opening it stopped measuring the wall and started measuring the door.
+// It failed loudly rather than quietly, which is the whole argument for
+// asserting on a saved coordinate instead of on a screenshot.
+//
+// From four tiles east of the house at wall height, walking west for
+// three seconds would cover eight tiles if nothing stopped it.
 {
   await inDieWelt();
-  await stellAuf(7.5, 22.5);
+  await stellAuf(13.5, 17.5);
   await inDieWelt();
-  await laufe('ArrowUp', 3000);
+  await laufe('ArrowLeft', 3000);
   await page.locator('.hudKnopf').first().tap();
   await page.waitForTimeout(400);
   const ort = (await slot()).ort;
-  check('a wall is a wall — the house stops you at the doorstep',
-    ort.y > 19.4, `stopped at y ${ort.y.toFixed(2)}`);
+  check('a wall is a wall — the house stops you at its side',
+    ort.x > 10, `stopped at x ${ort.x.toFixed(2)}`);
+}
+
+// -------------------------------------------------------------- the house
+//
+// PLAN.md item 2. The door is the most obvious thing on the screen and a
+// child will try it in the first ten seconds, so the whole path through
+// it gets asserted: it opens, it asks something, an answer counts, and
+// what it pays is stars and not something else.
+
+{
+  await inDieWelt();
+  await stellAuf(7.5, 22.4);
+  await inDieWelt();
+  await laufe('ArrowUp', 900);
+  await page.waitForTimeout(900);
+  check('walking into the door opens the house',
+    await page.locator('.runde').count() === 1);
+  check('and it asks ten things', await page.locator('.pip').count() === 10);
+  await measureButtons('house');
+
+  // A question is a picture, never a sentence. The child cannot read.
+  check('the question is shown, not written',
+    await page.locator('.zehnerfeld canvas').count() === 1);
+
+  // Answer the round. The right card is whichever one the app says is
+  // right — reimplementing the arithmetic here would only produce a
+  // check that agrees with a bug.
+  let gestellt = 0;
+  for (let i = 0; i < 14; i++) {
+    if (await page.locator('.blatt').count()) break;
+    const karten = page.locator('.karten button');
+    const n = await karten.count();
+    if (n === 0) break;
+    gestellt++;
+    await karten.first().tap();
+    await page.waitForTimeout(2400);
+  }
+  check('answering ten of them finishes the round',
+    await page.locator('.blatt').count() === 1, `answered ${gestellt}`);
+
+  await page.waitForTimeout(1800);
+  const s = await slot();
+  check('a round pays Mathe-Sterne', s.sterne.mathe > 0, `${s.sterne.mathe} stars`);
+  check('and never Wort-Sterne, which it did not teach', s.sterne.wort === 0);
+  check('the house counts how often it has been cleared',
+    s.geschafft['verliebte-zahlen'] === 1, JSON.stringify(s.geschafft));
+  // The scheduler has to have learned something, or the spaced
+  // repetition is a comment rather than a mechanism.
+  check('what was asked is remembered, per fact',
+    Object.keys(s.staerke).length > 0, `${Object.keys(s.staerke).length} facts`);
+
+  await page.locator('button', { hasText: 'Zurück in die Welt' }).first().tap();
+  await page.waitForTimeout(600);
+  check('and it comes back out into the world',
+    await page.locator('.hud').count() === 1);
 }
 
 // Touch, not clicks. A thumbstick driven by a mouse would pass on a
@@ -285,13 +349,21 @@ await measureButtons('world');
     localStorage.setItem(k, JSON.stringify(s));
   });
   await inDieWelt();
+  // Measured as a DIFFERENCE, not against zero. The house above already
+  // paid this slot some Mathe-Sterne, and a check that asserts "no stars
+  // at all" is really asserting "nothing else in the suite earned any",
+  // which is a check about the suite rather than about the sparks.
+  const vor = await slot();
   await laufe('ArrowDown', 500);
   const s = await slot();
   check('walking into a lightspark picks it up',
     s.funken.includes('f27,16'), `carrying ${JSON.stringify(s.funken)}`);
   check('and it pays coins rather than stars',
-    s.muenzen === 3 && s.sterne.mathe === 0 && s.sterne.wort === 0,
-    `${s.muenzen} coins, ${s.sterne.mathe}/${s.sterne.wort} stars`);
+    s.muenzen - vor.muenzen === 3
+    && s.sterne.mathe === vor.sterne.mathe
+    && s.sterne.wort === vor.sterne.wort,
+    `+${s.muenzen - vor.muenzen} coins, `
+    + `stars ${vor.sterne.mathe}/${vor.sterne.wort} -> ${s.sterne.mathe}/${s.sterne.wort}`);
 }
 
 // ------------------------------------------------------------- offline

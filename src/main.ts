@@ -14,6 +14,8 @@ import { held, heldSchatten, HAUT, HAAR, KLEID, W as HW, H as HH,
   type Aussehen, type Richtung } from './spiel/held.js';
 import { Steuerung } from './spiel/steuerung.js';
 import { Welt } from './welt/welt.js';
+import { el, tap, knopf } from './ui/dom.js';
+import * as runde from './ui/runde.js';
 
 const welt = document.getElementById('welt') as HTMLCanvasElement;
 const fxCanvas = document.getElementById('fx') as HTMLCanvasElement;
@@ -22,7 +24,7 @@ const ui = document.getElementById('ui') as HTMLDivElement;
 const ctx = welt.getContext('2d', { willReadFrequently: true })!;
 const fxCtx = fxCanvas.getContext('2d', { willReadFrequently: true })!;
 
-type Schirm = 'titel' | 'editor' | 'welt';
+type Schirm = 'titel' | 'editor' | 'welt' | 'haus';
 let schirm: Schirm = 'titel';
 let zeit = 0;
 let gestartet = 0;
@@ -57,39 +59,12 @@ window.addEventListener('orientationchange', () => setTimeout(groesse, 120));
 
 // ------------------------------------------------------------- helpers
 
-function el<K extends keyof HTMLElementTagNameMap>(
-  tag: K, cls?: string, text?: string,
-): HTMLElementTagNameMap[K] {
-  const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (text !== undefined) e.textContent = text;
-  return e;
-}
+// `el`, `tap` and `knopf` now live in src/ui/dom.ts — the round screen
+// wanted them too, and two copies of `tap` would be two places that
+// decide whether a button reacts on pointerdown or on click.
 
 function leeren(): void {
   ui.replaceChildren();
-}
-
-/**
- * Wire a tap.
- *
- * `pointerdown`, not `click`: a child who is not certain a tap
- * registered taps again, so the sooner the button reacts the fewer
- * double answers. The audio unlock rides along, because iOS only
- * resumes an AudioContext inside a real user gesture.
- */
-function tap(e: HTMLElement, fn: () => void): void {
-  e.addEventListener('pointerdown', (ev) => {
-    ev.preventDefault();
-    audio.unlock();
-    fn();
-  });
-}
-
-function knopf(label: string, fn: () => void, cls = ''): HTMLButtonElement {
-  const b = el('button', cls, label);
-  tap(b, () => { audio.click(); fn(); });
-  return b;
 }
 
 /** A hero sprite as a DOM canvas, at an integer scale. */
@@ -350,8 +325,42 @@ function zeigeWelt(): void {
   // left. #ui is transparent to pointers except where a control is.
   dieSteuerung = new Steuerung(welt);
   dieSteuerung.modus = stand.get().steuerung;
+  dieWelt.anTuer = () => zeigeHaus();
   muenzenGezeigt = -1;
   hudBauen();
+  // Luma says hello once per adventurer, and then never again. She is
+  // the only character in the game who explains anything, so what she
+  // says has to be worth waiting for — and a line repeated on every
+  // entry is a line a child learns to sit through.
+  if (!stand.gehoert('say.willkommen')) {
+    stand.merkeGehoert('say.willkommen');
+    setTimeout(() => audio.sagen('say.willkommen'), 700);
+  }
+}
+
+/**
+ * Inside the house.
+ *
+ * The world is left standing rather than torn down: the region is
+ * already composited, the adventurer is already in the doorway, and
+ * rebuilding all of it to come back out costs 155 ms for nothing. The
+ * frame loop simply stops stepping it, so nothing moves while the child
+ * is answering — including the arrow keys, which would otherwise walk
+ * him about behind the round screen.
+ */
+function zeigeHaus(): void {
+  if (schirm !== 'welt' || !dieWelt) return;
+  schirm = 'haus';
+  dieWelt.ortSichern();
+  leeren();
+  fx.clear();
+  runde.starten(ui, runde.HAUS_VERLIEBTE_ZAHLEN, () => {
+    schirm = 'welt';
+    leeren();
+    fx.clear();
+    muenzenGezeigt = -1;
+    hudBauen();
+  });
 }
 
 /**
@@ -382,6 +391,7 @@ function hudBauen(): void {
 }
 
 function weltVerlassen(): void {
+  runde.beenden();
   if (dieWelt) dieWelt.ortSichern();
   if (dieSteuerung) dieSteuerung.loesen();
   dieWelt = null;

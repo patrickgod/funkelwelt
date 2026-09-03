@@ -1,0 +1,273 @@
+// The task generators — one per house.
+//
+// Lifted from LernInseln (`C:\Development\Lernkiste`), where this is the
+// part of the project that was built, tested and played with a real
+// six-year-old. KONZEPT.md is explicit that Funkelwelt is a new FRAME
+// around the same teaching rather than a new app, and this file is
+// where that promise gets kept: the didactics below are not being
+// re-derived, they are being carried across unchanged.
+//
+// Everything here follows the didactics DESIGN.md set out over there,
+// which are standard and well-evidenced, so we are not inventing our
+// own:
+//
+//   Concrete before abstract. Never show `7 + _ = 10` alone to a child
+//   at this stage. Show a ten-frame with seven cells filled: the gap is
+//   VISIBLE, and the child sees "three missing" before they can
+//   calculate it. The frame fades later.
+//
+//   Both directions. `7 -> 3` and `3 -> 7` are different retrievals to
+//   a beginner even though they are the same fact to us.
+//
+//   The distractors are chosen, not random. A choice that is obviously
+//   wrong teaches nothing; a choice that is off by one teaches the
+//   child to look at the frame rather than to guess.
+//
+// WHAT IS HERE AND WHAT IS NOT
+//
+// The four NUMBER houses, and nothing else. LernInseln also has the
+// letters, the syllables, the first words, the rhymes, the shapes, the
+// patterns and the two writing houses, and every one of them implements
+// the same `Game` interface and will drop in unchanged — but each also
+// drags in its own word list, word pictures, shape drawings or writing
+// font, which together are about forty kilobytes of source for doors
+// that do not exist yet.
+//
+// Funkelwelt has ONE door. Shipping the vocabulary for six more of them
+// to a child's iPad, with nothing calling it and nothing in the suite
+// looking at it, is worse than not shipping it: AGENTS.md's definition
+// of done requires somebody to have LOOKED at a thing, and nobody can
+// look at a house with no door. They come across when their doors do.
+
+import type { Game, Question, Prompt } from './types.js';
+import { staerkeVon } from '../core/spielstand.js';
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+/**
+ * Weighted pick over facts, favouring the shaky ones.
+ *
+ * Spaced repetition on the pairs that are shaky, not uniform random.
+ * 5+5 is learned in a day; 7+3 and 6+4 take weeks. Strength 0 comes up
+ * four times as often as strength 3, which is enough of a tilt to
+ * matter over a fortnight and gentle enough that a round never feels
+ * like it is drilling one thing.
+ */
+export function weightedPick(facts: string[]): string {
+  const weights = facts.map((f) => 4 - staerkeVon(f));
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < facts.length; i++) {
+    r -= weights[i];
+    if (r <= 0) return facts[i];
+  }
+  return facts[facts.length - 1];
+}
+
+/** Three or four numeric cards, one right, the rest plausibly wrong. */
+function numberChoices(correct: number, span: number, count: number, max: number): string[] {
+  const wrong = new Set<number>();
+  // Neighbours first: off-by-one is the mistake a child actually makes,
+  // and a card that is off by one is the card that teaches them to
+  // count the frame instead of guessing.
+  const candidates = [correct - 1, correct + 1, correct - 2, correct + 2, correct + 3, correct - 3];
+  for (const c of candidates) {
+    if (wrong.size >= count - 1) break;
+    if (c === correct || c < 0 || c > max) continue;
+    if (Math.abs(c - correct) > span) continue;
+    wrong.add(c);
+  }
+  while (wrong.size < count - 1) {
+    const c = Math.floor(Math.random() * (max + 1));
+    if (c !== correct) wrong.add(c);
+  }
+  return shuffle([correct, ...wrong]).map(String);
+}
+
+// ------------------------------------------- Haus der verliebten Zahlen
+
+/**
+ * Partners to ten, in both directions.
+ *
+ * The band a pair is in is per-pair and never announced. A child can be
+ * remembering 5+5 while still seeing 7+3, which is exactly how it
+ * really works.
+ */
+export const verliebteZahlen: Game = {
+  id: 'verliebte-zahlen',
+  facts: () => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => `vz:${n}`),
+  next(pick) {
+    const fact = pick(this.facts());
+    const n = Number(fact.slice(3));
+    const partner = 10 - n;
+    const s = staerkeVon(fact);
+
+    // Seeing -> Knowing -> Remembering, per pair. The frame is filled,
+    // then gone.
+    const prompt: Prompt = { kind: 'tenframe', n: s >= 3 ? -1 : n, numeral: true };
+
+    const count = s === 0 ? 3 : 4;
+    return {
+      fact,
+      prompt,
+      choices: numberChoices(partner, 3, count, 10),
+      correct: -1,   // filled in by buildRound
+      showOnMiss: { kind: 'tenframe', n: 10, numeral: false },
+    } as Question;
+  },
+};
+
+// -------------------------------------------- Haus der Nachbarzahlen
+
+export const zahlenreihe: Game = {
+  id: 'zahlenreihe',
+  facts: () => Array.from({ length: 19 }, (_, i) => `zr:${i + 1}`),
+  next(pick) {
+    const fact = pick(this.facts());
+    const missing = Number(fact.slice(3));
+    // A window of five around the gap, clipped to 0..20, gap in the
+    // middle where possible — a gap at the end is a different and
+    // harder task, and this house is not that house.
+    const start = Math.max(0, Math.min(16, missing - 2));
+    const seq: (number | null)[] = [];
+    for (let i = 0; i < 5; i++) seq.push(start + i === missing ? null : start + i);
+    return {
+      fact,
+      prompt: { kind: 'reihe', seq },
+      choices: numberChoices(missing, 3, 4, 20),
+      correct: -1,
+      showOnMiss: { kind: 'reihe', seq: seq.map((v) => (v === null ? missing : v)) },
+    } as Question;
+  },
+};
+
+// -------------------------------------------- Haus der Rechenmeister
+
+export const rechenmeister: Game = {
+  id: 'rechenmeister',
+  facts: () => {
+    const out: string[] = [];
+    for (let a = 0; a <= 10; a++) for (let b = 0; a + b <= 10; b++) out.push(`rm:${a}+${b}`);
+    return out;
+  },
+  next(pick) {
+    const fact = pick(this.facts());
+    const [a, b] = fact.slice(3).split('+').map(Number);
+    // Some questions run backwards, because a child who can do 6+3 and
+    // cannot do 9-3 has learned a procedure, not a fact.
+    const minus = Math.random() < 0.4;
+    const prompt: Prompt = minus
+      ? { kind: 'rechnung', a: a + b, b, op: '-' }
+      : { kind: 'rechnung', a, b, op: '+' };
+    const answer = minus ? a : a + b;
+    return {
+      fact,
+      prompt,
+      choices: numberChoices(answer, 3, 4, 10),
+      correct: -1,
+      showOnMiss: { kind: 'tenframe', n: answer, numeral: true },
+    } as Question;
+  },
+};
+
+// ------------------------------------------------- Haus der Zwillinge
+
+export const zwillinge: Game = {
+  id: 'zwillinge',
+  facts: () => Array.from({ length: 11 }, (_, i) => `zw:${i}`),
+  next(pick) {
+    const fact = pick(this.facts());
+    const n = Number(fact.slice(3));
+    return {
+      fact,
+      prompt: { kind: 'doppel', n },
+      choices: numberChoices(n * 2, 4, 4, 20),
+      correct: -1,
+      showOnMiss: { kind: 'doppel', n },
+    } as Question;
+  },
+};
+
+// ---------------------------------------------------------------- glue
+
+/**
+ * The correct index, resolved once here rather than in every generator.
+ *
+ * The generators above build their choices with `shuffle`, so none of
+ * them KNOWS where the right card ended up; asking each of them to
+ * track it was four chances to get it wrong. Instead each one states
+ * the answer as a value, and this finds it.
+ */
+export function answerOf(gameId: string, q: Question): number {
+  const want = expectedAnswer(gameId, q);
+  const i = q.choices.indexOf(want);
+  return i >= 0 ? i : 0;
+}
+
+function expectedAnswer(gameId: string, q: Question): string {
+  switch (gameId) {
+    case 'verliebte-zahlen':
+      return String(10 - Number(q.fact.slice(3)));
+    case 'zahlenreihe':
+      return q.fact.slice(3);
+    case 'rechenmeister': {
+      const p = q.prompt as Extract<Prompt, { kind: 'rechnung' }>;
+      return String(p.op === '+' ? p.a + p.b : p.a - p.b);
+    }
+    case 'zwillinge':
+      return String(Number(q.fact.slice(3)) * 2);
+    default:
+      return q.choices[0];
+  }
+}
+
+export const GAMES: Record<string, Game> = {
+  'verliebte-zahlen': verliebteZahlen,
+  'zahlenreihe': zahlenreihe,
+  'rechenmeister': rechenmeister,
+  'zwillinge': zwillinge,
+};
+
+/** How many questions a round of this house has. About three minutes. */
+export function rundenLaenge(_gameId: string): number {
+  return 10;
+}
+
+/** Build a whole round: ten questions, no fact twice in a row. */
+export function buildRound(gameId: string, n = 10): Question[] {
+  const g = GAMES[gameId];
+  const out: Question[] = [];
+  let last = '';
+  let guard = 0;
+  while (out.length < n && guard++ < n * 20) {
+    const q = g.next(weightedPick);
+    if (q.fact === last) continue;
+    q.correct = answerOf(gameId, q);
+    out.push(q);
+    last = q.fact;
+  }
+  return out;
+}
+
+/**
+ * Which pairs to ten are known in BOTH directions.
+ *
+ * The one measurement in the whole app that is about the child rather
+ * than about the game, and the reason the fact ids are per-number
+ * rather than per-pair: a child who can do 7 -> 3 and freezes on
+ * 3 -> 7 has not learned the pair, and this is what notices.
+ */
+export function bekanntePaare(): number[] {
+  const out: number[] = [];
+  for (let n = 0; n <= 5; n++) {
+    if (staerkeVon(`vz:${n}`) >= 3 && staerkeVon(`vz:${10 - n}`) >= 3) out.push(n);
+  }
+  return out;
+}

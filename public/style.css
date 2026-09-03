@@ -23,6 +23,11 @@
   --blau: #4a6b8f;
   --rot: #c93a44;
   --rosa: #dc93b3;
+  /* The learning colour, used for nothing else, so that "this is the
+     maths" is a colour the eye learns within a session. */
+  --kreide: #3f5c85;
+  --kreide-hell: #8fb0d1;
+  --kreide-blass: #c9dcec;
 
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
@@ -324,6 +329,270 @@ button.gewaehlt:not(.probe) {
 
 /* The settings, over the world rather than instead of it. */
 .bildschirm.dunkel { background: rgba(26, 22, 34, 0.93); }
+
+/* ------------------------------------------------------------ a round */
+
+/* Inside the house.
+ *
+ * Warm plaster rather than LernInseln's sky, because the fiction here is
+ * that this is one of the few places where the lights are still on. The
+ * world outside is dim; walking through a lit door and finding it warm
+ * in here is the same argument the lantern makes, in a room. */
+.runde {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(180deg, #eddfc0 0%, #d6c4a0 100%);
+  padding: calc(var(--safe-t) + 8px) calc(var(--safe-r) + 12px)
+           calc(var(--safe-b) + 12px) calc(var(--safe-l) + 12px);
+}
+
+.runde .oben {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 76px;
+  flex: 0 0 auto;
+}
+
+/* Progress is ten pips, not "3 / 10". A child who cannot read a
+   fraction can count beads, and the beads say the same thing. */
+.pips { display: flex; gap: 6px; flex: 1; justify-content: center; }
+
+.pip {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid var(--ink);
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.pip.fertig { background: var(--gold); }
+.pip.jetzt { background: var(--hell); transform: scale(1.25); }
+
+.beutel-q { display: flex; gap: 10px; }
+
+.muenzchen {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px 6px 8px;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  background: var(--nacht);
+  color: var(--gold);
+  font-size: 24px;
+  min-height: 52px;
+}
+
+.muenzchen.gross { font-size: 34px; min-height: 62px; padding: 8px 22px 8px 10px; }
+.muenzchen canvas { image-rendering: pixelated; display: block; }
+
+.buehne-q {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 0;
+}
+
+.frage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.zahl-gross {
+  font-size: clamp(64px, 13vh, 130px);
+  line-height: 1;
+  color: var(--kreide);
+  text-shadow: 0 5px 0 rgba(36, 29, 43, 0.18);
+}
+
+.rechnung {
+  font-size: clamp(44px, 9vh, 96px);
+  line-height: 1;
+  color: var(--kreide);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.zahlenreihe { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+
+.zahlenreihe span {
+  min-width: 66px;
+  padding: 8px 6px;
+  text-align: center;
+  font-size: clamp(28px, 5vh, 46px);
+  background: var(--hell);
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  color: var(--kreide);
+}
+
+.zahlenreihe span.luecke { background: var(--kreide-blass); color: var(--kreide-hell); }
+
+.zehnerfeld canvas { image-rendering: pixelated; display: block; }
+.doppelfeld { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+
+/* Answer cards live in the lower two-thirds and never in the top
+   corners: a child holds a tablet at the sides, with thumbs low. */
+.karten {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding-bottom: 6px;
+}
+
+.karten button {
+  width: clamp(104px, 16vw, 160px);
+  height: clamp(104px, 16vh, 160px);
+  font-size: clamp(44px, 8vh, 76px);
+  border-radius: 26px;
+  color: var(--kreide);
+  padding: 0;
+}
+
+.karten button.richtig { background: var(--gruen); color: var(--hell); }
+
+/* A miss does not go red. The card lifts back to where it came from and
+   the ten-frame shows what that choice WOULD have made. AGENTS.md rule
+   11: damage goes one way, and a red card is damage. */
+.karten button.daneben { animation: stupsen 340ms ease; opacity: 0.5; }
+
+@keyframes stupsen {
+  0%   { transform: translateY(0); }
+  35%  { transform: translateY(10px) scale(0.96); }
+  100% { transform: translateY(0); }
+}
+
+/* Cards arrive rather than appear: a short stagger down the row, so the
+   eye is led along them instead of being handed four at once. */
+@keyframes karte-rein {
+  from { transform: translateY(26px) scale(0.9); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.karten button { animation: karte-rein 260ms ease-out both; }
+.karten button:nth-child(1) { animation-delay: 0ms; }
+.karten button:nth-child(2) { animation-delay: 45ms; }
+.karten button:nth-child(3) { animation-delay: 90ms; }
+.karten button:nth-child(4) { animation-delay: 135ms; }
+
+@keyframes karte-pop {
+  0%   { transform: scale(1); }
+  22%  { transform: scale(0.92) translateY(4px); }
+  55%  { transform: scale(1.12) translateY(-6px); }
+  100% { transform: scale(1) translateY(0); }
+}
+
+.karten button.richtig { animation: karte-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+@keyframes frage-rein {
+  from { transform: translateY(-18px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+.runde .frage > * { animation: frage-rein 300ms ease-out both; }
+
+@keyframes pip-fuellen {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.5); }
+  100% { transform: scale(1); }
+}
+
+.pip.eben { animation: pip-fuellen 320ms ease-out; }
+
+/* ------------------------------------------------------- the payout */
+
+.blatt {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: rgba(26, 22, 34, 0.9);
+  padding: calc(var(--safe-t) + 16px) 16px calc(var(--safe-b) + 16px);
+}
+
+.blatt h2 {
+  margin: 0;
+  font-size: clamp(30px, 6vw, 54px);
+  color: var(--gold);
+  text-shadow: 0 4px 0 var(--ink);
+  text-align: center;
+}
+
+.blatt .wo {
+  margin: -8px 0 0;
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--creme);
+  opacity: 0.7;
+}
+
+.kasse, .lohn { display: flex; gap: 20px; }
+.lohn { animation: karte-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+@keyframes stups {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+.muenzchen.stups { animation: stups 220ms ease-out; }
+
+/* The level bar. The RPG half of the promise: getting stronger happens
+   TO you, and it happens where you can see it. Sterne only ever go up,
+   so this bar has no reverse and never needs one. */
+.stufe { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+
+.stufe-name {
+  font-size: 24px;
+  color: var(--creme);
+  letter-spacing: 0.04em;
+}
+
+.balken {
+  width: min(70vw, 420px);
+  height: 26px;
+  border: 3px solid var(--ink);
+  border-radius: 13px;
+  background: var(--tief);
+  overflow: hidden;
+}
+
+.fuellung {
+  height: 100%;
+  background: var(--gold);
+  transition: width 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* When the level goes up the bar fills to the end, and then the new one
+   starts from empty — so the reset is not an animation the eye can read
+   as losing something. */
+.fuellung.sofort { transition: none; }
+
+.stufe.neu .stufe-name {
+  color: var(--gold);
+  text-shadow: 0 0 18px rgba(232, 180, 71, 0.6);
+}
+
+.runde, .blatt { animation: schirm-rein 180ms ease-out both; }
+
+@keyframes schirm-rein {
+  from { opacity: 0; transform: scale(0.985); }
+  to   { opacity: 1; transform: scale(1); }
+}
 
 .namensfeld {
   font: inherit;

@@ -48,6 +48,15 @@ const DE = {
   'welt.brauchtStufe': 'Ab Stufe {n} in {fach}',
   'welt.muenzen': 'Münzen',
 
+  // ------------------------------------------------------- the houses
+  'haus.verliebteZahlen': 'Das Haus der verliebten Zahlen',
+
+  // -------------------------------------------------------- a round
+  'runde.raus': 'Zurück',
+  'runde.fertig': 'Geschafft!',
+  'runde.nochmal': 'Noch mal',
+  'runde.inDieWelt': 'Zurück in die Welt',
+
   // The steering is a QUESTION, not a preference: nobody knows which of
   // these a six-year-old gets on with, so both are built and the switch
   // is two taps away. See src/spiel/steuerung.ts.
@@ -73,7 +82,25 @@ const DE = {
     'Da bist du ja! Ich bin Luma. Die Welt ist dunkel geworden, und du bist die Erste seit langem, die eine Laterne trägt.',
   'say.erstesHaus':
     'Siehst du das Haus dort drüben? Da drinnen wohnen die verliebten Zahlen. Geh ruhig hinein.',
+  'say.imHaus':
+    'Hier wohnen die verliebten Zahlen. Zwei, die zusammen zehn ergeben, gehören für immer zusammen.',
   'say.geschafft': 'Schau nur! Es wird heller.',
+
+  // Three of each, because a child hears these dozens of times and the
+  // same sentence every single time stops being praise and becomes a
+  // noise the app makes.
+  'say.gutGemacht1': 'Das hast du gut gemacht.',
+  'say.gutGemacht2': 'Schau mal, wie viele du geschafft hast.',
+  'say.gutGemacht3': 'Prima. Die Zahlen mögen dich.',
+
+  // What is said after a miss. Not one of these is a correction, and
+  // none of them says wrong: the ten-frame is already showing what the
+  // answer was, and a voice saying it again would be a grown-up
+  // pointing at it. AGENTS.md rule 10.
+  'say.schauMal1': 'Schau mal, so sieht es aus.',
+  'say.schauMal2': 'Fast. Sieh dir das Feld an.',
+  'say.schauMal3': 'Das merkst du dir beim nächsten Mal.',
+
   'say.neueStufe': 'Du bist stärker geworden. Jetzt kommst du weiter als vorher.',
   'say.nochZu': 'Da hinten ist es noch zu dunkel. Werde erst ein bisschen stärker.',
   'say.schatten': 'Ein Schatten! Keine Sorge — er tut dir nichts. Zeig ihm, was du kannst.',

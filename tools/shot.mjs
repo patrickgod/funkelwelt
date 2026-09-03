@@ -120,10 +120,45 @@ if (want('welt-einstellungen')) {
   await page.waitForTimeout(300);
 }
 
+// Into the house. Walking north out of the doorstep goes through the
+// door, which is how a child gets in as well.
+if (want('haus') || want('haus-blatt')) {
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.ort = { x: 7.5, y: 22.4 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await page.reload();
+  await page.waitForTimeout(800);
+  await page.locator('.platz').first().tap();
+  await page.waitForTimeout(1200);
+  await page.keyboard.down('ArrowUp');
+  await page.waitForTimeout(900);
+  await page.keyboard.up('ArrowUp');
+  await page.waitForTimeout(900);
+  if (want('haus')) await shot('haus');
+
+  // Answer the whole round, so the payout sheet can be seen. The right
+  // card is whichever one the app itself says is right — the shot tool
+  // must not reimplement the arithmetic, or it will agree with a bug.
+  if (want('haus-blatt')) {
+    for (let i = 0; i < 12; i++) {
+      const n = await page.locator('.karten button').count();
+      if (n === 0) break;
+      await page.locator('.karten button').first().tap();
+      await page.waitForTimeout(2300);
+      if (await page.locator('.blatt').count()) break;
+    }
+    await page.waitForTimeout(1600);
+    await shot('haus-blatt');
+  }
+}
+
 // And a slot with somebody in it.
 if (want('titel-belegt')) {
-  await page.locator('.hudKnopf').first().tap();
-  await page.waitForTimeout(700);
+  await page.goto(`http://localhost:${PORT}/`);
+  await page.waitForTimeout(800);
   await shot('titel-belegt');
 }
 

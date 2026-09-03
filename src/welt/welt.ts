@@ -157,6 +157,16 @@ export class Welt {
   /** So the door reacts once per visit rather than sixty times a second. */
   private inTuer = false;
 
+  /**
+   * What happens when the adventurer steps into the doorway.
+   *
+   * Set by main.ts, because the world knows where the door is and has
+   * no business knowing what is behind it. Left unset the door still
+   * answers — a chime and a burst of sparks — because a child who walks
+   * into a door and gets nothing at all decides the door is scenery.
+   */
+  anTuer: (() => void) | null = null;
+
   constructor(aussehen: Aussehen) {
     this.aussehen = aussehen;
     this.scheibeHeld = [scheibe(LICHT_HELD), scheibe(LICHT_HELD_WEIT)];
@@ -438,6 +448,10 @@ export class Welt {
     fx.burst('funke', sx, sy, { n: 16, speed: 130, up: 0.9, life: 0.8 });
     audio.thunk();
     audio.sparkle(3);
+    // The sparks first, then the house. Going straight in swallows the
+    // reaction to the tap, and the half second is what makes stepping
+    // through a door feel like stepping through a door.
+    if (this.anTuer) setTimeout(this.anTuer, 480);
   }
 
   private aufSchirm(x: number, y: number): [number, number] {
