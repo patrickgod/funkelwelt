@@ -189,6 +189,27 @@ Generalises: **when a feature lands, re-read the checks that touch the
 same square metre of the game.** One of them is probably now testing
 something else.
 
+## Three hard-coded numbers that were all the same mistake
+
+**Signature:** a check that fails, and the code is right.
+
+"Three of the four things are too dear at 21 coins" — I had done the
+arithmetic in my head, written `=== 3`, and got 2. The shop was correct;
+the assertion was a copy of my own mental sum.
+
+It reads the prices off the screen now and counts the ones above the
+purse, which is a statement about the RELATIONSHIP rather than about
+this particular price list, and it survives the next price change.
+
+That is the third variant of one mistake in this project — `=== 0` for
+"unchanged", `>= 0` for "there is something there", `=== 3` for "the
+ones above the purse". Every one of them replaced a relationship with a
+constant that happened to be true when it was written.
+
+Generalises: **if an assertion contains a number you worked out
+yourself, the check is testing your arithmetic.** Derive it from the
+same thing the code derives it from.
+
 ## A penalty check that ran where the penalty could not bite
 
 **Signature:** the most important assertion in the project, passing

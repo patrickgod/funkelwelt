@@ -110,6 +110,16 @@ it.** A risk you have not built is a risk you are still carrying.
   This is the moment the per-subject stars pay off, so both directions
   are asserted: it must not open early and must not stay shut late.
 
+* **The cart.** Four things beside the path out of the house — a better
+  lantern, fast boots, a Mut band, a hat. One screen, no scrolling, no
+  categories, nothing to place. Every one is better than nothing and
+  none is better than another, so there is no wrong purchase; and every
+  effect is visible in the world rather than being a number.
+
+  The direct answer to the playtest that started this project, and the
+  things it must not be are what the suite asserts: not a catalogue, not
+  a canvas, not somewhere a child can spend badly.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick
@@ -189,14 +199,7 @@ something to answer it with now.
 ten things, come out stronger, watch the bar move — with no combat and
 no fairy, and that is enough to be worth a real playtest.
 
-### 3. The shop
-
-* Three or four things at a time. Cloak, boots, lantern, Mut capacity.
-* Everything available to every character.
-* **Not a canvas.** The lesson from the playtest that started this
-  project.
-
-### 4. A second region
+### 3. A second region
 
 The gate proves the mechanism on twelve tiles. What it opens onto should
 eventually be somewhere, not a walled garden — and the honest note is

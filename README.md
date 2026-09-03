@@ -141,6 +141,13 @@ ever rises; a wrong answer moves nothing at all; leaving costs nothing.
 It is chased away, never killed, and it leaves a light where it stood —
 so the world gets brighter as you clear them.
 
+A cart beside the path sells four things — a better lantern, fast boots,
+a Mut band, a hat. One screen, nothing to place, and every one is better
+than nothing while none is better than another, so there is no wrong
+purchase. That is the direct answer to the shop that failed the playtest
+which created this project: it had twenty-seven things and a blank
+meadow to arrange them in.
+
 A gate in the cliffs wants three stars in **Zahlen** before it opens.
 It shows what it wants as three stars rather than as a number, because
 the child cannot read one — and when they have earned it, the stars

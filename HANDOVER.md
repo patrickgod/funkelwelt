@@ -150,6 +150,13 @@ taken away and nothing marked.
 And when a pair to ten comes good in **both** directions, that outranks
 the payout and is shown first. That is the thing the whole app is for.
 
+A **cart** stands beside the path out of the house with four things on
+it. Read `src/ui/laden.ts` before changing it: every rule in there is a
+reaction to the shop that failed the playtest which created this
+project, and the important one is that a child cannot spend badly. Four
+things, one screen, nothing placed, and every effect visible in the
+world rather than as a number.
+
 A **gate** in the north-east cliff wants Mathe level 3, and behind it is
 a pocket that is sealed on every other side. It shows what it wants as
 three stars rather than as a number — rule 14 — and they light when it
