@@ -349,6 +349,10 @@ it should start before somebody has played this one.
 
 ## Things worth knowing before you start
 
+* **`npm run verify -- --zeiten`** prints the ten slowest stretches of
+  the suite. Use it before trying to speed anything up — two attempts
+  were made by eye first, one of which was a regression that only the
+  report caught.
 * `LEARNINGS.md` in `C:\Development\Lernkiste` is a list of mistakes
   that have already been paid for. Reading it is fifteen minutes and
   will save more.

@@ -383,6 +383,18 @@ it.** A risk you have not built is a risk you are still carrying.
   the one thing that is not a building, and names which world it is a
   map of.
 
+* **The deploy: eighteen minutes to six and a half.** `npm ci` was seven
+  minutes for five packages — a postinstall, not a download, since the
+  same command takes two seconds locally. `--ignore-scripts` took it to
+  one second; the one browser this project uses has its own step.
+
+  The suite went from about 550 seconds to 323, and it took two wrong
+  guesses first. Building the instrument — `npm run verify -- --zeiten`
+  prints the ten slowest stretches — took one run to show that the five
+  blocks which play a whole round were thirty-seven per cent of it, and
+  then immediately caught one of my fixes making the syllable house
+  SLOWER.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick
