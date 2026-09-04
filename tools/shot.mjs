@@ -268,6 +268,41 @@ if (want('auswahl')) {
   }
 }
 
+// The three strikes: two used, and a card mid-flash.
+if (want('strikes')) {
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.ort = { x: 7.5, y: 22.4 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await page.reload();
+  await page.waitForTimeout(800);
+  await starten();
+  await page.locator('.platz').first().tap();
+  await page.waitForTimeout(2400);
+  await lumaWeg();
+  const p = await page.evaluate(() => window.weltOrt?.(7 * 16 + 8, 20 * 16 + 8) ?? null);
+  if (p) {
+    await page.mouse.click(p[0], p[1]);
+    await page.waitForTimeout(2600);
+    await lumaWeg();
+    // Two wrong answers, then a third tapped and caught mid-flash.
+    for (let i = 0; i < 3; i++) {
+      const zahl = await page.locator('.frage[data-zahl]').first()
+        .getAttribute('data-zahl').catch(() => null);
+      const karten = page.locator('.karten button');
+      const labels = await karten.evaluateAll(
+        (els) => els.map((e) => (e.textContent ?? '').trim()));
+      const idx = labels.findIndex((l) => l !== String(10 - Number(zahl)));
+      if (idx < 0) break;
+      await karten.nth(idx).tap();
+      if (i === 1) { await page.waitForTimeout(130); await shot('strikes'); }
+      await page.waitForTimeout(900);
+    }
+  }
+}
+
 // The cart, with coins for two of the four things on it.
 if (want('laden')) {
   await page.evaluate(() => {

@@ -192,6 +192,16 @@ anybody found out.
 The same goes for `node tools/contact.mjs fahrzeuge`. Three of those
 five first drafts failed too.
 
+**A wrong answer is a retry, not an ending.** In the houses the card
+flashes red, the answer is NOT revealed, and the same question stays;
+three wrong answers restart the house. Read the amended rule 11 in
+AGENTS.md before touching any of it — it says exactly which half
+changed and which half must not, and the half that must not is the one
+an RPG framing keeps trying to undo.
+
+Nothing changed in a shadow encounter. Mut only ever fills, a wrong
+answer moves nothing at all, and leaving takes nothing.
+
 **A shadow asks whatever the meadow teaches.** The prompt renderer
 lives in `src/ui/frage.ts` and every screen that asks a question uses
 it. It used to live inside the round screen, which is why the encounter

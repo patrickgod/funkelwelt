@@ -278,6 +278,23 @@ it.** A risk you have not built is a risk you are still carrying.
   waits, deliberately unlike the filled pool of light the game uses when
   IT is asking for something.
 
+* **Three strikes, and the answer is never given away.** A wrong answer
+  flashes the card red, the card comes back, and the question is still
+  the question — `showOnMiss` is gone from the houses. Three wrong
+  answers and the house starts again, with Luma saying so.
+
+  AGENTS.md rule 11 was rewritten rather than quietly ignored: no
+  health, no coins taken, no stars taken, and nothing lost in a shadow
+  encounter. The strikes are gold circles rather than red hearts and
+  are on screen from the FIRST question, so the third is something a
+  child watched coming rather than something that happened to them.
+
+  Every wrong answer is a strike, including a second wrong answer at the
+  same question — the first version counted only the first attempt, which
+  let a child guess through the cards one at a time at no cost. The
+  scheduler is still told only about the first attempt, because a child
+  who gets it on the third go has not learned it three times worse.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick
@@ -358,34 +375,7 @@ Still open, and still the questions the world was built early to answer:
 * **Does Luma get in the way?** Three misses is a number nobody has
   tested.
 
-### 3. Three strikes, and never show the answer
-
-Patrick: *"wenn etwas falsch ist, sollten wir nicht die richtige lösung
-verraten. einfach kurz rot aufleuchten und nochmal probieren lassen.
-erst bei 3 'strikes' beginnt das haus von vorne."*
-
-This reverses two things that are currently written down as rules, so
-they should be reversed deliberately rather than quietly:
-
-* `showOnMiss` exists on every question and draws the correct answer as
-  a picture. It goes.
-* AGENTS.md rule 11 says damage goes one way and a red card is damage;
-  `style.css` says in as many words that a miss does not go red. Both
-  change.
-
-**The concern, stated once and then dropped:** the reason for those
-rules was that a child who is wrong should not be punished for it, and
-three strikes restarting the house is a real cost. What makes it
-reasonable is the retry — a wrong answer is no longer an ending, it is
-"try again", which most children read as friendlier than being shown the
-answer and moved on. That is Patrick's call and it is a defensible one.
-
-Worth keeping while implementing: the flash should be SHORT and the
-retry immediate, the three strikes should be visible as they accumulate
-(so restarting is never a surprise), and Luma's after-three-misses help
-should probably become the third strike rather than sit alongside it.
-
-### 4. The cart: more things, fewer coins
+### 3. The cart: more things, fewer coins
 
 Patrick: *"es braucht aber mehr items und weniger münzen beim spielen,
 sonst sind alle items recht schnell freigeschaltet/gekauft."*
@@ -400,7 +390,7 @@ no wrong purchase. That gets harder with more items, not easier — a
 long list is the shop that failed the playtest this project came from.
 Eight to ten is probably the ceiling.
 
-### 5. Say when a gate opens
+### 4. Say when a gate opens
 
 Patrick: *"wir sollten auch erklären wann sich ein tor öffnet. die idee
 des nötigen levels um tore öffnen zu können finde ich super."*
@@ -410,13 +400,13 @@ What is missing is the connection: a child at a shut gate does not know
 that the stars come from the houses. Luma is the explainer, and this is
 exactly her job — once, at the first gate, in a sentence.
 
-### 6. How you get to the next world
+### 5. How you get to the next world
 
 **You do not. It does not exist yet.** Asked and answered: the second
 region is Deutsch and it is item 8. Until it is built there is one
 world, and the waypoints have nothing to connect.
 
-### 7. The thing the design has not answered: coming back
+### 6. The thing the design has not answered: coming back
 
 Patrick: *"Wir müssen im Konzept halt einen Weg finden wie man immer
 wieder dieselben Themen übt und z.B. die verliebten Zahlen nicht enden
@@ -443,7 +433,7 @@ and **none should be built before Patrick picks one**:
   "come back when you are stronger" building, and `buildRound` already
   takes as many generators as you give it.
 
-### 8. The second world: Deutsch
+### 7. The second world: Deutsch
 
 Patrick: *"und dann in der nächsten welt die silben? lesen und
 schreiben, und kombinationen wie Lea, lulu, Mama, Oma, etc. aber eben
@@ -469,12 +459,12 @@ carries the `schreiben` kind, waiting.
 unreferenced, along with `woerter()` in `tools/genvoice.mjs`. One line
 brings the recordings back.
 
-### 9. Waypoints
+### 8. Waypoints
 
 Patrick's, and now they have a job: two worlds means walking between
 them. Build them when the second world exists and not before.
 
-### 10. Anything else about a second region
+### 9. Anything else about a second region
 
 The gate proves the mechanism on twelve tiles. What it opens onto should
 eventually be somewhere, not a walled garden — and the honest note is
