@@ -215,6 +215,11 @@ anybody found out.
 The same goes for `node tools/contact.mjs fahrzeuge`. Three of those
 five first drafts failed too.
 
+**A gate wants the subject of the world it stands in**, and a house can
+say `nurHaus` to keep the shadows out of it — the writing exercise has
+no answer cards, and a shadow encounter has a creature, a courage bar
+and some cards, with nowhere to put a writing surface.
+
 **Luma asks before anything happens.** A house, the cart, a shadow and
 the waypoint all confirm first, with a big yes and a big no — see
 `fragen()` in `main.ts`. Tapping a thing to choose it fixed accidental

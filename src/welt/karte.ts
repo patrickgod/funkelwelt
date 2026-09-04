@@ -263,32 +263,32 @@ const UFER: readonly string[] = [
   '##......T.T.T.T.T.T.T.T.T.T.T.T.T.T.T.T.T.T...##',
   '##..F....T..T..TT.T..T..T..T..T..o..T..T..T...##',
   '##..........................T.................##',
-  '##....Z.............T...............T......F..##',
+  '##....Z...S.........T...............T......F..##',
   '##.......t..............T.....................##',
   '##....=........o................T.....TTTTTTT.##',
   '##....=...............................TTTTTTT.##',
   '##...*=...PPPPP.......QQQQQ....F........T.T.T.##',
   '##....=...PPPPP.......QQQQQ...................##',
-  '##....=,..PPPPP.......QQQQQ.......t...........##',
+  '##....=,..PPPPP.......QQQQQ...S...t...........##',
   '##....=.."PPPPP....F..QQQQQ...................##',
   '##....=...PPPPP.......QQQQQ.................T.##',
   '##....=.....p.5.........q.6.."................##',
   '##...*=.....=...........=.....................##',
-  '##....=..o..=.....t.....=..o..................##',
+  '##....=..o..=.....t.....=..o.............S....##',
   '##....=.....=...........=.................T...##',
   '##....=.,...=.*.......*.=,*.*.................##',
   '##....=========================,.....F........##',
   '##...........,..."......F.....=...............##',
   '##..."............ssssssssssssbssss.....t.....##',
   '##................s~~~~~~~~~~~b~~~s...........##',
-  '##.........t...ssss~~~~~~~~~~~b~~~ssss........##',
-  '##.............s~~~~~~~~~~~~~~~~~~~~~s........##',
-  '##.............s~~~~~~~~~~~~~~~~~~~~~s........##',
-  '##.............s~~~~~~~~~~~~~~~~~~~~~s........##',
-  '##......t......s~~~~~~~~~~~~~~~~~~~~~so.......##',
-  '##............Fs~~~~~~~~~~~~~~~~~~~~~s........##',
-  '##...F.........s~~~~~~~~~~~~~~~~~~~~~s........##',
-  '##.............s~~~~~~~~~~~~~~~~~~~~~s........##',
+  '##.......S.t...ssss~~~~~~~~~~~b~~~ssss........##',
+  '##.............s~~~~~~~~~~~~~~~~~~~~~s##########',
+  '##.............s~~~~~~~~~~~~~~~~~~~~~s#.......##',
+  '##.............s~~~~~~~~~~~~~~~~~~~~~sg..F....##',
+  '##......t......s~~~~~~~~~~~~~~~~~~~~~sg...*...##',
+  '##............Fs~~~~~~~~~~~~~~~~~~~~~sg.S...F.##',
+  '##...F.S.......s~~~~~~~~~~~~~~~~~~~~~s#.......##',
+  '##.............s~~~~~~~~~~~~~~~~~~~~~s##########',
   '##........sssssssssssssssssssssssssssssssss...##',
   '##...................t.............t..........##',
   '################################################',
@@ -427,23 +427,35 @@ function bauen(): void {
           //
           // Every tile of the run reports to the leftmost one's id, so
           // opening the gate opens the whole opening.
-          torTeil.set(y * KW + x, `${r}:g${zeichen(x - 1, y) === c ? x - 1 : x},${y}`);
-          if (zeichen(x - 1, y) === c) break;
-          tore.push({
-            id: `${r}:g${x},${y}`, tx: x, ty: y,
-            mitte: x * KACHEL + 8, fuss: (y + 1) * KACHEL,
-            // Both gates are maths now, at different heights. The
-            // second used to want Wörter 2, which stopped being
-            // openable the moment Deutsch moved to its own world — a
-            // permanently locked door with two lightsparks behind it.
-            fach: 'mathe',
-            // One level past the near gate, not six. Levels go as the
-            // square root of the stars — level 3 is 32 stars and level
-            // 6 is two hundred — so a far gate at 6 would have been
-            // sixty-odd rounds away in a region you can cross in a
-            // minute. Four is a thing to come back for; six was a wall.
-            stufe: c === 'g' ? 4 : 3,
-          });
+          // One Tor per RUN of gate tiles, in either direction.
+          //
+          // The meadow's gates are horizontal and the shore's is
+          // vertical — it is a hole in the west wall of a pocket — so
+          // "the tile to the left" is not enough to find the run a tile
+          // belongs to. Rows are scanned top to bottom and left to
+          // right, so the neighbour above and the neighbour left have
+          // both been decided by the time this runs.
+          {
+            const links = torTeil.get(y * KW + (x - 1));
+            const oben = torTeil.get((y - 1) * KW + x);
+            const teilVon = (zeichen(x - 1, y) === c ? links : undefined)
+              ?? (zeichen(x, y - 1) === c ? oben : undefined);
+            const id = teilVon ?? `${r}:g${x},${y}`;
+            torTeil.set(y * KW + x, id);
+            if (teilVon) break;
+            tore.push({
+              id, tx: x, ty: y,
+              mitte: x * KACHEL + 8, fuss: (y + 1) * KACHEL,
+              // A gate wants the subject of the WORLD it stands in.
+              //
+              // Nothing else makes sense once there are two: a gate on
+              // the German shore wanting Mathe-Sterne would send a child
+              // back across the waypoint to earn them, which is a fetch
+              // quest rather than a lesson.
+              fach: REGION === 'ufer' ? 'wort' : 'mathe',
+              stufe: c === 'g' ? 4 : 3,
+            });
+          }
           break;
         case 'D':
           TUER = { tx: x, ty: y };

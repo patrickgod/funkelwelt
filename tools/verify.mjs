@@ -1364,6 +1364,93 @@ async function beiTorBei(x, sterne) {
   await lumaWeg();
 }
 
+// ------------------------------------------- the shore is a world too
+//
+// It had two houses and nothing else: no shadows, no gate, and so the
+// Wort-Stern had exactly one source and the second world was a corridor
+// with two doors in it.
+
+{
+  await inDieWelt();
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.region = 'ufer';
+    s.ort = { x: 10.5, y: 7.5 };
+    s.sterne = { mathe: 0, wort: 0 };
+    s.schatten = [];
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await inDieWelt();
+  await lumaWeg();
+
+  // A shadow on the shore asks GERMAN, because that is what this world
+  // teaches. It used to read from GAMES, which is every generator in
+  // the app.
+  await waehle(10, 6, 3600);
+  await lumaWeg();
+  check('the shore has shadows of its own', await page.locator('.begegnung').count() === 1);
+  // German, and ANSWERABLE. A shadow may not ask for a syllable to be
+  // written: the encounter screen has a creature, a courage bar and
+  // some cards, and no writing surface — so that question showed an
+  // empty stage and could never be answered.
+  check('and one of them asks what THIS world teaches, not the other one',
+    await page.locator('.silbenwort').count() === 1,
+    `stage: ${((await page.locator('.begegnung .frage').first().textContent()) ?? '').trim().slice(0, 24)}`);
+  check('and every question it asks has something to tap',
+    await page.locator('.begegnung .karten button').count() > 1,
+    `${await page.locator('.begegnung .karten button').count()} cards`);
+  await page.locator('.begegnung button', { hasText: 'Zurück' }).first().tap().catch(() => {});
+  await page.waitForTimeout(600);
+
+  // THE SHORE'S GATE WANTS WÖRTER.
+  //
+  // A gate here that wanted Mathe-Sterne would send a child back across
+  // the waypoint to earn them somewhere else, which is a fetch quest
+  // rather than a lesson.
+  async function amUferTor(wort) {
+    await inDieWelt();
+    await page.evaluate((w) => {
+      const k = 'funkelwelt.platz0.v1';
+      const s = JSON.parse(localStorage.getItem(k));
+      s.region = 'ufer';
+      s.ort = { x: 37.5, y: 28.6 };
+      s.sterne = { mathe: 300, wort: w };
+      localStorage.setItem(k, JSON.stringify(s));
+    }, wort);
+    await inDieWelt();
+    await lumaWeg();
+    await laufe('ArrowRight', 500);
+    await lumaWeg();
+    await laufe('ArrowRight', 2200);
+    await lumaWeg();
+    await page.locator('.hudKnopf').first().tap();
+    await page.waitForTimeout(400);
+    return (await slot()).ort;
+  }
+
+  const zuU = await amUferTor(0);
+  check('the shore gate is shut to a child who has not earned it',
+    zuU.x < 38.5, `stopped at x ${zuU.x.toFixed(2)}`);
+  // THREE HUNDRED Mathe-Sterne, and it does not care.
+  check('and three hundred Mathe-Sterne do not open a Wörter gate',
+    zuU.x < 38.5, `stopped at x ${zuU.x.toFixed(2)}`);
+  const aufU = await amUferTor(120);
+  check('but Wort-Sterne do',
+    aufU.x > 38.5, `walked through to x ${aufU.x.toFixed(2)}`);
+
+  await inDieWelt();
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.region = 'wiese';
+    s.ort = { x: 7.5, y: 22.4 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await inDieWelt();
+  await lumaWeg();
+}
+
 // ---------------------------------------- a miss, and three of them
 //
 // Patrick: "wenn etwas falsch ist, sollten wir nicht die richtige

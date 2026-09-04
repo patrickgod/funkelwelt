@@ -46,6 +46,17 @@ export interface Haus {
   /** i18n key for the name shown over the door. */
   name: string;
   fach: stand.Fach;
+  /**
+   * Only inside the house — a shadow may not ask this.
+   *
+   * The writing exercise has no answer cards: you trace it. A shadow
+   * encounter has no writing surface and cannot grow one, because the
+   * whole shape of that screen is a creature, a courage bar and some
+   * cards. A shadow that asked for a syllable to be WRITTEN showed an
+   * empty stage and could never be answered — which is what the suite
+   * found the hour the shore got shadows.
+   */
+  nurHaus?: boolean;
 }
 
 /**
@@ -128,6 +139,7 @@ export const HAUS_SCHREIBEN: Haus = {
   spiel: 'silben-schreiben',
   name: 'haus.schreiben',
   fach: 'wort',
+  nurHaus: true,
 };
 
 /**

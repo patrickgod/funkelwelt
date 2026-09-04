@@ -78,7 +78,7 @@ let raus: ((geschafft: boolean) => void) | null = null;
  * world. That happened the hour the shore was built.
  */
 function spieleHier(): string[] {
-  const haeuser = HAEUSER[karte.REGION] ?? [];
+  const haeuser = (HAEUSER[karte.REGION] ?? []).filter((h) => !h.nurHaus);
   const raus = new Set<string>();
   for (const h of haeuser) for (const g of [h.spiel].flat()) raus.add(g);
   return [...raus];

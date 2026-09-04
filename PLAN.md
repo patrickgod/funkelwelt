@@ -353,6 +353,24 @@ it.** A risk you have not built is a risk you are still carrying.
   a reward every time it was crossed. The celebration now happens once,
   at the moment the gate opens.
 
+* **The shore became a world.** It had two houses and nothing else, so
+  the Wort-Stern had exactly one source and the second region was a
+  corridor with two doors in it. Five shadows now, and a sealed pocket
+  on the east shore behind a gate in its west wall.
+
+  **A gate wants the subject of the WORLD it stands in.** A gate on the
+  German shore that wanted Mathe-Sterne would send a child back across
+  the waypoint to earn them somewhere else, which is a fetch quest
+  rather than a lesson. Three hundred Mathe-Sterne do not open it; a
+  hundred and twenty Wort-Sterne do.
+
+  Two things the suite found. Gate runs were only detected HORIZONTALLY,
+  and the shore's gate is a hole in a west wall — so it was three
+  separate one-tile gates. And a shadow there asked a child to WRITE a
+  syllable, which the encounter screen cannot draw at all: it has a
+  creature, a courage bar and some cards, and no writing surface. A
+  house can now say `nurHaus` and the shadows skip it.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick
@@ -516,17 +534,6 @@ and **none should be built before Patrick picks one**:
   of it, mixed at random, drawing from every generator. The natural
   "come back when you are stronger" building, and `buildRound` already
   takes as many generators as you give it.
-
-### 5. Anything else about the shore
-
-It has one house and no shadows, no cart and no gates. That is fine for
-a world that is one afternoon old, and every one of those is a day's
-work rather than a design question — but the shore should not stay a
-corridor with a door at the end.
-
-The obvious order: the second house (Silben schreiben), then shadows so
-the Wort-Stern has a second source, then a gate so the shore has
-somewhere to earn its way into.
 
 ## Later, once the loop is proven
 
