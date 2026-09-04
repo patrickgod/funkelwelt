@@ -805,3 +805,34 @@ are measurements, never estimates — but a measurement has a DATE, and a
 figure whose date nobody can name has quietly turned back into an
 estimate. Either the tool runs automatically, or the number in the
 document should carry the day it was taken so its age is visible.
+
+## The safety net was catching something every single round
+
+**Signature:** a brand-new check failed on its first run and was right.
+
+`answerOf` marks card zero correct when it cannot find the answer among
+the cards. That fallback is right for a child — a wrong card beats a
+crashed screen — and it is also the perfect hiding place for a bug,
+because from the outside it looks like a working game. It had already
+hidden one.
+
+So it now leaves a breadcrumb in `localStorage` when it fires, and the
+suite asserts the breadcrumb is absent. In memory would not have worked:
+the suite reloads the page dozens of times, and a counter that resets on
+every reload only ever reports the last one. What has to survive is the
+EVIDENCE, not the number.
+
+It failed immediately, with nine entries, all from the writing house —
+which answers by tracing and has NO cards at all. `buildRound` was
+asking an answer-resolver to find the right answer among an empty list,
+every question, for as long as that house has existed. Harmless, because
+nothing reads `correct` for that prompt. Not harmless at all as noise:
+it would have drowned the one signal that shows a real resolution bug.
+
+Generalises: **when you finally instrument a fallback, expect it to be
+firing already.** A path that nothing watches is a path that has been
+taken quietly, and the first reading is a census rather than an alarm.
+The work is not "fix the failure", it is "separate the benign traffic
+from the signal you built the instrument for" — otherwise the instrument
+gets muted a week later for being noisy, which is how it ended up
+unwatched in the first place.

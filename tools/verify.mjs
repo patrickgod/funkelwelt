@@ -1560,6 +1560,29 @@ async function beiTorBei(x, sterne) {
     return (await slot()).ort;
   }
 
+  // A CART ON THE SHORE. The shop is one shop — the same four-and-three
+  // things, the same purse — but a child earning coins in the second
+  // world should not have to cross a waypoint to spend them.
+  await inDieWelt();
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.region = 'ufer';
+    s.ort = { x: 20.5, y: 22.4 };
+    s.muenzen = 40;
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await inDieWelt();
+  await lumaWeg();
+  await waehle(20, 21, 3600);
+  await lumaWeg();
+  check('there is a cart on the shore too', await page.locator('.laden').count() === 1);
+  check('and it is the same shop, not a second one',
+    await page.locator('.ware').count() === 7,
+    `${await page.locator('.ware').count()} things`);
+  await page.locator('button', { hasText: 'Fertig' }).first().tap().catch(() => {});
+  await page.waitForTimeout(500);
+
   const zuU = await amUferTor(0);
   check('the shore gate is shut to a child who has not earned it',
     zuU.x < 38.5, `stopped at x ${zuU.x.toFixed(2)}`);
@@ -2571,6 +2594,28 @@ await ctx.setOffline(false);
 
 check('nothing threw', errors.length === 0, errors.slice(0, 3).join(' | '));
 check('nothing 404s', notFound.length === 0, [...new Set(notFound)].slice(0, 5).join(', '));
+// THE FALLBACK NEVER FIRED, in any round this suite played.
+//
+// `answerOf` marks card zero correct when it cannot find the answer
+// among the cards. That is right for a child — a wrong card beats a
+// crashed screen — and it is the perfect hiding place for a bug,
+// because from the outside it looks like a working game. It has hidden
+// one already: a round resolving every question with the wrong
+// generator sailed through until a check was written that read the
+// question instead of the code.
+//
+// This is the general version of that check. It covers every house,
+// every shadow encounter and both worlds at once, because the counter
+// does not care where the question came from.
+{
+  const notfaelle = await page.evaluate(() => {
+    try { return JSON.parse(localStorage.getItem('funkelwelt.notfall') ?? '[]'); }
+    catch { return ['storage refused']; }
+  });
+  check('no question anywhere fell back to marking the first card right',
+    notfaelle.length === 0, notfaelle.join(', '));
+}
+
 check('the game talks to nobody', offsite.size === 0, [...offsite].join(', '));
 
 await browser.close();

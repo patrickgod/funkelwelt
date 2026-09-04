@@ -350,7 +350,42 @@ export function answerOf(gameId: string, q: Question): number {
   // which answers a pattern question by reading the row rather than by
   // asking this function — every one of them in the round, because one
   // of them is a coin toss.
+  if (i < 0) notfall(gameId, q.fact);
   return i >= 0 ? i : 0;
+}
+
+/**
+ * Leave a breadcrumb when the fallback above fires.
+ *
+ * The fallback is a safety net for a child — a wrong card beats a
+ * crashed screen — and it is also the perfect place for a bug to hide,
+ * because from the outside it looks like a working game. It has hidden
+ * one already: a round that resolved every question with the wrong
+ * generator marked card zero correct, and nothing on screen said so.
+ *
+ * Written to `localStorage` rather than counted in memory, because the
+ * thing that needs to survive is the EVIDENCE, not the number: the
+ * suite reloads the page dozens of times, and a counter that resets on
+ * every reload only ever reports the last one. In a healthy game this
+ * key never exists at all.
+ *
+ * It also means that if this ever fires on a real device, the reason is
+ * sitting there afterwards instead of having happened silently to a
+ * child mid-round.
+ */
+function notfall(spiel: string, fakt: string): void {
+  try {
+    const k = 'funkelwelt.notfall';
+    const alt = localStorage.getItem(k);
+    const liste: string[] = alt ? JSON.parse(alt) : [];
+    const eintrag = `${spiel}:${fakt}`;
+    if (!liste.includes(eintrag)) liste.push(eintrag);
+    localStorage.setItem(k, JSON.stringify(liste.slice(0, 20)));
+  } catch {
+    // A private window with storage refused. The fallback still works;
+    // only the breadcrumb is lost, and losing it must never be the
+    // thing that breaks a child's round.
+  }
 }
 
 function expectedAnswer(gameId: string, q: Question): string {
@@ -420,7 +455,15 @@ export function buildRound(spiel: string | string[], n = 10): Question[] {
     const id = ids[out.length % ids.length];
     const q = GAMES[id].next(weightedPick);
     if (q.fact === last) continue;
-    q.correct = answerOf(id, q);
+    // A question with NO CARDS has no correct index to compute.
+    //
+    // The writing exercise is answered by tracing, and asking
+    // `answerOf` to find its answer among an empty list sent it down
+    // the fallback path every single time. Harmless — nothing reads
+    // `correct` for that prompt — but it drowned the breadcrumb the
+    // fallback leaves, which is the one thing that would show a REAL
+    // resolution bug. Found by that breadcrumb on its first run.
+    q.correct = q.choices.length ? answerOf(id, q) : 0;
     out.push(q);
     last = q.fact;
   }

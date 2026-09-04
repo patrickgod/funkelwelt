@@ -414,6 +414,17 @@ it.** A risk you have not built is a risk you are still carrying.
   different ground under your feet and no word about it is disorienting
   at any age, and it is the one moment where the whole screen changes.
 
+* **The last hiding place is watched.** `answerOf` marks card zero
+  correct when it cannot find the answer — right for a child, and the
+  perfect place for a bug. It leaves a breadcrumb now and the suite
+  asserts there is none. It failed on its first run: the writing house
+  has no cards, so an answer-resolver was being asked to search an
+  empty list on every question of every round it has ever played.
+
+* **A cart on the shore.** The same shop and the same purse — a child
+  earning coins in the second world should not have to cross a waypoint
+  to spend them.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick
