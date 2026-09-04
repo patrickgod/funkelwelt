@@ -229,6 +229,11 @@ console.log(`  ${stems.length} lines from src/core/i18n.ts and src/games/woerter
 let gemacht = 0, uebersprungen = 0, kaputt = 0;
 for (const stem of stems) {
   const path = `assets/voice/${stem}.mp3`;
+  // NOTE: an existing file is kept, so CHANGING a line in `i18n.ts`
+  // does not re-record it — the old take stays and the app says one
+  // thing on screen and another out loud. That happened to `say.nochZu`
+  // the day the gates learned to explain themselves. Delete the file,
+  // or use --force, when you edit a line's words.
   if (!FORCE && existsSync(path)) { uebersprungen++; continue; }
   process.stdout.write(`  ${stem} … `);
   try {

@@ -635,3 +635,37 @@ It reads the payout it measured earlier in the same run now — which is
 the same lesson as the map's selection marker, arriving from a
 completely different direction: the sabotage run tells you which of your
 checks do not work, and it is the only time they will say so.
+
+## The picture was lying, and nobody had asked it anything
+
+**Signature:** a request to EXPLAIN a rule turned up that the rule was
+already being explained, wrongly, by a picture.
+
+Patrick asked for the game to say when a gate opens. The gate already
+drew what it wanted — three marks for level three — and rule 14 was
+satisfied: no numbers, no words, a child can count it.
+
+But levels go as the square root of stars. Level three is thirty-two
+stars. A child who counted three marks, went and earned three stars and
+came back to a shut gate had been told something false by the only part
+of the game that was speaking to them about it, and every sentence
+Luma could have said would have been a second explanation stapled onto
+a wrong first one.
+
+The fix was not a sentence. The marks light one at a time as the levels
+arrive, so the picture now says what is true and "all lit" is the same
+statement as "open".
+
+Generalises: **when someone asks for an explanation, check what the
+thing is already saying before adding words to it.** A request for a
+tutorial is often a report that something in the interface is lying, and
+the tutorial would have hidden it — the child would have learned the
+rule from Luma and quietly concluded that the lights on the gate mean
+nothing, which is the worse outcome of the two.
+
+A smaller one from the same hour: `tools/genvoice.mjs` skips a line that
+already has a file, so EDITING the words of a line does not re-record
+it. The app said the new sentence on screen and the old one out loud
+until the file was deleted by hand. It is commented now, which is not as
+good as detecting it, and detecting it means hashing the text into the
+filename — worth doing the next time that file is opened.

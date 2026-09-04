@@ -225,6 +225,12 @@ project, and the important one is that a child cannot spend badly. Four
 things, one screen, nothing placed, and every effect visible in the
 world rather than as a number.
 
+**A gate's marks are LEVELS, and they light one at a time.** Three
+marks means level three, which is thirty-two stars — so the marks must
+never be read, or drawn, as "three stars". They fill as the levels are
+earned, which is the only thing making that picture honest, and it is
+checked at the pixel in `tools/verify.mjs`.
+
 **Two gates**, each into a pocket sealed on every other side. The one in
 the north-east cliff wants Mathe 3; the one in the south-east cliff
 wants Wörter 2. Each shows what it wants as stars rather than as a

@@ -305,6 +305,14 @@ it.** A risk you have not built is a risk you are still carrying.
   pay the maximum, because a round now only ends when every question has
   been answered correctly. Six rounds bought the whole shop.
 
+* **The gate says how close you are.** Its marks light one at a time as
+  the levels are earned, so "all of them lit" is the same sentence as
+  "it opens". Patrick asked for the opening to be explained; looking at
+  how turned up that the picture was WRONG — three marks meant level
+  three, and level three is thirty-two stars, so a child who counted
+  three marks and earned three stars had been lied to by the gate.
+  Luma names what the lights are doing, once, and still says no numbers.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick
@@ -385,23 +393,13 @@ Still open, and still the questions the world was built early to answer:
 * **Does Luma get in the way?** Three misses is a number nobody has
   tested.
 
-### 3. Say when a gate opens
-
-Patrick: *"wir sollten auch erklären wann sich ein tor öffnet. die idee
-des nötigen levels um tore öffnen zu können finde ich super."*
-
-The gate already draws what it wants as stars, which is rule 14 working.
-What is missing is the connection: a child at a shut gate does not know
-that the stars come from the houses. Luma is the explainer, and this is
-exactly her job — once, at the first gate, in a sentence.
-
-### 4. How you get to the next world
+### 3. How you get to the next world
 
 **You do not. It does not exist yet.** Asked and answered: the second
 region is Deutsch and it is item 8. Until it is built there is one
 world, and the waypoints have nothing to connect.
 
-### 5. The thing the design has not answered: coming back
+### 4. The thing the design has not answered: coming back
 
 Patrick: *"Wir müssen im Konzept halt einen Weg finden wie man immer
 wieder dieselben Themen übt und z.B. die verliebten Zahlen nicht enden
@@ -428,7 +426,7 @@ and **none should be built before Patrick picks one**:
   "come back when you are stronger" building, and `buildRound` already
   takes as many generators as you give it.
 
-### 6. The second world: Deutsch
+### 5. The second world: Deutsch
 
 Patrick: *"und dann in der nächsten welt die silben? lesen und
 schreiben, und kombinationen wie Lea, lulu, Mama, Oma, etc. aber eben
@@ -454,12 +452,12 @@ carries the `schreiben` kind, waiting.
 unreferenced, along with `woerter()` in `tools/genvoice.mjs`. One line
 brings the recordings back.
 
-### 7. Waypoints
+### 6. Waypoints
 
 Patrick's, and now they have a job: two worlds means walking between
 them. Build them when the second world exists and not before.
 
-### 8. Anything else about a second region
+### 7. Anything else about a second region
 
 The gate proves the mechanism on twelve tiles. What it opens onto should
 eventually be somewhere, not a walled garden — and the honest note is
