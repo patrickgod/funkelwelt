@@ -98,6 +98,23 @@ jobs:
         timeout-minutes: 12
         run: node tools/verify.mjs
 
+      # PHOTOGRAPH a few screens, and fail if the wrong one comes back.
+      #
+      # `tools/shot.mjs` refuses to save a picture unless the screen it
+      # expects is actually up. That guard was added because half the
+      # shots had rotted silently: the shop shot walked into the cart,
+      # which stopped doing anything the day tapping-to-choose landed,
+      # so `shots/laden.png` had been a picture of the meadow ever
+      # since — and a picture of the wrong thing is still a picture,
+      # which is why nobody noticed.
+      #
+      # Only the handful that cross the interaction paths most likely to
+      # change. It is about ninety seconds and it is a rot alarm, not an
+      # art review.
+      - name: Photograph a few screens
+        timeout-minutes: 4
+        run: node tools/shot.mjs haus laden karte ufer
+
       # MEASURE, and print it into the log.
       #
       # This does not assert anything — a headless Chromium on a runner

@@ -50,15 +50,53 @@ page.on('console', (m) => { if (m.type() === 'error') console.log('  console:', 
 const wanted = process.argv.slice(2);
 const want = (n) => wanted.length === 0 || wanted.includes(n);
 
-async function shot(name) {
+/**
+ * Take a picture, and refuse to take the WRONG picture.
+ *
+ * `erwartet` is a selector that must be on screen. Without it this tool
+ * quietly photographs whatever happens to be up — `shots/laden.png` was
+ * a picture of the meadow for as long as tapping-to-choose has existed,
+ * because the shop shot still WALKED into the cart and walking into
+ * things stopped doing anything.
+ *
+ * Same failure as the measuring tool a day ago: a tool nobody checks has
+ * already broken. A screenshot tool breaks silently, because a picture
+ * of the wrong thing is still a picture.
+ */
+async function shot(name, erwartet) {
   await page.waitForTimeout(420);
+  if (erwartet && await page.locator(erwartet).count() === 0) {
+    console.log(`  FAILED  shots/${name}.png — expected ${erwartet}, not on screen`);
+    schief++;
+    return;
+  }
   await page.screenshot({ path: `shots/${name}.png` });
   console.log(`  shots/${name}.png`);
+}
+let schief = 0;
+
+/** Tap a thing to choose it, walk there, and say yes to Luma. */
+async function waehle(tx, ty, ms = 3600) {
+  // Luma first. She pauses the world while she talks, so a click that
+  // lands on her box does nothing at all — and the shore greets you the
+  // moment you arrive, which is exactly where this broke.
+  await lumaWeg();
+  await page.waitForTimeout(250);
+  await lumaWeg();
+  const p = await page.evaluate(
+    ([x, y]) => window.weltOrt?.(x, y) ?? null, [tx * 16 + 8, ty * 16 + 8]);
+  if (!p) return false;
+  await page.mouse.click(p[0], p[1]);
+  await page.waitForTimeout(ms);
+  const ja = page.locator('.luma-ja');
+  await ja.first().waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
+  if (await ja.count()) { await ja.first().tap(); await page.waitForTimeout(1200); }
+  return true;
 }
 
 await page.goto(`http://localhost:${PORT}/`);
 await page.waitForTimeout(900);
-if (want('start')) await shot('start');
+if (want('start')) await shot('start', '.start');
 
 /** Through the door: one picture, one button. */
 async function starten() {
@@ -68,7 +106,7 @@ async function starten() {
   }
 }
 await starten();
-if (want('titel')) await shot('titel');
+if (want('titel')) await shot('titel', '.platz');
 
 // Into the character editor from an empty slot.
 await page.locator('.platz').first().tap();
@@ -166,6 +204,7 @@ if (want('addition')) {
   await page.evaluate(() => {
     const k = 'funkelwelt.platz0.v1';
     const s = JSON.parse(localStorage.getItem(k));
+    s.region = 'wiese';
     s.ort = { x: 7.5, y: 13.4 };
     localStorage.setItem(k, JSON.stringify(s));
   });
@@ -176,10 +215,7 @@ if (want('addition')) {
   await page.waitForTimeout(2400);
   await lumaWeg();
   await shot('addition-welt');
-  await page.keyboard.down('ArrowUp');
-  await page.waitForTimeout(700);
-  await page.keyboard.up('ArrowUp');
-  await page.waitForTimeout(1600);
+  await waehle(7, 12);
   await lumaWeg();
   for (let i = 0; i < 3; i++) {
     await shot(`addition-${i + 1}`);
@@ -194,6 +230,7 @@ if (want('richtung')) {
   await page.evaluate(() => {
     const k = 'funkelwelt.platz0.v1';
     const s = JSON.parse(localStorage.getItem(k));
+    s.region = 'wiese';
     s.ort = { x: 40.5, y: 19.4 };
     localStorage.setItem(k, JSON.stringify(s));
   });
@@ -204,10 +241,7 @@ if (want('richtung')) {
   await page.waitForTimeout(2400);
   await lumaWeg();
   await shot('richtung-welt');
-  await page.keyboard.down('ArrowUp');
-  await page.waitForTimeout(700);
-  await page.keyboard.up('ArrowUp');
-  await page.waitForTimeout(1600);
+  await waehle(40, 18);
   await lumaWeg();
   for (let i = 0; i < 2; i++) {
     await shot(`richtung-${i + 1}`);
@@ -223,6 +257,7 @@ if (want('karte')) {
   await page.evaluate(() => {
     const k = 'funkelwelt.platz0.v1';
     const s = JSON.parse(localStorage.getItem(k));
+    s.region = 'wiese';
     s.ort = { x: 22.5, y: 14.5 };
     s.sterne = { mathe: 40, wort: 0 };
     s.geschafft = { 'verliebte-zahlen': 2, richtung: 1 };
@@ -239,7 +274,7 @@ if (want('karte')) {
   await page.waitForTimeout(500);
   await page.locator('.kartenknopf').first().tap();
   await page.waitForTimeout(700);
-  await shot('karte');
+  await shot('karte', '.kartenbild canvas');
 }
 
 // The selection ring: a house tapped from across the meadow, caught
@@ -248,6 +283,7 @@ if (want('auswahl')) {
   await page.evaluate(() => {
     const k = 'funkelwelt.platz0.v1';
     const s = JSON.parse(localStorage.getItem(k));
+    s.region = 'wiese';
     s.ort = { x: 23.5, y: 17.5 };
     localStorage.setItem(k, JSON.stringify(s));
   });
@@ -274,6 +310,7 @@ if (want('strikes')) {
   await page.evaluate(() => {
     const k = 'funkelwelt.platz0.v1';
     const s = JSON.parse(localStorage.getItem(k));
+    s.region = 'wiese';
     s.ort = { x: 7.5, y: 22.4 };
     localStorage.setItem(k, JSON.stringify(s));
   });
@@ -298,7 +335,7 @@ if (want('strikes')) {
       const idx = labels.findIndex((l) => l !== String(10 - Number(zahl)));
       if (idx < 0) break;
       await karten.nth(idx).tap();
-      if (i === 1) { await page.waitForTimeout(130); await shot('strikes'); }
+      if (i === 1) { await page.waitForTimeout(130); await shot('strikes', '.strike'); }
       await page.waitForTimeout(900);
     }
   }
@@ -311,7 +348,8 @@ if (want('torstufen')) {
     await page.evaluate((st) => {
       const k = 'funkelwelt.platz0.v1';
       const s = JSON.parse(localStorage.getItem(k));
-      s.ort = { x: 42.5, y: 9.4 };
+      s.region = 'wiese';
+    s.ort = { x: 42.5, y: 9.4 };
       s.sterne = { mathe: st, wort: 0 };
       localStorage.setItem(k, JSON.stringify(s));
     }, sterne);
@@ -332,7 +370,7 @@ if (want('ufer')) {
     const k = 'funkelwelt.platz0.v1';
     const s = JSON.parse(localStorage.getItem(k));
     s.region = 'ufer';
-    s.ort = { x: 12.5, y: 19.5 };
+    s.ort = { x: 12.5, y: 17.5 };
     localStorage.setItem(k, JSON.stringify(s));
   });
   await page.reload();
@@ -342,21 +380,17 @@ if (want('ufer')) {
   await page.waitForTimeout(2400);
   await lumaWeg();
   await shot('ufer');
-  const p = await page.evaluate(() => window.weltOrt?.(12 * 16 + 8, 15 * 16 + 8) ?? null);
-  if (p) {
-    await page.mouse.click(p[0], p[1]);
-    await page.waitForTimeout(2600);
-    await lumaWeg();
-    await shot('silben');
-    await page.locator('button', { hasText: 'Zurück' }).first().tap().catch(() => {});
-    await page.waitForTimeout(700);
-  }
+  await waehle(12, 15);
+  await lumaWeg();
+  await shot('silben', '.silbenwort');
+  await page.locator('button', { hasText: 'Zurück' }).first().tap().catch(() => {});
+  await page.waitForTimeout(700);
   // And next door: the writing house.
   await page.evaluate(() => {
     const k = 'funkelwelt.platz0.v1';
     const s = JSON.parse(localStorage.getItem(k));
     s.region = 'ufer';
-    s.ort = { x: 24.5, y: 19.5 };
+    s.ort = { x: 24.5, y: 17.5 };
     localStorage.setItem(k, JSON.stringify(s));
   });
   await page.reload();
@@ -365,15 +399,11 @@ if (want('ufer')) {
   await page.locator('.platz').first().tap();
   await page.waitForTimeout(2400);
   await lumaWeg();
-  const q = await page.evaluate(() => window.weltOrt?.(24 * 16 + 8, 15 * 16 + 8) ?? null);
-  if (q) {
-    await page.mouse.click(q[0], q[1]);
-    await page.waitForTimeout(2800);
-    await lumaWeg();
-    await page.waitForTimeout(400);
-    await lumaWeg();
-    await shot('schreiben');
-  }
+  await waehle(24, 15);
+  await lumaWeg();
+  await page.waitForTimeout(400);
+  await lumaWeg();
+  await shot('schreiben', 'canvas.tracer');
 }
 
 // The cart, with coins for two of the four things on it.
@@ -381,6 +411,7 @@ if (want('laden')) {
   await page.evaluate(() => {
     const k = 'funkelwelt.platz0.v1';
     const s = JSON.parse(localStorage.getItem(k));
+    s.region = 'wiese';
     s.ort = { x: 12.5, y: 22.4 };
     s.muenzen = 42;
     s.ausruestung = ['hut'];
@@ -393,12 +424,9 @@ if (want('laden')) {
   await page.waitForTimeout(2400);
   await lumaWeg();
   await shot('laden-welt');
-  await page.keyboard.down('ArrowUp');
-  await page.waitForTimeout(400);
-  await page.keyboard.up('ArrowUp');
-  await page.waitForTimeout(1200);
+  await waehle(12, 21);
   await lumaWeg();
-  await shot('laden');
+  await shot('laden', '.laden .ware');
 }
 
 // Both gates side by side, shut: one wants numbers, one wants words,
@@ -432,7 +460,8 @@ if (want('tor')) {
     await page.evaluate((st) => {
       const k = 'funkelwelt.platz0.v1';
       const s = JSON.parse(localStorage.getItem(k));
-      s.ort = { x: 43.5, y: 9.6 };
+      s.region = 'wiese';
+    s.ort = { x: 43.5, y: 9.6 };
       s.sterne = { mathe: st, wort: 0 };
       s.gehoert = [];
       localStorage.setItem(k, JSON.stringify(s));
@@ -447,7 +476,7 @@ if (want('tor')) {
     await page.waitForTimeout(420);
     await page.keyboard.up('ArrowUp');
     await page.waitForTimeout(900);
-    await shot(name);
+    await shot(name, '.hud');
     await lumaWeg();
   }
 }
@@ -457,6 +486,7 @@ if (want('schatten')) {
   await page.evaluate(() => {
     const k = 'funkelwelt.platz0.v1';
     const s = JSON.parse(localStorage.getItem(k));
+    s.region = 'wiese';
     s.ort = { x: 18.5, y: 9.6 };
     s.schatten = [];
     localStorage.setItem(k, JSON.stringify(s));
@@ -472,12 +502,9 @@ if (want('schatten')) {
   // placed south of it at y 12.6 — which is inside Das Haus der
   // Nachbarzahlen since the houses were rearranged, so this shot had
   // quietly become a picture of a completely different screen.
-  await page.keyboard.down('ArrowDown');
-  await page.waitForTimeout(900);
-  await page.keyboard.up('ArrowDown');
-  await page.waitForTimeout(1400);
+  await waehle(18, 11);
   await lumaWeg();
-  await shot('schatten');
+  await shot('schatten', '.begegnung');
 }
 
 // Into the house. Walking north out of the doorstep goes through the
@@ -486,6 +513,7 @@ if (want('haus') || want('haus-blatt')) {
   await page.evaluate(() => {
     const k = 'funkelwelt.platz0.v1';
     const s = JSON.parse(localStorage.getItem(k));
+    s.region = 'wiese';
     s.ort = { x: 7.5, y: 22.4 };
     localStorage.setItem(k, JSON.stringify(s));
   });
@@ -494,11 +522,10 @@ if (want('haus') || want('haus-blatt')) {
   await starten();
   await page.locator('.platz').first().tap();
   await page.waitForTimeout(1200);
-  await page.keyboard.down('ArrowUp');
-  await page.waitForTimeout(900);
-  await page.keyboard.up('ArrowUp');
-  await page.waitForTimeout(900);
-  if (want('haus')) await shot('haus');
+  await lumaWeg();
+  await waehle(7, 20);
+  await lumaWeg();
+  if (want('haus')) await shot('haus', '.zehnerfeld');
 
   if (want('haus-blatt') || want('haus-paar')) {
     await spieleRunde();
@@ -562,7 +589,8 @@ if (want('haus-paar')) {
       s.staerke = {};
       for (let n = 0; n <= 10; n++) s.staerke[`vz:${n}`] = 3;
       s.staerke['vz:2'] = 2;
-      s.ort = { x: 7.5, y: 22.4 };
+      s.region = 'wiese';
+    s.ort = { x: 7.5, y: 22.4 };
       localStorage.setItem(k, JSON.stringify(s));
     });
     await page.reload();
@@ -571,10 +599,8 @@ if (want('haus-paar')) {
     await page.locator('.platz').first().tap();
     await page.waitForTimeout(1200);
     await lumaWeg();
-    await page.keyboard.down('ArrowUp');
-    await page.waitForTimeout(900);
-    await page.keyboard.up('ArrowUp');
-    await page.waitForTimeout(900);
+    await waehle(7, 20);
+    await lumaWeg();
     await spieleRunde();
     await page.waitForTimeout(700);
     if (await page.locator('.blatt.paar').count()) {
@@ -594,5 +620,10 @@ if (want('titel-belegt')) {
 }
 
 await browser.close();
+if (schief) {
+  console.log(`
+  ${schief} shot(s) photographed the wrong screen`);
+  process.exit(1);
+}
 server.close();
 console.log('done');

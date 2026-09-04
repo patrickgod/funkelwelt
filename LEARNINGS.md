@@ -836,3 +836,42 @@ The work is not "fix the failure", it is "separate the benign traffic
 from the signal you built the instrument for" — otherwise the instrument
 gets muted a week later for being noisy, which is how it ended up
 unwatched in the first place.
+
+## A picture of the wrong thing is still a picture
+
+**Signature:** `shots/laden.png` was a photograph of the meadow, and had
+been for as long as tapping-to-choose has existed.
+
+The shop shot walked the adventurer into the cart. Walking into things
+stopped doing anything the day a tap started CHOOSING them — so the walk
+did nothing, the screenshot was taken of whatever was on screen, and the
+file looked exactly like a file.
+
+This is the same rot as the measuring tool a day ago, with one extra
+turn of the screw: a broken measuring tool reports numbers that stop
+moving, which is at least a signal if anybody is watching. A broken
+screenshot tool produces a perfectly good PNG.
+
+So `shot()` takes a selector the screen must contain, and refuses to
+save otherwise. Switched on, it named five shots that were photographing
+the wrong screen, and a handful now run in CI so the alarm rings without
+anybody choosing to look.
+
+Two things it caught immediately, both mine:
+
+STATE CONTAMINATION. A block that set only the position inherited
+whichever REGION the previous block left it in, so the meadow shots ran
+on the shore. Thirteen setups now say which world they want. The suite
+had the same bug two weeks ago and I fixed it there and not here.
+
+And then my own fix for that added `region = 'wiese'` to the shore's
+setup as well, overriding the `'ufer'` two lines above it, because the
+regex checked whether the LINE it matched mentioned a region rather than
+the block around it. Ten minutes of debugging a symptom I had created
+sixty seconds earlier.
+
+Generalises: **an output that always exists cannot report failure.** A
+tool that writes a file, sends a message or draws a picture needs
+something that says which one — otherwise the only test of whether it
+worked is a person recognising the content, and people stop looking at
+things that have always been fine.
