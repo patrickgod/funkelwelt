@@ -441,7 +441,7 @@ function weltBauen(): void {
 function lernenZuLaufen(): void {
   if (!dieWelt) return;
   const wie = stand.get().steuerung === 'stick' ? 'say.daumen' : 'say.tippen';
-  if (stand.gehoert(wie)) { zeigeAufHaus(); return; }
+  if (stand.gehoert(wie)) { zeigeAufHaus(); zeigeAufStein(); return; }
   stand.merkeGehoert(wie);
   luma.zeige(wie);
   // Seven tiles east along the path — far enough to be a walk, near
@@ -453,6 +453,30 @@ function lernenZuLaufen(): void {
 function zeigeAufHaus(): void {
   if (stand.get().geschafft['verliebte-zahlen']) return;
   luma.einmal('say.erstesHaus');
+}
+
+/**
+ * And then the stone, once a house has been finished.
+ *
+ * Patrick asked "wie kommt man denn in die zweite welt?" — which is the
+ * whole problem in one question. The stone was standing at the top of
+ * the path, unremarked, looking like the scenery it is made of. A world
+ * a child cannot find is a world that does not exist.
+ *
+ * It waits until a house has been cleared, because the first thing a
+ * new adventurer should do is go through a door, not travel. And it
+ * uses the RING — the same circle the game uses to say "stand here",
+ * which a child who cannot read a sentence already understands.
+ */
+function zeigeAufStein(): void {
+  if (!dieWelt) return;
+  const stein = karte.STEIN;
+  if (!stein) return;
+  const s = stand.get();
+  const irgendwas = Object.values(s.geschafft).some((n) => n > 0);
+  if (!irgendwas) return;
+  if (!luma.einmal('say.derStein')) return;
+  dieWelt.zeigeZiel(stein.mitte, stein.fuss + 8, () => {});
 }
 
 /**

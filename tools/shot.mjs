@@ -226,6 +226,7 @@ if (want('karte')) {
     s.ort = { x: 22.5, y: 14.5 };
     s.sterne = { mathe: 40, wort: 0 };
     s.geschafft = { 'verliebte-zahlen': 2, richtung: 1 };
+    s.region = 'wiese';
     localStorage.setItem(k, JSON.stringify(s));
   });
   await page.reload();

@@ -371,6 +371,18 @@ it.** A risk you have not built is a risk you are still carrying.
   creature, a courage bar and some cards, and no writing surface. A
   house can now say `nurHaus` and the shadows skip it.
 
+* **The way to the other world is findable.** Patrick asked "wie kommt
+  man denn in die zweite welt?" — which is the whole problem in one
+  question. The stone stood at the top of the path looking like the
+  scenery it is made of, the map did not mark it, and Luma never
+  mentioned it until you were standing on it.
+
+  Now: Luma points at it with the RING — the same circle the game uses
+  for "stand here" — once a house has been cleared, so the first thing
+  a new adventurer does is still go through a door. The map marks it as
+  the one thing that is not a building, and names which world it is a
+  map of.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick

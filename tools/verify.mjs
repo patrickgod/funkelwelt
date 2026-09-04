@@ -1114,6 +1114,42 @@ async function beiTorBei(x, sterne) {
   const hell = await karteMit(['kompass']);
   check('the Kompass puts the lightsparks on the map, and nothing else does',
     hell > dunkel + 120, `${dunkel} without it, ${hell} with`);
+
+  // THE WAY TO THE OTHER WORLD IS ON THE MAP.
+  //
+  // Patrick asked "wie kommt man denn in die zweite welt?", which is
+  // the whole problem in one question: the stone stands at the top of a
+  // path looking like the scenery it is made of, and the map did not
+  // mark it at all.
+  await mitAusruestung([]);
+  await page.locator('.hudKnopf').last().tap();
+  await page.waitForTimeout(400);
+  await page.locator('.kartenknopf').first().tap();
+  await page.waitForTimeout(500);
+  /** One pixel out of the map buffer. Local: the other map block has
+   *  its own, and sharing one across two scopes is how a helper starts
+   *  quietly depending on the state of a check three hundred lines up. */
+  const kartenPunkt = (tx, ty) => page.locator('.kartenbild canvas')
+    .evaluate((c, [x, y]) => {
+      const d = c.getContext('2d').getImageData(x, y, 1, 1).data;
+      return [d[0], d[1], d[2]];
+    }, [tx * 4 + 1, ty * 4 + 2]);
+
+  const steinT = await page.evaluate(() => window.weltStein?.() ?? null);
+  check('the map knows where the stone is', steinT !== null);
+  if (steinT) {
+    const amStein = await kartenPunkt(steinT.tx, steinT.ty);
+    const wieseHier = await kartenPunkt(steinT.tx + 4, steinT.ty + 3);
+    check('and marks it, brightly, as the one thing that is not a building',
+      amStein.reduce((a, b) => a + b) > wieseHier.reduce((a, b) => a + b) + 150,
+      `stone ${amStein.join()}, meadow ${wieseHier.join()}`);
+  }
+  const titel = ((await page.locator('.bildschirm.karte .titel').first()
+    .textContent()) ?? '').trim();
+  check('and the map says which world it is a map of',
+    titel === 'Die Wiese', `title: ${titel}`);
+  await page.locator('button', { hasText: 'Zurück' }).first().tap().catch(() => {});
+  await page.waitForTimeout(400);
 }
 
 // ----------------------------------------------- the second world

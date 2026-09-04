@@ -172,6 +172,20 @@ export function bild(): Px {
     marke(p, tor.tx, tor.ty, 2, 8, auf ? shade(P.glow, 3) : shade(P.stone, 1));
   }
 
+  // THE WAYPOINT STONE, and it is the biggest mark on the map.
+  //
+  // Patrick asked how you get to the second world, which is the whole
+  // problem: the stone stands at the top of a path looking like the
+  // scenery it is made of. On the map it is the one thing that is not a
+  // building and not a gate, drawn as a ring with light in it, because
+  // it is the only mark here that means "somewhere else entirely".
+  if (karte.STEIN) {
+    const tx = karte.STEIN.tx, ty = karte.STEIN.ty;
+    marke(p, tx, ty, 12, 12, shade(P.stone, 1));
+    marke(p, tx, ty, 8, 8, shade(P.plum, 2));
+    marke(p, tx, ty, 4, 4, shade(P.glow, 4));
+  }
+
   if (karte.LADEN) {
     const tx = Math.floor(karte.LADEN.mitte / KACHEL);
     const ty = Math.floor(karte.LADEN.fuss / KACHEL) - 1;
@@ -199,7 +213,11 @@ export function starten(ui: HTMLElement, zurueck: () => void): void {
   ui.replaceChildren();
 
   const s = el('div', 'bildschirm dunkel karte');
-  s.appendChild(el('h2', 'titel', t('karte.titel')));
+  // The title names the WORLD. Two regions and one map screen, and a
+  // map that does not say which place it is a map of is a map you have
+  // to work out.
+  s.appendChild(el('h2', 'titel',
+    t(karte.REGION === 'ufer' ? 'karte.ufer' : 'karte.wiese')));
 
   const halter = el('div', 'kartenbild');
   const c = document.createElement('canvas');

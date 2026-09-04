@@ -51,6 +51,8 @@ const DE = {
 
   // ------------------------------------------------------- the houses
   'karte.titel': 'Die Karte',
+  'karte.wiese': 'Die Wiese',
+  'karte.ufer': 'Das Ufer',
   'karte.fertig': 'Zurück',
   'haus.verliebteZahlen': 'Das Haus der verliebten Zahlen',
   'haus.nachbarzahlen': 'Das Haus der Nachbarzahlen',
@@ -68,6 +70,9 @@ const DE = {
   'say.fragSchreiben': 'Hier schreibt man mit dem Finger. Willst du rein?',
   'say.fragLaden': 'Möchtest du dir den Karren ansehen?',
   'say.fragSchatten': 'Ein Schatten. Willst du ihm zeigen, was du kannst?',
+  'say.derStein':
+    'Siehst du den runden Stein? Der bringt dich in eine ganz andere '
+    + 'Welt. Da wohnen die Wörter.',
   'say.fragStein': 'Der Stein bringt dich in die andere Welt. Sollen wir?',
   'haus.silben': 'Das Haus der Silben',
   'haus.richtung': 'Das Haus von links und rechts',
