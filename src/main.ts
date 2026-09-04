@@ -404,14 +404,14 @@ function weltBauen(): void {
   // left. #ui is transparent to pointers except where a control is.
   dieSteuerung = new Steuerung(welt);
   dieSteuerung.modus = stand.get().steuerung;
-  dieWelt.anTuer = (fach) => zeigeHaus(fach);
-  dieWelt.anSchatten = (id) => zeigeSchatten(id);
+  dieWelt.anTuer = (tuer) => fragen(`say.frag${tuer[0].toUpperCase()}${tuer.slice(1)}`, () => zeigeHaus(tuer));
+  dieWelt.anSchatten = (id) => fragen('say.fragSchatten', () => zeigeSchatten(id));
   // A shut gate explains itself once; an open one is celebrated once.
   // Both go through `einmal`, so neither becomes something a child
   // learns to walk through without listening.
   dieWelt.anTor = (offen) => luma.einmal(offen ? 'say.torAuf' : 'say.nochZu');
-  dieWelt.anKarren = () => zeigeLaden();
-  dieWelt.anStein = () => reisen();
+  dieWelt.anKarren = () => fragen('say.fragLaden', () => zeigeLaden());
+  dieWelt.anStein = () => fragen('say.fragStein', () => reisen());
   muenzenGezeigt = -1;
   hudBauen();
   // The world arrives dark and opens. Long the first time, because that
@@ -453,6 +453,25 @@ function lernenZuLaufen(): void {
 function zeigeAufHaus(): void {
   if (stand.get().geschafft['verliebte-zahlen']) return;
   luma.einmal('say.erstesHaus');
+}
+
+/**
+ * Ask before anything happens.
+ *
+ * Patrick, watching his son: "bevor es zum eintreten oder encounter
+ * kommt, frag die fee ob man das machen möchte."
+ *
+ * Tapping a thing to choose it fixed the accidental triggers. This
+ * fixes the other half: ARRIVING somewhere still committed you to ten
+ * questions, and a child who tapped a house to find out what was over
+ * there had no way back out except finishing.
+ *
+ * Saying no costs nothing and leaves him standing where he is. That is
+ * the whole feature — a door you can look at without going through is a
+ * door a child will open on purpose.
+ */
+function fragen(key: string, ja: () => void): void {
+  luma.frage(key, ja, () => { audio.click(); });
 }
 
 /**

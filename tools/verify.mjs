@@ -287,6 +287,18 @@ async function waehle(tx, ty, ms = 3000) {
   if (!p) return false;
   await page.mouse.click(p[0], p[1]);
   await page.waitForTimeout(ms);
+  // Arriving asks a question now — Luma, with a big yes and a big no —
+  // so every check that used to walk in has to say yes.
+  await jaSagen();
+  return true;
+}
+
+/** Answer Luma's "shall we?" with yes, if she is asking. */
+async function jaSagen(ms = 900) {
+  const ja = page.locator('.luma-ja');
+  if (await ja.count() === 0) return false;
+  await ja.first().tap();
+  await page.waitForTimeout(ms);
   return true;
 }
 
@@ -867,7 +879,7 @@ async function beiTor(sterne, wort = 0) {
   await page.evaluate(([st, w]) => {
     const k = 'funkelwelt.platz0.v1';
     const s = JSON.parse(localStorage.getItem(k));
-    s.ort = { x: 43.5, y: 9.6 };
+    s.ort = { x: 42.5, y: 9.6 };
     s.sterne = { mathe: st, wort: w };
     localStorage.setItem(k, JSON.stringify(s));
   }, [sterne, wort]);
@@ -885,6 +897,25 @@ async function beiTor(sterne, wort = 0) {
   return (await slot()).ort;
 }
 
+async function beiTorBei(x, sterne) {
+  await inDieWelt();
+  await page.evaluate(([px, st]) => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.ort = { x: px, y: 8.6 };
+    s.sterne = { mathe: st, wort: 0 };
+    localStorage.setItem(k, JSON.stringify(s));
+  }, [x, sterne]);
+  await inDieWelt();
+  await laufe('ArrowUp', 500);
+  await lumaWeg();
+  await laufe('ArrowUp', 2000);
+  await lumaWeg();
+  await page.locator('.hudKnopf').first().tap();
+  await page.waitForTimeout(400);
+  return (await slot()).ort;
+}
+
 {
   // Level 1: shut. The gate is at row 7, so anything above it means in.
   const zu = await beiTor(0);
@@ -895,6 +926,23 @@ async function beiTor(sterne, wort = 0) {
   const auf = await beiTor(40);
   check('and it opens when they have earned it',
     auf.y < 7, `walked through to y ${auf.y.toFixed(2)}`);
+
+  // WIDE ENOUGH TO WALK THROUGH WITHOUT AIMING.
+  //
+  // Patrick, twice: "grundsätzlich müssen die tore noch breiter sein,
+  // sonst kommt man weiterhin nicht durch." It was one tile of real
+  // passage both times — the tiles added the first time opened a
+  // dead-end alcove rather than the pocket, so widening it changed
+  // nothing at all and the checks did not notice, because they all
+  // aimed at the same column.
+  //
+  // So this goes through at TWO different columns. A gate that only
+  // works where the test aims is a gate that only works for me.
+  const links = await beiTorBei(41.5, 40);
+  const rechts = await beiTorBei(42.5, 40);
+  check('and it is wide enough to walk through without aiming',
+    links.y < 7 && rechts.y < 7,
+    `x 41.5 -> y ${links.y.toFixed(2)}, x 42.5 -> y ${rechts.y.toFixed(2)}`);
 
   // What is behind it has to be worth the walk, or the lesson lands as a
   // locked door with nothing on the other side. Asserted by actually
@@ -1522,6 +1570,7 @@ async function beiTor(sterne, wort = 0) {
       await page.evaluate(() => window.weltWahl?.() ?? null) === 'tuer:nachbarn',
       String(await page.evaluate(() => window.weltWahl?.() ?? 'null')));
     await page.waitForTimeout(3000);
+    await jaSagen();
     await lumaWeg();
     check('and the choice is let go once he arrives',
       await page.locator('.runde').count() === 1
@@ -1700,6 +1749,7 @@ async function beiTor(sterne, wort = 0) {
     const vorher = (await slot()).ort;
     await page.mouse.click(dach[0], dach[1]);
     await page.waitForTimeout(2600);
+    await jaSagen();
     await lumaWeg();
     const nachher = (await slot()).ort;
     const weit = Math.hypot(nachher.x - vorher.x, nachher.y - vorher.y);

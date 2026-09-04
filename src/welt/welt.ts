@@ -171,6 +171,8 @@ export class Welt {
   private karrenBild: HTMLCanvasElement | null = null;
   private amKarren = false;
   private amStein = false;
+  /** Gates already seen open, so opening is celebrated once. */
+  private readonly torWarAuf = new Set<string>();
   anKarren: (() => void) | null = null;
   /** Standing at the waypoint stone, having chosen it. */
   anStein: (() => void) | null = null;
@@ -467,6 +469,19 @@ export class Welt {
 
   schritt(dt: number, st: Steuerung): void {
     this.zeit += dt;
+
+    // A gate that has JUST opened. Once, at the moment it happens —
+    // not every time it is walked through, which is what it used to do
+    // and which made a gate look like it was paying coins.
+    for (const tor of karte.tore) {
+      if (this.torWarAuf.has(tor.id)) continue;
+      if (!karte.torIstOffen(tor.id)) continue;
+      this.torWarAuf.add(tor.id);
+      if (this.zeit < 0.7) continue;   // not on the frame the world opens
+      const [gx, gy] = this.aufSchirm(tor.mitte, tor.fuss - 14);
+      fx.burst('stern', gx, gy, { n: 14, speed: 140, up: 0.8, life: 1 });
+      audio.sparkle(6);
+    }
     if (this.oeffnung < 1) {
       this.oeffnung = Math.min(1, this.oeffnung + dt / this.oeffnungsDauer);
     }
@@ -741,14 +756,17 @@ export class Welt {
     this.amTor = drin;
     if (!drin || !this.anTor) return;
     const offen = karte.torIstOffen(drin);
-    const tor = karte.tore.find((t) => t.id === drin)!;
-    if (offen) {
-      const [sx, sy] = this.aufSchirm(tor.mitte, tor.fuss - 14);
-      fx.burst('stern', sx, sy, { n: 12, speed: 130, up: 0.8, life: 0.9 });
-      audio.sparkle(5);
-    } else {
-      audio.thunk();
-    }
+    // NO burst for walking through a gate that is already open.
+    //
+    // Patrick: "die tore machen immer wieder den effekt als würde man
+    // münzen bekommen. das ist verwirrend." He is right and it was
+    // worse than confusing — twelve gold stars is the exact effect that
+    // means "you picked something up" everywhere else in this game, so
+    // a gate was paying an invisible reward every time it was crossed.
+    //
+    // An open gate is a gap in a cliff now. The celebration belongs at
+    // the MOMENT it opens, which is where it has moved to.
+    if (!offen) audio.thunk();
     this.anTor(offen);
   }
 

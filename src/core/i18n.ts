@@ -56,6 +56,19 @@ const DE = {
   'haus.nachbarzahlen': 'Das Haus der Nachbarzahlen',
   'haus.addition': 'Das Haus der Addition',
   'haus.schreiben': 'Das Haus der Schreiber',
+  'luma.ja': 'Ja, los!',
+  'luma.nein': 'Lieber nicht',
+  // What Luma asks before each kind of event. Named after the THING
+  // rather than the house, so a child hears where they are about to go.
+  'say.fragVerliebte': 'Hier wohnen die verliebten Zahlen. Willst du rein?',
+  'say.fragNachbarn': 'Hier wohnen die Nachbarzahlen. Willst du rein?',
+  'say.fragAddition': 'Hier wird gerechnet. Willst du rein?',
+  'say.fragRichtung': 'Hier geht es um links und rechts. Willst du rein?',
+  'say.fragSilben': 'Hier lernt man Silben lesen. Willst du rein?',
+  'say.fragSchreiben': 'Hier schreibt man mit dem Finger. Willst du rein?',
+  'say.fragLaden': 'Möchtest du dir den Karren ansehen?',
+  'say.fragSchatten': 'Ein Schatten. Willst du ihm zeigen, was du kannst?',
+  'say.fragStein': 'Der Stein bringt dich in die andere Welt. Sollen wir?',
   'haus.silben': 'Das Haus der Silben',
   'haus.richtung': 'Das Haus von links und rechts',
 

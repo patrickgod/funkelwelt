@@ -333,6 +333,26 @@ it.** A risk you have not built is a risk you are still carrying.
   It pays the Wort-Stern, which has had nothing to earn it since the
   word house closed.
 
+* **Silben schreiben.** The last of Patrick's German brief and the only
+  exercise with no answer cards: the answer is the tracing. The writing
+  font and the surface came from Lernkiste, trimmed to the seven
+  letters — a letter a child has not been taught must not be reachable,
+  not even through a typo in a word list. The suite WRITES: it reads the
+  stroke the surface is asking for and drags a finger along it.
+
+* **Luma asks first.** Before a house, the cart, a shadow or the
+  waypoint, Luma asks, with a big yes and a big no. Tapping a thing
+  fixed accidental triggers; this fixes the other half, which is that
+  ARRIVING still committed you to ten questions.
+
+* **Three-tile gates, and no more false coins.** Both gates were still
+  one tile of real passage — the tiles added earlier opened a dead-end
+  alcove rather than the pocket. And walking through an open gate burst
+  twelve gold stars, which is the exact effect that means "you picked
+  something up" everywhere else in this game, so a gate appeared to pay
+  a reward every time it was crossed. The celebration now happens once,
+  at the moment the gate opens.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick
@@ -413,7 +433,64 @@ Still open, and still the questions the world was built early to answer:
 * **Does Luma get in the way?** Three misses is a number nobody has
   tested.
 
-### 3. The thing the design has not answered: coming back
+### 3. THE BIG ONE: he runs around instead of learning
+
+Patrick, watching his son play: *"mein sohn rennt mehr rum um sterne zu
+suchen oder zu entdecken wo er noch so hinlaufen kann. grundsaetzlich
+gut, aber eigentlich soll es ja um die aufgaben und das lernen gehen."*
+
+This is the most important thing anybody has said about this project,
+and it is a design failure rather than a bug. **The world is more fun
+than the lessons, so a child optimises for the world.** He is playing it
+correctly; the incentives are wrong.
+
+**Why it happens, measured:** a lightspark pays two coins for walking
+into it and asks nothing. A house pays four, or seven for a clean round,
+and asks ten questions. Fourteen sparks and eight shadows are lying
+around the meadow. Exploring is the cheapest coin per minute in the
+game, and it is also the more novel thing, because the meadow is new and
+a ten-frame is not.
+
+**The proposal, and it is one line: a lightspark becomes a question.**
+
+Walk into a spark and it asks ONE thing — from the houses of the world
+it is standing in — and answering it takes the spark and pays the coins.
+Ten seconds, one question, then the reward he is already running towards.
+
+Why this and not the alternatives:
+
+* It does not fight the child. He loves finding things and running to
+  them; that instinct is worth keeping and is most of what makes him
+  open the game. This puts the learning **inside** the thing he already
+  wants, rather than competing with it.
+* It is already the design. KONZEPT.md's Hack'n'Slash strand asks for
+  exactly this — "a bridge with seven planks that wants three more, a
+  gate showing 6 + ?" — objects in the world that are questions. The
+  sparks are fourteen of those, already placed, already lit, already
+  wanted.
+* One question is not a lesson and is not meant to be. The houses stay
+  the place where a topic is practised properly; the sparks become the
+  reason the walk between them is not free.
+* It costs a child nothing to be wrong, the same as everywhere else:
+  wrong simply means the spark is still there.
+
+**What I would NOT do**, and why:
+
+* *Cut the spark reward.* It makes exploring worse without making
+  learning better, and the child ends up doing less of both.
+* *Lock the world behind the houses.* The gates already do a little of
+  this, and more of it turns the meadow into a corridor — which is the
+  opposite of the thing he enjoys.
+* *Make the houses pay far more.* A bigger number does not compete with
+  novelty at six, and it inflates the shop, which was just rebalanced.
+
+**Not built yet — this is Patrick's call**, because it changes what the
+world IS. Everything needed is in place: `buildRound` already makes a
+round of any length from any generator list, `HAEUSER` already says
+which subject a region teaches, and the encounter screen already asks a
+single question against a picture of a creature.
+
+### 4. The thing the design has not answered: coming back
 
 Patrick: *"Wir müssen im Konzept halt einen Weg finden wie man immer
 wieder dieselben Themen übt und z.B. die verliebten Zahlen nicht enden
@@ -439,24 +516,6 @@ and **none should be built before Patrick picks one**:
   of it, mixed at random, drawing from every generator. The natural
   "come back when you are stronger" building, and `buildRound` already
   takes as many generators as you give it.
-
-### 4. Silben schreiben
-
-The other half of Patrick's German brief, and the only part of the
-original design that has never been built at all: the child writes a
-syllable with a finger.
-
-It needs the tracing surface from Lernkiste (`src/games/schrift.ts`,
-313 lines) and the writing font that goes with it. `types.ts` still
-carries the `schreiben` prompt kind, waiting, and it is the one prompt
-with no answer cards — the answer IS the tracing, and the round moves on
-when the last stroke lands.
-
-The house site is already standing empty on the shore, at tiles 22-26,
-rows 10-14, so there is somewhere to put it.
-
-The letter set is the same seven, and `src/games/silben.ts` already
-holds the words and their splits.
 
 ### 5. Anything else about the shore
 

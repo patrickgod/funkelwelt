@@ -1063,3 +1063,31 @@ button.gross {
   margin-bottom: 6px;
   opacity: 0.85;
 }
+
+
+/* LUMA ASKING SOMETHING.
+ *
+ * The same box she talks from, with two buttons under the text and no
+ * way to dismiss it by tapping the box — a stray tap that answers a
+ * question is what this whole thing exists to prevent. */
+.luma-frage {
+  flex-wrap: wrap;
+  cursor: default;
+}
+
+.luma-frage .luma-text { flex: 1 1 260px; }
+
+.luma-knoepfe {
+  flex: 1 1 100%;
+  display: flex;
+  gap: 14px;
+  justify-content: flex-end;
+  padding: 4px 6px 2px;
+}
+
+/* "Yes" is the big one and it is gold; "no" is quieter but the SAME
+   height, because rule 12's 64-pixel target does not care which answer
+   a child is giving. Making "no" small is how a game says no is the
+   wrong answer. */
+.luma-ja { min-width: 46%; }
+.luma-nein { min-width: 34%; opacity: 0.92; }

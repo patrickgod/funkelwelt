@@ -34,7 +34,7 @@ import * as stand from '../core/spielstand.js';
 import * as audio from '../core/audio.js';
 import { iconCanvas } from '../core/icons.js';
 import { portraitCanvas } from '../spiel/luma.js';
-import { el, tap } from './dom.js';
+import { el, tap, knopf } from './dom.js';
 
 let kasten: HTMLElement | null = null;
 let schliessen: number | null = null;
@@ -150,6 +150,61 @@ export function zeige(key: string, danach?: () => void): void {
 
   audio.sagen(key);
   schliessen = window.setTimeout(() => weg(), dauer(text));
+}
+
+/**
+ * Ask, and wait for an answer.
+ *
+ * Patrick, watching his son play: "am besten, bevor es zum eintreten
+ * oder encounter kommt, frag die fee ob man das machen möchte und es
+ * gibt prominente ja und nein buttons."
+ *
+ * Choosing a thing by tapping it fixed accidental triggers; this fixes
+ * the other half, which is that arriving somewhere still COMMITS you.
+ * A child who tapped a house to see what was over there is now asked
+ * before ten questions start, and "no" costs nothing at all.
+ *
+ * Two buttons and no way to dismiss it by tapping the box — a stray tap
+ * that answers a question is exactly what this exists to prevent. It
+ * does not time out either, for the same reason: every other thing Luma
+ * says closes itself after a while, and a question that closes itself
+ * has answered for the child.
+ */
+export function frage(key: string, ja: () => void, nein: () => void): void {
+  if (kasten) {
+    if (schliessen !== null) clearTimeout(schliessen);
+    schliessen = null;
+    kasten.remove();
+    kasten = null;
+    danachRuf = null;
+  }
+  const text = t(key);
+
+  const b = el('div', 'luma luma-frage');
+  const bild = el('span', 'luma-bild');
+  bild.appendChild(gemalt());
+  const wort = el('span', 'luma-text', text);
+  const knoepfe = el('div', 'luma-knoepfe');
+
+  const schliessenUnd = (fn: () => void): void => {
+    if (schliessen !== null) clearTimeout(schliessen);
+    schliessen = null;
+    b.remove();
+    if (kasten === b) kasten = null;
+    fn();
+  };
+  const jaB = knopf(t('luma.ja'), () => schliessenUnd(ja), 'gold');
+  jaB.classList.add('luma-ja');
+  const neinB = knopf(t('luma.nein'), () => schliessenUnd(nein));
+  neinB.classList.add('luma-nein');
+  knoepfe.append(jaB, neinB);
+  b.append(bild, wort, knoepfe);
+
+  const app = buehne();
+  const fx = document.getElementById('fx');
+  app.insertBefore(b, fx);
+  kasten = b;
+  audio.sagen(key);
 }
 
 /**

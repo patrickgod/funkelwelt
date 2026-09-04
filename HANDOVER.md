@@ -215,6 +215,13 @@ anybody found out.
 The same goes for `node tools/contact.mjs fahrzeuge`. Three of those
 five first drafts failed too.
 
+**Luma asks before anything happens.** A house, the cart, a shadow and
+the waypoint all confirm first, with a big yes and a big no — see
+`fragen()` in `main.ts`. Tapping a thing to choose it fixed accidental
+triggers; this fixes the other half, which is that ARRIVING committed
+you to ten questions. Saying no costs nothing. Every check that enters
+something has to answer her (`jaSagen()` in the suite).
+
 **A wrong answer is a retry, not an ending.** In the houses the card
 flashes red, the answer is NOT revealed, and the same question stays;
 three wrong answers restart the house. Read the amended rule 11 in
