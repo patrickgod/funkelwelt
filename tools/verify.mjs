@@ -92,9 +92,28 @@ const PORT = server.address().port;
 const BASE = `http://localhost:${PORT}/`;
 
 let failures = 0;
+/**
+ * Where the time goes, printed at the end.
+ *
+ * Added after two attempts to speed this suite up: the first (waiting
+ * for the screen instead of the clock in `inDieWelt`) took two and a
+ * half minutes off, and the second (waiting for readiness instead of a
+ * flat 2.4 seconds after every answer) took five seconds off — because
+ * polling Playwright three times per 60ms costs about what it saves.
+ *
+ * The second one was a guess. AGENTS.md rule 5 says measure before
+ * fixing and I did not, so this is the instrument I should have built
+ * first: every check records the time since the previous one, and the
+ * ten slowest are printed. It costs one `Date.now()` per check.
+ */
+const zeiten = [];
+let letzteZeit = Date.now();
 /** What a clean round paid, measured once and reused by the shop check. */
 let sauberelRundeLohn = 0;
 function check(name, ok, detail = '') {
+  const jetzt = Date.now();
+  zeiten.push({ name, ms: jetzt - letzteZeit });
+  letzteZeit = jetzt;
   console.log(`  ${ok ? 'ok  ' : 'FAIL'}  ${name}${detail ? ` — ${detail}` : ''}`);
   if (!ok) failures++;
 }
@@ -254,20 +273,73 @@ async function lumaWeg() {
  * One picture and one button, and every path into the game now goes
  * past it — so this is a helper rather than four copies of the same tap.
  */
-async function starten() {
-  if (await page.locator('.start').count()) {
-    await page.locator('button', { hasText: 'Spiel starten' }).first().tap();
-    await page.waitForTimeout(500);
+/**
+ * Wait until the round is ready for the next tap.
+ *
+ * Replaces a flat `waitForTimeout(2400)` after every answer. Nine call
+ * sites, most of them inside a loop that runs ten times, so it was over
+ * two minutes of the suite spent waiting out an animation that is
+ * usually finished in under one second.
+ *
+ * Ready means one of two things, because a wrong answer no longer
+ * advances the round: either the progress moved on, or the red flash
+ * has cleared and the same question is answerable again.
+ */
+async function bereit(vorher, grenze = 2600) {
+  const t0 = Date.now();
+  let sahRot = false;
+  while (Date.now() - t0 < grenze) {
+    if (await page.locator('.blatt').count()) return;
+    const rot = await page.locator('.karten button.falsch').count();
+    if (rot > 0) {
+      sahRot = true;
+    } else {
+      // The red flash came and went: the same question is answerable
+      // again, which is what "ready" means after a miss.
+      //
+      // The first version waited for the PROGRESS to move, and a wrong
+      // answer does not move it — so every miss waited out the whole
+      // cap. That made the syllable house SLOWER than the flat delay it
+      // replaced, which is exactly the kind of thing that goes
+      // unnoticed without the timing report next to it.
+      if (sahRot) return;
+      if (await page.locator('.pip.fertig').count() !== vorher) return;
+    }
+    await page.waitForTimeout(60);
   }
 }
 
-/** Open slot one and wait for the region to be composited. */
+async function starten() {
+  if (await page.locator('.start').count()) {
+    await page.locator('button', { hasText: 'Spiel starten' }).first().tap();
+    await page.locator('.platz').first()
+      .waitFor({ state: 'visible', timeout: 8000 }).catch(() => {});
+  }
+}
+
+/**
+ * Open slot one and wait for the world to be there.
+ *
+ * WAITS FOR THE SCREEN, NOT FOR THE CLOCK. This is called seventy-three
+ * times, and it used to spend two seconds of every one of them waiting
+ * a fixed 700 and 1300 milliseconds — about two and a half minutes of
+ * the ten the suite takes, spent guessing at a machine.
+ *
+ * The numbers were chosen on this laptop, which is the same mistake
+ * that turned up in CI a day ago in a different costume: a fixed delay
+ * is an assertion about hardware, and the hardware it asserts about is
+ * never the one that matters.
+ */
 async function inDieWelt() {
   await page.goto(BASE);
-  await page.waitForTimeout(700);
+  await page.locator('.start, .platz').first()
+    .waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
   await starten();
   await page.locator('.platz').first().tap();
-  await page.waitForTimeout(1300);
+  // The HUD is the last thing the world screen builds, so it existing
+  // means the region is composited and the adventurer is standing in it.
+  await page.locator('.hud').first()
+    .waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
   await lumaWeg();
 }
 
@@ -496,6 +568,7 @@ await measureButtons('world');
     const n = await karten.count();
     if (n === 0) break;
     gestellt++;
+    const vorPips = await page.locator('.pip.fertig').count();
 
     const zahl = await page.locator('.frage[data-zahl]')
       .first().getAttribute('data-zahl').catch(() => null);
@@ -506,14 +579,16 @@ await measureButtons('world');
       if (idx >= 0) {
         gerechnet++;
         await karten.nth(idx).tap();
-        await page.waitForTimeout(600);
+        // 350ms is enough for the class to land; the rest is the
+        // animation, which `bereit` watches instead of waiting out.
+        await page.waitForTimeout(350);
         if (await page.locator('.karten button.richtig').count() === 1) richtig++;
-        await page.waitForTimeout(2000);
+        await bereit(vorPips);
         continue;
       }
     }
     await karten.first().tap();
-    await page.waitForTimeout(2400);
+    await bereit(vorPips);
   }
   check('the partner that makes ten is right, every time',
     gerechnet > 0 && richtig === gerechnet, `${richtig} of ${gerechnet} correct`);
@@ -654,6 +729,7 @@ await measureButtons('world');
     await lumaWeg();
     const karten = page.locator('.karten button');
     if (await karten.count() === 0) break;
+    const vorPips = await page.locator('.pip.fertig').count();
 
     const reihe = await page.locator('.zahlenreihe span')
       .evaluateAll((els) => els.map((e) => (e.textContent ?? '').trim()));
@@ -667,16 +743,18 @@ await measureButtons('world');
       gefragt++;
       if (idx >= 0) {
         await karten.nth(idx).tap();
-        await page.waitForTimeout(600);
+        // 350ms is enough for the class to land; the rest is the
+        // animation, which `bereit` watches instead of waiting out.
+        await page.waitForTimeout(350);
         if (await page.locator('.karten button.richtig').count() === 1) richtig++;
-        await page.waitForTimeout(2000);
+        await bereit(vorPips);
         continue;
       }
       check('the number that fills the gap is on one of the cards',
         false, `row ${reihe.join(',')} needs ${fehlt}; cards ${labels.join(',')}`);
     }
     await karten.first().tap();
-    await page.waitForTimeout(2400);
+    await bereit(vorPips);
   }
   check('filling the gap by counting along the row is RIGHT, every time',
     gefragt > 0 && richtig === gefragt, `${richtig} of ${gefragt} correct`);
@@ -1010,6 +1088,7 @@ async function beiTorBei(x, sterne) {
     const karten = page.locator('.karten button');
     if (await karten.count() === 0) break;
     gestellt++;
+    const vorPips = await page.locator('.pip.fertig').count();
 
     const labels = await karten.evaluateAll(
       (els) => els.map((e) => e.getAttribute('aria-label') ?? ''));
@@ -1028,14 +1107,14 @@ async function beiTorBei(x, sterne) {
     const idx = labels.findIndex((l) => l.endsWith(nach));
     if (idx >= 0) {
       await karten.nth(idx).tap();
-      await page.waitForTimeout(600);
+      await page.waitForTimeout(350);
       if (await page.locator('.karten button.richtig').count() === 1) richtig++;
       gefragt++;
-      await page.waitForTimeout(2000);
+      await bereit(vorPips);
       continue;
     }
     await karten.first().tap();
-    await page.waitForTimeout(2400);
+    await bereit(vorPips);
   }
 
   check('every question has exactly one vehicle going the right way',
@@ -1248,6 +1327,7 @@ async function beiTorBei(x, sterne) {
     const wort = ((await page.locator('.silbenwort').first().textContent()) ?? '').trim();
     const karten = page.locator('.karten button');
     if (await karten.count() === 0) break;
+    const vorPips = await page.locator('.pip.fertig').count();
     const labels = await karten.evaluateAll(
       (els) => els.map((e) => (e.textContent ?? '').trim()));
     // Every card must be the same letters in the same order — only the
@@ -1263,10 +1343,10 @@ async function beiTorBei(x, sterne) {
     // split IS the knowledge — so this taps the first card and only
     // counts the questions, not the correctness.
     await karten.nth(idx >= 0 ? idx : 0).tap();
-    await page.waitForTimeout(1200);
+    await page.waitForTimeout(350);
     gefragtS++;
     if (await page.locator('.karten button.falsch').count() === 0) richtigS++;
-    await page.waitForTimeout(1400);
+    await bereit(vorPips);
   }
   check('the syllable house asks a whole round of them',
     gefragtS >= 3, `${gefragtS} questions`);
@@ -1993,6 +2073,7 @@ async function beiTorBei(x, sterne) {
     const karten = page.locator('.karten button');
     if (await karten.count() === 0) break;
     gestellt++;
+    const vorPips = await page.locator('.pip.fertig').count();
 
     // NOTHING ABOVE TEN, anywhere on the screen.
     //
@@ -2034,14 +2115,14 @@ async function beiTorBei(x, sterne) {
       if (idx >= 0) {
         gerechnet++;
         await karten.nth(idx).tap();
-        await page.waitForTimeout(600);
+        await page.waitForTimeout(350);
         if (await page.locator('.karten button.richtig').count() === 1) stimmt++;
-        await page.waitForTimeout(2000);
+        await bereit(vorPips);
         continue;
       }
     }
     await karten.first().tap();
-    await page.waitForTimeout(2400);
+    await bereit(vorPips);
   }
   // One topic per house now: a door named after Addition that asks a
   // Nachbarzahlen question is a door that lied about what was inside.
@@ -2447,6 +2528,18 @@ check('nothing 404s', notFound.length === 0, [...new Set(notFound)].slice(0, 5).
 check('the game talks to nobody', offsite.size === 0, [...offsite].join(', '));
 
 await browser.close();
+// The ten slowest stretches, so the next attempt to speed this up is
+// aimed rather than guessed.
+if (process.argv.includes('--zeiten')) {
+  console.log('');
+  console.log('  slowest stretches, seconds:');
+  for (const z of [...zeiten].sort((a, b) => b.ms - a.ms).slice(0, 10)) {
+    console.log(`    ${(z.ms / 1000).toFixed(1).padStart(6)}  ${z.name}`);
+  }
+  const gesamt = zeiten.reduce((a, b) => a + b.ms, 0);
+  console.log(`    ${(gesamt / 1000).toFixed(1).padStart(6)}  TOTAL`);
+}
+
 server.close();
 console.log(failures ? `\n${failures} failed` : '\nall good');
 process.exit(failures ? 1 : 0);

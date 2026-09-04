@@ -699,3 +699,40 @@ number up: the failure did not name the feature that broke. A check that
 fails far from its cause is a check that will be misdiagnosed, and
 raising the timeout would have hidden it again until the next slower
 machine.
+
+## I guessed twice at what was slow, and the second guess made it slower
+
+**Signature:** the deploy took eighteen minutes and the verification
+step was ten and a half against a twelve-minute ceiling I had written
+myself.
+
+Two guesses, in order.
+
+The first was right by luck: `inDieWelt` is called seventy-three times
+and spent two fixed seconds on every one of them, so waiting for the
+screen instead of the clock took two and a half minutes off.
+
+The second was wrong. I replaced the flat 2.4-second wait after every
+answer with a condition wait — which is the right SHAPE, and saved five
+seconds out of four hundred, because polling Playwright three times per
+sixty milliseconds costs roughly what it saves.
+
+Then I built the instrument I should have built first: every check
+records the time since the previous one, and `--zeiten` prints the ten
+slowest. It took one run to see that five blocks — the ones that play a
+whole round of ten questions — were thirty-seven per cent of the suite.
+
+Aimed at that, the same technique took 406 seconds to 323.
+
+**And the report immediately caught the fix making something worse.**
+The syllable house went from 39.7 seconds to 43.3, because a wrong
+answer does not advance the progress and my "ready" condition waited for
+progress — so every miss waited out the whole cap. Ready after a miss
+means the red flash has cleared. 43.3 back down to 16.1.
+
+Generalises, and rule 5 already says it: **measure before fixing.** What
+this adds is the cheap version — the instrument does not have to be
+clever. One `Date.now()` per check and a sort. I spent two attempts and
+two full runs guessing before spending one run knowing, and the one run
+knowing also told me my previous change had been a regression, which no
+amount of staring at the code would have.

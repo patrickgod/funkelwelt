@@ -38,8 +38,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          # The lockfile is the cache key, so this is a hit on every run
+          # that does not change dependencies — which is nearly all of
+          # them.
+          cache: npm
 
+      # SKIP THE BROWSER DOWNLOAD HERE.
+      #
+      # `playwright` downloads Chromium, Firefox and WebKit from its
+      # postinstall — three browsers, of which this project uses one.
+      # That was seven minutes of every deploy, longer than the whole
+      # verification suite it exists to run, and none of it was ever
+      # looked at because `npm ci` is not a step anybody reads.
+      #
+      # The `playwright install chromium` step below fetches the one
+      # browser that is actually used.
       - run: npm ci
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
 
       # A broken build must never reach a child's iPad, so everything
       # runs before anything is uploaded.
