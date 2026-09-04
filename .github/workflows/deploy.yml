@@ -43,19 +43,26 @@ jobs:
           # them.
           cache: npm
 
-      # SKIP THE BROWSER DOWNLOAD HERE.
+      # `npm ci` took SEVEN MINUTES for five packages.
       #
-      # `playwright` downloads Chromium, Firefox and WebKit from its
-      # postinstall — three browsers, of which this project uses one.
-      # That was seven minutes of every deploy, longer than the whole
-      # verification suite it exists to run, and none of it was ever
-      # looked at because `npm ci` is not a step anybody reads.
+      # The same command takes two seconds on the machine this was
+      # written on, so it is not the packages — it is a postinstall
+      # script. `playwright` fetches Chromium, Firefox and WebKit from
+      # one, and this project uses one browser, installed by its own
+      # step below.
       #
-      # The `playwright install chromium` step below fetches the one
-      # browser that is actually used.
-      - run: npm ci
-        env:
-          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      # `--ignore-scripts` skips all of them. esbuild has not needed a
+      # postinstall since 0.16 — it ships its platform binary as an
+      # optional dependency — and if that ever changes the Build step
+      # two lines down fails immediately, which is the right place to
+      # find out.
+      #
+      # The timeout is a tripwire rather than a budget: this should be
+      # seconds, and if it is ever minutes again somebody should look
+      # rather than wait.
+      - name: Install
+        timeout-minutes: 4
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       # A broken build must never reach a child's iPad, so everything
       # runs before anything is uploaded.
