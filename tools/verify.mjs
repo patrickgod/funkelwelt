@@ -92,6 +92,8 @@ const PORT = server.address().port;
 const BASE = `http://localhost:${PORT}/`;
 
 let failures = 0;
+/** What a clean round paid, measured once and reused by the shop check. */
+let sauberelRundeLohn = 0;
 function check(name, ok, detail = '') {
   console.log(`  ${ok ? 'ok  ' : 'FAIL'}  ${name}${detail ? ` — ${detail}` : ''}`);
   if (!ok) failures++;
@@ -513,9 +515,10 @@ await measureButtons('world');
   // has been answered correctly, so `richtig` was always ten and the
   // perfect bonus always applied. Nobody noticed until Patrick said the
   // shop empties too fast.
+  sauberelRundeLohn = s.muenzen - muenzenVorRunde;
   check('and a clean round pays more than a scruffy one',
-    s.muenzen - muenzenVorRunde === 7,
-    `${s.muenzen - muenzenVorRunde} coins for ten right first time`);
+    sauberelRundeLohn === 7,
+    `${sauberelRundeLohn} coins for ten right first time`);
   check('and never Wort-Sterne, which it did not teach', s.sterne.wort === 0);
   check('the house counts how often it has been cleared',
     s.geschafft['verliebte-zahlen'] === 1, JSON.stringify(s.geschafft));
@@ -752,8 +755,16 @@ await measureButtons('world');
   const preiseAlle = await page.locator('.ware .wpreis').evaluateAll(
     (els) => els.map((e) => Number((e.textContent || '').replace(/\D/g, '')) || 0));
   const summe = preiseAlle.reduce((a, b) => a + b, 0);
+  // Against the payout this run MEASURED, not against a 7 typed here.
+  //
+  // The first version wrote `20 * 7` and put "a clean round pays 7" in
+  // its own message — and then a sabotage that restored the old
+  // fifteen-coin payout sailed straight through it, still reporting
+  // seven. A check that names a number it does not read is a check that
+  // will keep saying what used to be true.
   check('the whole cart is more than twenty clean rounds of work',
-    summe > 20 * 7, `${summe} coins for everything, a clean round pays 7`);
+    sauberelRundeLohn > 0 && summe > 20 * sauberelRundeLohn,
+    `${summe} coins for everything, a clean round pays ${sauberelRundeLohn}`);
   await measureButtons('cart');
 
   // One screen. The shop that failed had twenty-seven things and a

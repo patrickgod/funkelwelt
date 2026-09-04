@@ -597,3 +597,41 @@ code.** It is evidence that the harness did not do what you think it
 did. The debug global printing nothing was read as "the feature is
 broken" when it meant "the tap never happened", and those two look
 identical from inside the theory you already have.
+
+## A design change moves numbers in rooms you are not standing in
+
+**Signature:** Patrick said the shop empties too fast. It did, and not
+for the reason anybody would have guessed.
+
+A round paid `richtig + 5` — ten right answers plus a perfect-round
+bonus, fifteen coins for a flawless round and less for a scruffy one.
+That was a reasonable rule for four years of this project's life.
+
+Then a wrong answer became a RETRY. A round now ends only when every
+question has been answered correctly, so `richtig` is always ten and
+`alle` is always true. Every round pays fifteen. The economy had been
+doubled by a change in a different file about a different thing, and
+nothing failed, because nothing was asserting what a round was worth.
+
+The tell was somebody playing it. That is a bad way to find out.
+
+Generalises: **when you change what ENDING something means, go and look
+at everything that is paid out at the end.** The retry did not touch the
+payout line and did not need to — it changed the meaning of the variable
+the payout line reads. Grep for the state the change makes unreachable
+(here: "can a round end with fewer than ten right?") rather than for the
+lines you edited.
+
+And the second half, which is the one with teeth. The new check said
+
+    the whole cart is more than twenty clean rounds of work
+    — 196 coins for everything, a clean round pays 7
+
+and the "7" was a literal, written from what I had just typed into the
+payout. Sabotaging the payout back to fifteen left that check green and
+still saying "a clean round pays 7". **A check that names a number it
+does not read is a check that will keep saying what used to be true.**
+It reads the payout it measured earlier in the same run now — which is
+the same lesson as the map's selection marker, arriving from a
+completely different direction: the sabotage run tells you which of your
+checks do not work, and it is the only time they will say so.

@@ -295,6 +295,16 @@ it.** A risk you have not built is a risk you are still carrying.
   scheduler is still told only about the first attempt, because a child
   who gets it on the third go has not learned it three times worse.
 
+* **Seven things on the cart, and coins worth earning.** A round pays
+  four, or seven cleared without a strike; sparks two, shadows three.
+  The three new things are an Umhang (footstep dust becomes light), a
+  Glücksband (a fourth strike, visible in the row) and a Kompass (the
+  map stops hiding the lightsparks).
+
+  Found while measuring: the strikes change had quietly made every round
+  pay the maximum, because a round now only ends when every question has
+  been answered correctly. Six rounds bought the whole shop.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick
@@ -375,22 +385,7 @@ Still open, and still the questions the world was built early to answer:
 * **Does Luma get in the way?** Three misses is a number nobody has
   tested.
 
-### 3. The cart: more things, fewer coins
-
-Patrick: *"es braucht aber mehr items und weniger münzen beim spielen,
-sonst sind alle items recht schnell freigeschaltet/gekauft."*
-
-Measured, not guessed: a round pays coins, a lightspark pays 3 (5 with
-the hat), a chased shadow pays 4. The four things cost 24, 20, 30 and
-16 — ninety in total, which is roughly one afternoon.
-
-The rule that must survive the rebalance is `src/ui/laden.ts`'s: every
-item is better than nothing and none is better than another, so there is
-no wrong purchase. That gets harder with more items, not easier — a
-long list is the shop that failed the playtest this project came from.
-Eight to ten is probably the ceiling.
-
-### 4. Say when a gate opens
+### 3. Say when a gate opens
 
 Patrick: *"wir sollten auch erklären wann sich ein tor öffnet. die idee
 des nötigen levels um tore öffnen zu können finde ich super."*
@@ -400,13 +395,13 @@ What is missing is the connection: a child at a shut gate does not know
 that the stars come from the houses. Luma is the explainer, and this is
 exactly her job — once, at the first gate, in a sentence.
 
-### 5. How you get to the next world
+### 4. How you get to the next world
 
 **You do not. It does not exist yet.** Asked and answered: the second
 region is Deutsch and it is item 8. Until it is built there is one
 world, and the waypoints have nothing to connect.
 
-### 6. The thing the design has not answered: coming back
+### 5. The thing the design has not answered: coming back
 
 Patrick: *"Wir müssen im Konzept halt einen Weg finden wie man immer
 wieder dieselben Themen übt und z.B. die verliebten Zahlen nicht enden
@@ -433,7 +428,7 @@ and **none should be built before Patrick picks one**:
   "come back when you are stronger" building, and `buildRound` already
   takes as many generators as you give it.
 
-### 7. The second world: Deutsch
+### 6. The second world: Deutsch
 
 Patrick: *"und dann in der nächsten welt die silben? lesen und
 schreiben, und kombinationen wie Lea, lulu, Mama, Oma, etc. aber eben
@@ -459,12 +454,12 @@ carries the `schreiben` kind, waiting.
 unreferenced, along with `woerter()` in `tools/genvoice.mjs`. One line
 brings the recordings back.
 
-### 8. Waypoints
+### 7. Waypoints
 
 Patrick's, and now they have a job: two worlds means walking between
 them. Build them when the second world exists and not before.
 
-### 9. Anything else about a second region
+### 8. Anything else about a second region
 
 The gate proves the mechanism on twelve tiles. What it opens onto should
 eventually be somewhere, not a walled garden — and the honest note is
