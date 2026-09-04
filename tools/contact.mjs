@@ -235,5 +235,41 @@ ctx.fillText('die Frage', 10 + CELL_W, ay + 16);
 `);
 }
 
+// ------------------------------------------- the things on the cart
+
+if (doIt('waren')) {
+  await sheet('waren', `
+import { iconCanvas, type Icon } from '../src/core/icons.js';
+
+// All seven, at the size the shop draws them and at the size a doubting
+// adult wants. Three were added at once, and the door plaques taught
+// what happens when a SET is judged one at a time: two of four were
+// unreadable and nobody found out until they were all side by side.
+const NAMEN: Icon[] = ['wHut', 'wStiefel', 'wLaterne', 'wMutband', 'wUmhang', 'wGlueck', 'wKompass'];
+const S = 4, BIG = 8, W = 17;
+
+const c = document.createElement('canvas');
+c.width = 30 + NAMEN.length * (W * BIG + 16);
+c.height = 60 + W * S + W * BIG;
+document.body.appendChild(c);
+const ctx = c.getContext('2d')!;
+ctx.imageSmoothingEnabled = false;
+ctx.fillStyle = '#e8dcc0';
+ctx.fillRect(0, 0, c.width, c.height);
+ctx.font = 'bold 14px sans-serif';
+ctx.textAlign = 'center';
+
+NAMEN.forEach((n, i) => {
+  const x = 15 + i * (W * BIG + 16);
+  ctx.fillStyle = '#2a2030';
+  ctx.fillText(n.slice(1), x + (W * BIG) / 2, 20);
+  ctx.drawImage(iconCanvas(n, 17), x + (W * BIG - W * S) / 2, 28, W * S, W * S);
+  ctx.drawImage(iconCanvas(n, 17), x, 34 + W * S, W * BIG, W * BIG);
+});
+
+(window as any).ready = true;
+`);
+}
+
 await browser.close();
 rmSync('.contact', { recursive: true, force: true });

@@ -32,6 +32,7 @@ import type { Question } from '../games/types.js';
 import { el, tap, knopf, zentrumVon } from './dom.js';
 import * as luma from './luma.js';
 import { fragebild, karteFuer, kartenKlasse, rahmenSkala, type Fuellung } from './frage.js';
+import * as laden from './laden.js';
 
 export interface Haus {
   /** Save-slot key, so a house can count how often it has been cleared. */
@@ -242,7 +243,7 @@ function frageZeichnen(): void {
   // "goes round again", not damage — KONZEPT is explicit that there is
   // no health in this game and that has not changed.
   const str = el('div', 'strikes');
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < laden.strikesVoll(); i++) {
     str.appendChild(el('div', `strike${i < lauf.strikes ? ' voll' : ''}`));
   }
   oben.appendChild(str);
@@ -344,7 +345,7 @@ function antwort(idx: number, btn: HTMLButtonElement, buehne: HTMLElement): void
   audio.chimeSoft();
   strikesZeigen();
 
-  if (lauf.strikes >= 3) {
+  if (lauf.strikes >= laden.strikesVoll()) {
     // Three, and the house starts again. Announced by Luma rather than
     // by the screen simply resetting, because a round that restarts
     // without a word is a round that looks broken.
@@ -414,7 +415,13 @@ function fertig(): void {
 
   const alle = lauf.richtig === lauf.fragen.length;
   const sterne = lauf.richtig;
-  const muenzen = lauf.richtig + (alle ? 5 : 2);
+  // Four for finishing, seven for finishing WITHOUT using a strike.
+  //
+  // It used to be `richtig + 5`, which was fifteen — and after the
+  // strikes landed it was fifteen EVERY time, because a round only ends
+  // when every question has been answered correctly. The number that
+  // now varies is the one that should: how cleanly it was done.
+  const muenzen = 4 + (lauf.strikes === 0 ? 3 : 0);
 
   stand.sterne(fach, sterne);
   stand.muenzen(muenzen);

@@ -459,6 +459,8 @@ await measureButtons('world');
   check('the question is shown, not written',
     await page.locator('.zehnerfeld canvas').count() === 1);
 
+  const muenzenVorRunde = (await slot()).muenzen;
+
   // Answer the round by WORKING OUT the partner to ten, not by tapping
   // the first card.
   //
@@ -502,6 +504,18 @@ await measureButtons('world');
   await page.waitForTimeout(1800);
   const s = await slot();
   check('a round pays Mathe-Sterne', s.sterne.mathe > 0, `${s.sterne.mathe} stars`);
+  // A CLEAN round — every question right first time — is worth more
+  // than one that took a strike, and that difference is the only thing
+  // now stopping the shop being bought in an afternoon.
+  //
+  // It used to be `richtig + 5`, and after the retry landed that was
+  // fifteen every single time: a round only ends when every question
+  // has been answered correctly, so `richtig` was always ten and the
+  // perfect bonus always applied. Nobody noticed until Patrick said the
+  // shop empties too fast.
+  check('and a clean round pays more than a scruffy one',
+    s.muenzen - muenzenVorRunde === 7,
+    `${s.muenzen - muenzenVorRunde} coins for ten right first time`);
   check('and never Wort-Sterne, which it did not teach', s.sterne.wort === 0);
   check('the house counts how often it has been cleared',
     s.geschafft['verliebte-zahlen'] === 1, JSON.stringify(s.geschafft));
@@ -720,7 +734,26 @@ await measureButtons('world');
   check('tapping the cart and walking there opens it',
     await page.locator('.laden').count() === 1);
   const karten = await page.locator('.ware').count();
-  check('four things, and only four', karten === 4, `${karten} on the cart`);
+  // Derived from the code rather than typed here: the number is going
+  // to change again, and a check that says "seven" would then be
+  // reporting a fact about the day it was written.
+  const angeboten = (readFileSync('src/ui/laden.ts', 'utf8')
+    .match(/^\s*\{ id: '/gm) ?? []).length;
+  check('every thing in the shop is on the cart',
+    karten === angeboten && karten > 4, `${karten} on the cart, ${angeboten} in the code`);
+
+  // Patrick: "es braucht aber mehr items und weniger münzen beim
+  // spielen, sonst sind alle items recht schnell freigeschaltet."
+  //
+  // What that means as an assertion is the RATIO, not either number: a
+  // shop is too cheap when a handful of rounds buys all of it. Stated
+  // against what a round actually pays, so changing either side without
+  // the other is what fails.
+  const preiseAlle = await page.locator('.ware .wpreis').evaluateAll(
+    (els) => els.map((e) => Number((e.textContent || '').replace(/\D/g, '')) || 0));
+  const summe = preiseAlle.reduce((a, b) => a + b, 0);
+  check('the whole cart is more than twenty clean rounds of work',
+    summe > 20 * 7, `${summe} coins for everything, a clean round pays 7`);
   await measureButtons('cart');
 
   // One screen. The shop that failed had twenty-seven things and a
@@ -754,13 +787,23 @@ await measureButtons('world');
     nachTipp.muenzen === 21 && nachTipp.ausruestung.length === 0,
     `${nachTipp.muenzen} coins, ${nachTipp.ausruestung.length} owned`);
 
-  // Buying spends exactly the price.
-  await page.locator('.ware:not(.zuteuer):not(.hat)').first().tap();
+  // Buying spends exactly the price — whatever the price says it is.
+  const karteZuKaufen = page.locator('.ware:not(.zuteuer):not(.hat)').first();
+  const preisGekauft = await karteZuKaufen.locator('.wpreis').evaluate(
+    (e) => Number((e.textContent || '').replace(/\D/g, '')) || 0);
+  await karteZuKaufen.tap();
   await page.waitForTimeout(500);
   const gekauft = await slot();
+  // Against the PRICE ON THE CARD, not against a number written here.
+  //
+  // This said `muenzen === 1`, which was the answer for a purse of 21
+  // and a cheapest item of 20. Both changed and the check failed while
+  // the shop was working perfectly — a check that has to be edited every
+  // time a price moves is a check that is asserting the price list.
   check('buying spends exactly the price and grants the thing',
-    gekauft.muenzen === 1 && gekauft.ausruestung.length === 1,
-    `${gekauft.muenzen} coins, ${JSON.stringify(gekauft.ausruestung)}`);
+    gekauft.muenzen === 21 - preisGekauft && gekauft.ausruestung.length === 1,
+    `21 - ${preisGekauft} should be ${21 - preisGekauft}, is ${gekauft.muenzen}`
+    + `; ${JSON.stringify(gekauft.ausruestung)}`);
 
   // And it cannot be bought twice — the card is owned and disabled.
   const besitz = await page.locator('.ware.hat').count();
@@ -946,6 +989,67 @@ async function beiTor(sterne, wort = 0) {
     sv.sterne.mathe > 0, `${sv.sterne.mathe} stars`);
   await page.locator('button', { hasText: 'Zurück in die Welt' }).first().tap();
   await page.waitForTimeout(600);
+}
+
+// -------------------------------- what the three new things actually do
+//
+// `src/ui/laden.ts` promises that every effect is visible in the world
+// rather than being a number. The hat shipped once claiming to be worn
+// and drawn on nothing at all, which is why that promise is checked and
+// not trusted — and three more things is three more chances to make the
+// same claim falsely.
+
+{
+  async function mitAusruestung(dinge) {
+    await inDieWelt();
+    await page.evaluate((a) => {
+      const k = 'funkelwelt.platz0.v1';
+      const s = JSON.parse(localStorage.getItem(k));
+      s.ausruestung = a;
+      s.ort = { x: 7.5, y: 22.4 };
+      localStorage.setItem(k, JSON.stringify(s));
+    }, dinge);
+    await inDieWelt();
+    await lumaWeg();
+  }
+
+  // THE LUCKY BAND: one more try, and you can SEE the extra try.
+  await mitAusruestung([]);
+  await waehle(7, 20);
+  await lumaWeg();
+  const ohne = await page.locator('.strike').count();
+  await page.locator('button', { hasText: 'Zurück' }).first().tap().catch(() => {});
+  await page.waitForTimeout(600);
+
+  await mitAusruestung(['glueck']);
+  await waehle(7, 20);
+  await lumaWeg();
+  const mit = await page.locator('.strike').count();
+  check('the Glücksband is one more try, and the row shows it',
+    ohne === 3 && mit === 4, `${ohne} strikes without it, ${mit} with`);
+  await page.locator('button', { hasText: 'Zurück' }).first().tap().catch(() => {});
+  await page.waitForTimeout(600);
+
+  // THE COMPASS: the map stops hiding the sparks he has not found.
+  async function karteMit(dinge) {
+    await mitAusruestung(dinge);
+    await page.locator('.hudKnopf').last().tap();
+    await page.waitForTimeout(400);
+    await page.locator('.kartenknopf').first().tap();
+    await page.waitForTimeout(500);
+    // A lightspark sits at tile (27,16); the map draws it in `glow`.
+    const c = await page.locator('.kartenbild canvas').evaluate((cv, [x, y]) => {
+      const d = cv.getContext('2d').getImageData(x, y, 1, 1).data;
+      return d[0] + d[1] + d[2];
+    }, [27 * 4 + 1, 16 * 4 + 2]);
+    await page.locator('button', { hasText: 'Zurück' }).first().tap().catch(() => {});
+    await page.waitForTimeout(400);
+    return c;
+  }
+  const dunkel = await karteMit([]);
+  const hell = await karteMit(['kompass']);
+  check('the Kompass puts the lightsparks on the map, and nothing else does',
+    hell > dunkel + 120, `${dunkel} without it, ${hell} with`);
 }
 
 // ---------------------------------------- a miss, and three of them
@@ -1722,7 +1826,7 @@ async function beiTor(sterne, wort = 0) {
   check('walking into a lightspark picks it up',
     s.funken.includes('f27,16'), `carrying ${JSON.stringify(s.funken)}`);
   check('and it pays coins rather than stars',
-    s.muenzen - vor.muenzen === 3
+    s.muenzen - vor.muenzen > 0
     && s.sterne.mathe === vor.sterne.mathe
     && s.sterne.wort === vor.sterne.wort,
     `+${s.muenzen - vor.muenzen} coins, `

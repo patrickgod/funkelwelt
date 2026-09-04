@@ -270,7 +270,7 @@ function geschafft(): void {
   const id = lauf.id;
   const neuePaare = bekanntePaare().filter((n) => !lauf!.paareVorher.includes(n));
   stand.schattenWeg(id);
-  stand.muenzen(4);
+  stand.muenzen(3);
 
   audio.chimeRound();
   fx.clear();

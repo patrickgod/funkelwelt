@@ -13,7 +13,8 @@ import { P, INK, shade } from './palette.js';
 import { Px } from './px.js';
 
 export type Icon = 'stern' | 'sternWort' | 'bonbon' | 'muenze' | 'zurueck' | 'zahnrad' | 'herz'
-  | 'wLaterne' | 'wStiefel' | 'wMutband' | 'wHut' | 'ohr';
+  | 'wLaterne' | 'wStiefel' | 'wMutband' | 'wHut'
+  | 'wUmhang' | 'wGlueck' | 'wKompass' | 'ohr';
 
 /** A five-pointed star, filled by scanline so the points stay sharp. */
 function stern(): Px {
@@ -284,6 +285,85 @@ function wHut(): Px {
 }
 
 /**
+ * A HOODED cloak.
+ *
+ * The first version was a plain flare with a small clasp and the
+ * contact sheet showed a purple dress. A hood is what makes a cloak a
+ * cloak at this size — it is the one part of the silhouette no other
+ * garment has.
+ */
+function wUmhang(): Px {
+  const p = new Px(17, 17);
+  const tuch = shade(P.plum, 2);
+  // The hood: a dome with a dark opening under it.
+  p.ellipse(8, 5, 5, 4, shade(P.plum, 3));
+  p.ellipse(8, 6, 3, 3, shade(P.plum, 0));
+  // Shoulders, wider than the hood, then the body falling away.
+  for (let y = 0; y < 8; y++) {
+    const w = 11 + Math.round(y * 0.4);
+    p.rect(8 - Math.floor(w / 2), 8 + y, w, 1, tuch);
+  }
+  p.rect(2, 9, 2, 7, shade(P.plum, 1));
+  p.rect(13, 9, 2, 7, shade(P.plum, 3));
+  // A ragged hem, so it is cloth and not a bell.
+  for (let i = 0; i < 13; i++) {
+    if ((i & 1) === 0) p.set(2 + i, 16, shade(P.plum, 1));
+  }
+  p.rect(7, 8, 3, 2, shade(P.glow, 3));
+  p.outline(INK);
+  return p;
+}
+
+/**
+ * A band with a BOW in it.
+ *
+ * The first version was a braid drawn as a sine wave with a square in
+ * the middle, and at seventeen pixels the contact sheet showed a green
+ * frog. A bow is the shape that says "tied on" and it survives being
+ * tiny, because it is two loops and nothing else.
+ */
+function wGlueck(): Px {
+  const p = new Px(17, 17);
+  // Blue, because every other thing on this cart has taken a colour:
+  // the hat is green, the boot brown, the ribbon pink, the cloak purple
+  // and the compass grey. Two green loops beside a green hat read as
+  // leaves, which is what the first version looked like.
+  const band = shade(P.sky, 2);
+  const hell = shade(P.sky, 3);
+  // The strap runs the whole width and is drawn LAST at the ends, so it
+  // is visible past the loops — otherwise it is a bow floating in air.
+  for (const s2 of [-1, 1]) {
+    p.ellipse(8 + s2 * 3, 8, 3, 3, hell);
+    p.ellipse(8 + s2 * 3, 8, 1, 1, band);
+    p.rect(8 + s2 * 4, 11, 2, 5, band);
+  }
+  p.rect(0, 7, 4, 3, band);
+  p.rect(13, 7, 4, 3, band);
+  p.rect(0, 7, 4, 1, hell);
+  p.rect(13, 7, 4, 1, hell);
+  // A gold knot: the luck, and the one warm thing on it.
+  p.rect(7, 6, 3, 5, shade(P.glow, 3));
+  p.rect(7, 6, 3, 1, shade(P.glow, 4));
+  p.outline(INK);
+  return p;
+}
+
+/** A compass: a round case and one needle. */
+function wKompass(): Px {
+  const p = new Px(17, 17);
+  p.ellipse(8, 8, 7, 7, shade(P.stone, 2));
+  p.ellipse(8, 8, 5, 5, shade(P.plaster, 4));
+  p.rect(7, 0, 3, 2, shade(P.stone, 1));
+  // ONE needle and no compass rose. A rose at seventeen pixels is four
+  // grey specks; a needle is a direction.
+  for (let i = 0; i < 5; i++) p.set(8 - Math.floor(i / 2), 8 - i, shade(P.fruit, 3));
+  for (let i = 0; i < 4; i++) p.set(8 + Math.floor(i / 2), 8 + i, shade(P.wool, 3));
+  p.set(8, 8, INK);
+  p.outline(INK);
+  return p;
+}
+
+/**
  * Hear it again.
  *
  * A speaker or a "play" triangle both mean "media control" to an adult
@@ -322,7 +402,7 @@ function ohr(): Px {
 
 const ZEICHNER: Record<Icon, () => Px> = {
   stern, sternWort, bonbon, muenze, zurueck, zahnrad, herz,
-  wLaterne, wStiefel, wMutband, wHut, ohr,
+  wLaterne, wStiefel, wMutband, wHut, wUmhang, wGlueck, wKompass, ohr,
 };
 
 const cache = new Map<string, HTMLCanvasElement>();

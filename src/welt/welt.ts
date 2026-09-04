@@ -553,8 +553,17 @@ export class Welt {
       if (this.seitStaub > 0.42) {
         this.seitStaub = 0;
         const [sx, sy] = this.aufSchirm(this.hx, this.hy - 1);
-        fx.burst('staub', sx, sy,
-          { n: 2, speed: 26, up: 0.15, gravity: 90, life: 0.34 });
+        // The cloak turns the dust into light. The same beat, the same
+        // place, the same "you are walking" — but it is the one upgrade
+        // in the shop a child sees every single second they are moving,
+        // which is worth more at six than any number.
+        if (laden.spurLeuchtet()) {
+          fx.burst('funke', sx, sy - 2,
+            { n: 2, speed: 20, up: 0.5, gravity: -10, life: 0.7 });
+        } else {
+          fx.burst('staub', sx, sy,
+            { n: 2, speed: 26, up: 0.15, gravity: 90, life: 0.34 });
+        }
       }
       // A route that is getting nowhere is a route the hero cannot walk.
       // Better to stop than to grind against a rock for a minute.

@@ -35,6 +35,7 @@ import * as karte from '../welt/karte.js';
 import { KACHEL } from '../welt/kacheln.js';
 import * as stand from '../core/spielstand.js';
 import * as audio from '../core/audio.js';
+import * as laden from './laden.js';
 import { t } from '../core/i18n.js';
 import { el, knopf } from './dom.js';
 
@@ -119,6 +120,25 @@ export function bild(): Px {
       marke(p, tx, ty, 3, 3, shade(P.stone, 3));
     } else if (d.art === 'laterne') {
       marke(p, tx, ty, 2, 3, shade(P.glow, 3));
+    }
+  }
+
+  // The lightsparks he has NOT found — but only with the compass.
+  //
+  // This map deliberately hides the collectables: one that marks every
+  // one of them turns exploring into shopping, and finding a spark
+  // tucked behind the woods is the reward for having walked there.
+  //
+  // The compass is how a child opts out of that, and it is the better
+  // shape than arguing about the default. The rule still holds for
+  // everybody who has not bought one, and the child who has is the
+  // child who decided they would rather have the list.
+  if (laden.zeigtFunken()) {
+    const weg = new Set(stand.get().funken ?? []);
+    for (const f of karte.funken) {
+      if (weg.has(f.id)) continue;
+      const tx = Math.floor(f.x / KACHEL), ty = Math.floor(f.y / KACHEL);
+      marke(p, tx, ty, 3, 3, shade(P.glow, 4));
     }
   }
 

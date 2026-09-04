@@ -45,15 +45,38 @@ export interface Ware {
 }
 
 /**
- * The four. Deliberately priced within reach of an afternoon rather than
- * a fortnight: a shop a child cannot afford anything in is a shop that
- * teaches them the game is not for them.
+ * The seven, and the prices are a ladder of fours.
+ *
+ * Patrick, after playing it: "es braucht aber mehr items und weniger
+ * münzen beim spielen, sonst sind alle items recht schnell
+ * freigeschaltet/gekauft."
+ *
+ * He was right and the arithmetic was worse than he knew. Four things
+ * cost ninety in total, and the strikes change had quietly made every
+ * round pay the maximum: a round now ends when every question has been
+ * answered CORRECTLY, because a wrong answer is retried — so
+ * `lauf.richtig` was always ten, the perfect-round bonus always
+ * applied, and fifteen coins came out of every visit. Six rounds bought
+ * the shop.
+ *
+ * Now: seven things at 16, 20, 24, 28, 32, 36, 40 — a hundred and
+ * ninety-six — against a round that pays four, or seven if it was
+ * cleared without using a strike.
+ *
+ * The ladder is deliberately SHALLOW, two and a half to one rather than
+ * four to one. The rule this shop exists to keep is that no purchase is
+ * a wrong purchase, and a price that is four times another says the
+ * dear one is four times better. Two and a half says "this one is
+ * further away", which is a different sentence.
  */
 export const WAREN: Ware[] = [
-  { id: 'laterne', icon: 'wLaterne', name: 'laden.laterne', preis: 24 },
-  { id: 'stiefel', icon: 'wStiefel', name: 'laden.stiefel', preis: 20 },
-  { id: 'mutband', icon: 'wMutband', name: 'laden.mutband', preis: 30 },
   { id: 'hut', icon: 'wHut', name: 'laden.hut', preis: 16 },
+  { id: 'stiefel', icon: 'wStiefel', name: 'laden.stiefel', preis: 20 },
+  { id: 'laterne', icon: 'wLaterne', name: 'laden.laterne', preis: 24 },
+  { id: 'mutband', icon: 'wMutband', name: 'laden.mutband', preis: 28 },
+  { id: 'umhang', icon: 'wUmhang', name: 'laden.umhang', preis: 32 },
+  { id: 'glueck', icon: 'wGlueck', name: 'laden.glueck', preis: 36 },
+  { id: 'kompass', icon: 'wKompass', name: 'laden.kompass', preis: 40 },
 ];
 
 let wurzel: HTMLElement | null = null;
@@ -167,5 +190,27 @@ export function mutVoll(): number {
 
 /** The hat is worn, and it is also lucky. */
 export function funkeWert(): number {
-  return hat('hut') ? 5 : 3;
+  return hat('hut') ? 3 : 2;
+}
+
+/**
+ * How many strikes before the house starts again.
+ *
+ * The lucky band is one more try, which is the most useful thing in
+ * this shop for the child who needs it most — and it is visible the
+ * moment they open a house, because the strike row grows a fourth
+ * circle.
+ */
+export function strikesVoll(): number {
+  return hat('glueck') ? 4 : 3;
+}
+
+/** The cloak leaves a trail of light where he has walked. */
+export function spurLeuchtet(): boolean {
+  return hat('umhang');
+}
+
+/** The compass puts the lightsparks he has not found on the map. */
+export function zeigtFunken(): boolean {
+  return hat('kompass');
 }

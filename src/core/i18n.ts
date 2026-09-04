@@ -74,6 +74,9 @@ const DE = {
   'laden.laterne': 'Bessere Laterne',
   'laden.stiefel': 'Schnelle Stiefel',
   'laden.mutband': 'Mut-Band',
+  'laden.umhang': 'Umhang',
+  'laden.glueck': 'Glücksband',
+  'laden.kompass': 'Kompass',
   'laden.hut': 'Hut mit Feder',
 
   // The steering is a QUESTION, not a preference: nobody knows which of
