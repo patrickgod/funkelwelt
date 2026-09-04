@@ -303,6 +303,27 @@ if (want('strikes')) {
   }
 }
 
+// The same gate at three levels of progress, side by side: none of its
+// lights earned, one, and two.
+if (want('torstufen')) {
+  for (const [name, sterne] of [['tor0', 0], ['tor1', 20], ['tor2', 60]]) {
+    await page.evaluate((st) => {
+      const k = 'funkelwelt.platz0.v1';
+      const s = JSON.parse(localStorage.getItem(k));
+      s.ort = { x: 42.5, y: 9.4 };
+      s.sterne = { mathe: st, wort: 0 };
+      localStorage.setItem(k, JSON.stringify(s));
+    }, sterne);
+    await page.reload();
+    await page.waitForTimeout(800);
+    await starten();
+    await page.locator('.platz').first().tap();
+    await page.waitForTimeout(2400);
+    await lumaWeg();
+    await shot(name);
+  }
+}
+
 // The cart, with coins for two of the four things on it.
 if (want('laden')) {
   await page.evaluate(() => {

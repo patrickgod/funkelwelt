@@ -139,7 +139,12 @@ const DE = {
   'say.schauMal3': 'Das merkst du dir beim nächsten Mal.',
 
   'say.neueStufe': 'Du bist stärker geworden. Jetzt kommst du weiter als vorher.',
-  'say.nochZu': 'Da hinten ist es noch zu dunkel. Werde erst ein bisschen stärker.',
+  // The shut gate explains itself, and Luma names what the picture is
+  // doing. No numbers: the gate is showing them, and a child who cannot
+  // read "Stufe 3" can count lights.
+  'say.nochZu':
+    'Schau, die Lichter am Tor. Für jedes Haus, das du schaffst, leuchtet '
+    + 'eins mehr — und wenn alle leuchten, geht das Tor auf.',
   'say.schatten': 'Ein Schatten! Keine Sorge — er tut dir nichts. Zeig ihm, was du kannst.',
   'say.schattenWeg': 'Weg ist er. Das hast du gut gemacht.',
   'say.karren':

@@ -531,7 +531,27 @@ export function karren(): Px {
  * the gate opens they light up, which is the only feedback needed:
  * the thing you were short of, you now have.
  */
-export function tor(offen: boolean, sterne: number, fach: 'mathe' | 'wort' = 'mathe'): Px {
+/**
+ * A gate, and how far along the child is towards opening it.
+ *
+ * `sterne` is how many marks it has; `erreicht` is how many of them are
+ * already LIT.
+ *
+ * That second argument is a fix for something that had been quietly
+ * wrong since the first gate was built. The marks are the LEVEL the
+ * gate wants — three of them means level three — and levels go as the
+ * square root of stars, so level three is thirty-two stars. A child
+ * counting three marks, earning three stars and finding the gate still
+ * shut has been lied to by the picture.
+ *
+ * Lighting them one at a time makes the picture true: each mark is one
+ * level, they fill as the child gets stronger, and "all of them lit"
+ * is the same sentence as "it opens". Patrick asked for the opening to
+ * be explained; the honest answer was to make the gate explain itself.
+ */
+export function tor(
+  offen: boolean, sterne: number, fach: 'mathe' | 'wort' = 'mathe', erreicht = 0,
+): Px {
   const p = new Px(22, 30);
   // Two stone posts, set into the cliff either side.
   for (const x of [0, 17]) {
@@ -575,13 +595,23 @@ export function tor(offen: boolean, sterne: number, fach: 'mathe' | 'wort' = 'ma
     const matt = fach === 'wort' ? P.chalk : P.glow;
     for (let i = 0; i < sterne; i++) {
       const sx = 5 + i * 5;
-      p.line(sx, 14, sx + 2, 14, shade(matt, 1));
-      p.line(sx + 1, 13, sx + 1, 15, shade(matt, 1));
+      // The ones already earned burn; the rest are the same mark, dim.
+      // Same shape either way, so what changes is only brightness —
+      // which is the one difference a six-year-old reads instantly and
+      // the same language the whole world uses for "not yet".
+      // A wide gap between earned and not. The first version used steps
+      // 3 and 1, and side by side in a screenshot the unearned marks
+      // were still warm amber — near enough to lit that the count was
+      // work to read. Steps 4 and 0 make it one glance.
+      const an = i < erreicht;
+      const kern = shade(matt, an ? 3 : 0);
+      p.line(sx, 14, sx + 2, 14, kern);
+      p.line(sx + 1, 13, sx + 1, 15, kern);
       if (fach === 'wort') {
-        p.set(sx, 13, shade(matt, 0));
-        p.set(sx + 2, 15, shade(matt, 0));
+        p.set(sx, 13, shade(matt, an ? 2 : 0));
+        p.set(sx + 2, 15, shade(matt, an ? 2 : 0));
       }
-      p.set(sx + 1, 14, shade(matt, 2));
+      p.set(sx + 1, 14, shade(matt, an ? 4 : 1));
     }
   }
   finish(p);

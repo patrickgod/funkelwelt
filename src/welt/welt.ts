@@ -1120,10 +1120,15 @@ export class Welt {
     for (const tor of karte.tore) {
       if ((tor.fuss <= this.hy) !== hinten) continue;
       const offen = karte.torIstOffen(tor.id);
-      const key = `${tor.id}:${offen ? 1 : 0}`;
+      // How many of the gate's marks are already earned. Part of the
+      // cache key, because the gate is now a PROGRESS display and a
+      // picture cached before the child levelled up would keep saying
+      // the old number.
+      const erreicht = Math.max(0, Math.min(tor.stufe, stand.stufe(tor.fach)));
+      const key = `${tor.id}:${offen ? 1 : 0}:${erreicht}`;
       let b = this.torBild.get(key);
       if (!b) {
-        b = k.tor(offen, tor.stufe, tor.fach).toCanvas();
+        b = k.tor(offen, tor.stufe, tor.fach, erreicht).toCanvas();
         this.torBild.set(key, b);
       }
       const [sx, sy] = hin(tor.mitte - b.width / 2, tor.fuss - b.height + 4);

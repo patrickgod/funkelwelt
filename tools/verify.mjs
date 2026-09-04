@@ -1148,6 +1148,75 @@ async function beiTor(sterne, wort = 0) {
   await page.waitForTimeout(600);
 }
 
+// ------------------------------------ the gate says how close you are
+//
+// Patrick: "wir sollten auch erklären wann sich ein tor öffnet."
+//
+// Looking at how to explain it turned up something worse than a missing
+// explanation. The gate draws its requirement as MARKS, three of them
+// for level three — and levels go as the square root of stars, so level
+// three is thirty-two stars. A child counting three marks, earning
+// three stars and finding the gate still shut has been lied to by the
+// picture, and no sentence from Luma fixes a picture that is wrong.
+//
+// So the marks light one at a time as the levels are earned, and "all
+// of them lit" is now the same sentence as "it opens". This checks the
+// picture, at the pixel, because that is the whole of the fix.
+
+{
+  /** How bright the gate's Nth mark is, on the world canvas. */
+  async function markeHell(n) {
+    // The north-east gate: its run starts at tile 41, so the sprite is
+    // drawn from `mitte - 11`, and mark N sits at sprite (6 + 5N, 14).
+    const welt = { x: 659 + 5 * n, y: 116 };
+    const p = await page.evaluate(
+      ([x, y]) => window.weltOrt?.(x, y) ?? null, [welt.x, welt.y]);
+    if (!p) return -1;
+    return page.locator('canvas').first().evaluate((c, [sx, sy]) => {
+      const r = c.getBoundingClientRect();
+      const f = c.width / r.width;
+      const d = c.getContext('2d').getImageData(
+        Math.round(sx * f), Math.round(sy * f), 1, 1).data;
+      return d[0] + d[1] + d[2];
+    }, p);
+  }
+
+  async function beimTor(sterne) {
+    await inDieWelt();
+    await page.evaluate((st) => {
+      const k = 'funkelwelt.platz0.v1';
+      const s = JSON.parse(localStorage.getItem(k));
+      s.ort = { x: 42.5, y: 9.4 };
+      s.sterne = { mathe: st, wort: 0 };
+      localStorage.setItem(k, JSON.stringify(s));
+    }, sterne);
+    await inDieWelt();
+    await lumaWeg();
+    await page.waitForTimeout(500);
+  }
+
+  // Level 1 (no stars) and level 2 (twenty). The gate stays SHUT for
+  // both — it wants level 3 — so anything that changes is the picture
+  // telling the child how far along they are.
+  await beimTor(0);
+  const eins = [await markeHell(0), await markeHell(1)];
+  await beimTor(20);
+  const zwei = [await markeHell(0), await markeHell(1)];
+
+  check('the gate can be read at all',
+    eins[0] > 0 && zwei[0] > 0, `${eins.join('/')} then ${zwei.join('/')}`);
+  check('a shut gate lights one more mark for every level earned',
+    zwei[1] > eins[1] + 60,
+    `second mark: ${eins[1]} at level 1, ${zwei[1]} at level 2`);
+  check('and the marks already earned do not change',
+    Math.abs(zwei[0] - eins[0]) < 40,
+    `first mark: ${eins[0]} then ${zwei[0]}`);
+  // It must still be SHUT, or this is measuring the open gate.
+  const nochZu = (await slot()).sterne.mathe;
+  check('while the gate itself is still shut',
+    nochZu < 32, `${nochZu} stars, level 3 needs 32`);
+}
+
 // ------------------------------------ walking past is walking past
 //
 // The other half of tap-to-choose, and the half that is the point of
