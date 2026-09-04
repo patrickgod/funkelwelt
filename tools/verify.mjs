@@ -970,6 +970,43 @@ async function beiTor(sterne, wort = 0) {
   await page.waitForTimeout(1200);
   check('walking over a doorway without choosing it opens nothing',
     await page.locator('.runde').count() === 0);
+  check('and nothing is marked as chosen while he does it',
+    await page.evaluate(() => window.weltWahl?.() ?? null) === null);
+
+  // A selection is HELD while he walks to it, and let go on arrival.
+  //
+  // The ring that shows it is drawn on the world canvas, which nothing
+  // outside can see — so this asks the world instead. Three attempts at
+  // photographing that ring missed for a different reason each time,
+  // which is its own small lesson: if a thing is hard to photograph,
+  // check it rather than keep taking pictures.
+  // From the EAST, along the path, and not from the south.
+  //
+  // The viewport is about thirteen tiles tall, so anything more than
+  // six tiles above him is off the top of the screen — and a click at a
+  // negative y lands nowhere at all. That is why three attempts to
+  // photograph the selection ring came back empty: not a drawing bug, a
+  // camera one, and the check found in one run what the pictures could
+  // not say in three.
+  await inDieWelt();
+  await stellAuf(23.5, 17.5);
+  await inDieWelt();
+  await lumaWeg();
+  const pf = await page.evaluate(() => window.weltOrt?.(17 * 16 + 8, 17 * 16 + 8) ?? null);
+  if (pf) {
+    await page.mouse.click(pf[0], pf[1]);
+    await page.waitForTimeout(350);
+    check('tapping a house marks it as chosen while he walks there',
+      await page.evaluate(() => window.weltWahl?.() ?? null) === 'tuer:nachbarn',
+      String(await page.evaluate(() => window.weltWahl?.() ?? 'null')));
+    await page.waitForTimeout(3000);
+    await lumaWeg();
+    check('and the choice is let go once he arrives',
+      await page.locator('.runde').count() === 1
+      && await page.evaluate(() => window.weltWahl?.() ?? null) === null);
+    await page.locator('button', { hasText: 'Zurück' }).first().tap().catch(() => {});
+    await page.waitForTimeout(600);
+  }
 
   // And past a shadow.
   await inDieWelt();

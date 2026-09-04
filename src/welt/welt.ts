@@ -831,6 +831,19 @@ export class Welt {
     return this.aufSchirm(x, y);
   }
 
+  /**
+   * What is currently CHOSEN, for `tools/verify.mjs`. Read-only.
+   *
+   * The ring that shows a selection is drawn on the world canvas, which
+   * nothing outside can look at — and a mark a child is supposed to
+   * read is exactly the kind of thing that must not go unchecked. Three
+   * attempts at photographing it all missed for a different reason each
+   * time; this answers the question the photograph was being asked.
+   */
+  gewaehlt(): string | null {
+    return this.auswahl ? `${this.auswahl.art}:${this.auswahl.id}` : null;
+  }
+
   ortSichern(): void {
     const s = stand.get();
     s.ort = { x: this.hx / k.KACHEL, y: this.hy / k.KACHEL };

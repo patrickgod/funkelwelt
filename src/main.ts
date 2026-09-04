@@ -384,6 +384,8 @@ function weltBauen(): void {
   // for why it exists; it reads two numbers and changes nothing.
   (window as unknown as { weltOrt?: unknown }).weltOrt =
     (x: number, y: number) => dieWelt?.schirmOrt(x, y) ?? null;
+  (window as unknown as { weltWahl?: unknown }).weltWahl =
+    () => dieWelt?.gewaehlt() ?? null;
   // The steering listens on the canvas rather than on the document, so
   // that a tap on the HUD is a tap on the HUD and not also a step to the
   // left. #ui is transparent to pointers except where a control is.

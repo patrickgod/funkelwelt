@@ -123,7 +123,7 @@ async function lumaWeg() {
   for (let i = 0; i < 4; i++) {
     if (await page.locator('.luma').count() === 0) break;
     await page.locator('.luma').tap();
-    await page.waitForTimeout(450);
+    await page.waitForTimeout(350);
   }
 }
 await lumaWeg();
@@ -239,6 +239,33 @@ if (want('karte')) {
   await page.locator('.kartenknopf').first().tap();
   await page.waitForTimeout(700);
   await shot('karte');
+}
+
+// The selection ring: a house tapped from across the meadow, caught
+// while he is still walking to it.
+if (want('auswahl')) {
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.ort = { x: 23.5, y: 17.5 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await page.reload();
+  await page.waitForTimeout(800);
+  await starten();
+  await page.locator('.platz').first().tap();
+  await page.waitForTimeout(2400);
+  await lumaWeg();
+  // From the east along the path: the viewport is thirteen tiles tall,
+  // so a door six tiles NORTH of him is off the top of the screen and a
+  // click there lands nowhere. Three earlier attempts at this picture
+  // failed for exactly that and looked like a drawing bug.
+  const p = await page.evaluate(() => window.weltOrt?.(17 * 16 + 8, 17 * 16 + 8) ?? null);
+  if (p) {
+    await page.mouse.click(p[0], p[1]);
+    await page.waitForTimeout(450);
+    await shot('auswahl');
+  }
 }
 
 // The cart, with coins for two of the four things on it.

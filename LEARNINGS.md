@@ -560,3 +560,40 @@ The general habit underneath: **when a sabotage run fails some of the
 checks it should fail, look hard at the ones that passed.** They are not
 redundant coverage. They are checks that have just told you they do not
 work, and it is the only time they will ever say so.
+
+## Three photographs of nothing, and the check that took one run
+
+**Signature:** a newly drawn selection ring did not appear in a
+screenshot. Nor in the second. Nor in the third, from a different place.
+
+Every conclusion drawn from those pictures was wrong. It looked like a
+drawing bug, so the drawing code was read three times and it was
+correct. It looked like the selection was being cleared too early, so
+the clearing logic was read and it was correct. A debug global was added
+to print the selection and it printed nothing, which seemed to confirm
+the whole theory.
+
+The actual fault: **the thing being photographed was off the top of the
+screen.** The viewport is about thirteen tiles tall, the tap was aimed
+six and a half tiles above the adventurer, `weltOrt` duly returned a
+negative y, and `page.mouse.click` at a negative coordinate lands
+nowhere. No tap, no selection, nothing to draw — and no error either,
+because clicking outside the window is not a mistake.
+
+Replacing the screenshot with a check found it in one run, because the
+check could say `null` where a picture could only say "I see grass".
+
+Two things generalise.
+
+**If a thing is hard to photograph, check it instead of taking more
+pictures.** A screenshot answers "what does this look like", which is
+the right question for a sprite and the wrong one for "is this state
+being held". Three pictures is the point at which to notice you are
+asking the wrong question — the first one is bad luck, the third is a
+decision.
+
+**And a null coming back from a test harness is not evidence about the
+code.** It is evidence that the harness did not do what you think it
+did. The debug global printing nothing was read as "the feature is
+broken" when it meant "the tap never happened", and those two look
+identical from inside the theory you already have.

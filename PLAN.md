@@ -268,6 +268,16 @@ it.** A risk you have not built is a risk you are still carrying.
   encounter's dark ground suits the pale-blue frame and pink hearts far
   better than the tan did.
 
+* **Tap to choose; walking past is walking past.** Everything used to
+  trigger on touch — cross a doorway and you were in a round, brush a
+  shadow and you were in a fight. A tap now CHOOSES (generously: aiming
+  at a house on a tablet hits the roof), he walks there, and the action
+  fires on arrival for the chosen thing only. A held finger still just
+  walks and picks nothing, which is how you cross the meadow through
+  the middle of everything. The chosen thing wears a thin ring that
+  waits, deliberately unlike the filled pool of light the game uses when
+  IT is asking for something.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick
@@ -348,36 +358,7 @@ Still open, and still the questions the world was built early to answer:
 * **Does Luma get in the way?** Three misses is a number nobody has
   tested.
 
-### 3. Tap to CHOOSE a thing, then walk to it
-
-Patrick: *"wir sollten häuser, karren, gegner etc mit antippen aktiv
-auswählen. unser character läuft dann hin und die aktion tritt ein.
-einfach nur hinlaufen kann frustrieren sein, wenn es nicht funktioniert
-oder man unabsichtlich gegner oder karren auslöst."*
-
-The most important item on this list, and the one that changes the most.
-Right now everything triggers on TOUCH: walk over a door and you are in
-a round, brush a shadow and you are in an encounter. That is fine when
-you meant it and it is a trap when you did not — and the child cannot
-tell the two apart, because the world gives no way to say "I am going
-over there, not into that".
-
-The shape of it:
-
-* Tapping a house, the cart or a shadow SELECTS it — a ring, a lift, a
-  small sound. `zielFuerTipp` already resolves a tap on a house to its
-  door, so the routing half exists.
-* He walks there, and the action fires ON ARRIVAL — only for the thing
-  that was chosen.
-* Walking across a door or past a shadow with nothing selected does
-  NOTHING. That is the whole point.
-* Held-finger steering keeps working and selects nothing, so a child
-  can cross the meadow through the middle of everything.
-
-The `zeigeZiel` ring already exists for the tutorial and is the obvious
-thing to reuse for "this is what you picked".
-
-### 4. Three strikes, and never show the answer
+### 3. Three strikes, and never show the answer
 
 Patrick: *"wenn etwas falsch ist, sollten wir nicht die richtige lösung
 verraten. einfach kurz rot aufleuchten und nochmal probieren lassen.
@@ -404,7 +385,7 @@ retry immediate, the three strikes should be visible as they accumulate
 (so restarting is never a surprise), and Luma's after-three-misses help
 should probably become the third strike rather than sit alongside it.
 
-### 5. The cart: more things, fewer coins
+### 4. The cart: more things, fewer coins
 
 Patrick: *"es braucht aber mehr items und weniger münzen beim spielen,
 sonst sind alle items recht schnell freigeschaltet/gekauft."*
@@ -419,7 +400,7 @@ no wrong purchase. That gets harder with more items, not easier — a
 long list is the shop that failed the playtest this project came from.
 Eight to ten is probably the ceiling.
 
-### 6. Say when a gate opens
+### 5. Say when a gate opens
 
 Patrick: *"wir sollten auch erklären wann sich ein tor öffnet. die idee
 des nötigen levels um tore öffnen zu können finde ich super."*
@@ -429,13 +410,13 @@ What is missing is the connection: a child at a shut gate does not know
 that the stars come from the houses. Luma is the explainer, and this is
 exactly her job — once, at the first gate, in a sentence.
 
-### 7. How you get to the next world
+### 6. How you get to the next world
 
 **You do not. It does not exist yet.** Asked and answered: the second
 region is Deutsch and it is item 8. Until it is built there is one
 world, and the waypoints have nothing to connect.
 
-### 8. The thing the design has not answered: coming back
+### 7. The thing the design has not answered: coming back
 
 Patrick: *"Wir müssen im Konzept halt einen Weg finden wie man immer
 wieder dieselben Themen übt und z.B. die verliebten Zahlen nicht enden
@@ -462,7 +443,7 @@ and **none should be built before Patrick picks one**:
   "come back when you are stronger" building, and `buildRound` already
   takes as many generators as you give it.
 
-### 9. The second world: Deutsch
+### 8. The second world: Deutsch
 
 Patrick: *"und dann in der nächsten welt die silben? lesen und
 schreiben, und kombinationen wie Lea, lulu, Mama, Oma, etc. aber eben
@@ -488,12 +469,12 @@ carries the `schreiben` kind, waiting.
 unreferenced, along with `woerter()` in `tools/genvoice.mjs`. One line
 brings the recordings back.
 
-### 10. Waypoints
+### 9. Waypoints
 
 Patrick's, and now they have a job: two worlds means walking between
 them. Build them when the second world exists and not before.
 
-### 11. Anything else about a second region
+### 10. Anything else about a second region
 
 The gate proves the mechanism on twelve tiles. What it opens onto should
 eventually be somewhere, not a walled garden — and the honest note is
