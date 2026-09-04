@@ -53,6 +53,7 @@ import type { Game, Question, Prompt } from './types.js';
 import { staerkeVon } from '../core/spielstand.js';
 import { FAHRZEUGE, type Richtung } from './fahrzeuge.js';
 import { WOERTER as SILBEN_WOERTER, andereTeilungen } from './silben.js';
+import { silbenZumSchreiben } from './schrift.js';
 
 function shuffle<T>(arr: T[]): T[] {
   const a = arr.slice();
@@ -293,6 +294,37 @@ export const silbenLesen: Game = {
 };
 
 /**
+ * Write this syllable, with a finger.
+ *
+ * The only exercise in the game with no answer cards at all: the answer
+ * IS the tracing, and the round moves on when the last stroke lands.
+ *
+ * It asks for a SYLLABLE and not a whole word, and not a single letter.
+ * A letter on its own is handwriting drill; a whole word is four
+ * letters of motor control before anything happens. A syllable is the
+ * unit the reading house next door is teaching, so a child writes the
+ * thing they have just learned to see — which is the entire argument
+ * for putting these two houses in the same village.
+ */
+export const silbenSchreiben: Game = {
+  id: 'silben-schreiben',
+  facts: () => silbenZumSchreiben().map((t) => `ss:${t}`),
+  next(pick) {
+    const fact = pick(this.facts());
+    const teil = fact.slice(3);
+    return {
+      fact,
+      prompt: { kind: 'schreiben', text: teil },
+      // No cards. `runde.ts` draws a writing surface instead, and
+      // `answerOf` never runs — there is nothing to be right about
+      // except having drawn it.
+      choices: [],
+      correct: 0,
+    } as Question;
+  },
+};
+
+/**
  * The correct index, resolved once here rather than in every generator.
  *
  * The generators above build their choices with `shuffle`, so none of
@@ -354,6 +386,7 @@ export const GAMES: Record<string, Game> = {
   'rechenmeister': rechenmeister,
   'richtung': richtung,
   'silben-lesen': silbenLesen,
+  'silben-schreiben': silbenSchreiben,
 };
 
 /** How many questions a round of this house has. About three minutes. */

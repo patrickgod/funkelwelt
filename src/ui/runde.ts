@@ -33,6 +33,7 @@ import { el, tap, knopf, zentrumVon } from './dom.js';
 import * as luma from './luma.js';
 import { fragebild, karteFuer, kartenKlasse, rahmenSkala, type Fuellung } from './frage.js';
 import * as laden from './laden.js';
+import { makeTracer, type Tracer } from './tracer.js';
 
 export interface Haus {
   /** Save-slot key, so a house can count how often it has been cleared. */
@@ -121,6 +122,14 @@ export const HAUS_SILBEN: Haus = {
   fach: 'wort',
 };
 
+/** Das Haus der Schreiber, next door to the readers on the shore. */
+export const HAUS_SCHREIBEN: Haus = {
+  id: 'silben-schreiben',
+  spiel: 'silben-schreiben',
+  name: 'haus.schreiben',
+  fach: 'wort',
+};
+
 /**
  * Which houses stand in which region.
  *
@@ -133,7 +142,7 @@ export const HAUS_SILBEN: Haus = {
  */
 export const HAEUSER: Record<string, Haus[]> = {
   wiese: [HAUS_VERLIEBTE_ZAHLEN, HAUS_NACHBARZAHLEN, HAUS_ADDITION, HAUS_RICHTUNG],
-  ufer: [HAUS_SILBEN],
+  ufer: [HAUS_SILBEN, HAUS_SCHREIBEN],
 };
 
 interface Lauf {
@@ -226,7 +235,28 @@ export function starten(ui: HTMLElement, haus: Haus, zurueck: () => void): void 
   luma.einmal('say.imHaus');
 }
 
+/** The writing surface, while a writing question is on screen. */
+let schreiber: Tracer | null = null;
+
+function tracerWeg(): void {
+  schreiber?.destroy();
+  schreiber = null;
+}
+
+/**
+ * The writing surface needs the frame clock.
+ *
+ * It animates a stroke for a child who asked to be shown, and it is the
+ * only thing on a round screen that moves on its own. Driven from the
+ * app's single loop rather than its own `requestAnimationFrame`, so it
+ * stops when the game stops.
+ */
+export function takt(t2: number): void {
+  schreiber?.tick(t2);
+}
+
 export function beenden(): void {
+  tracerWeg();
   lauf = null;
   wurzel = null;
   raus = null;
@@ -284,6 +314,46 @@ function frageZeichnen(): void {
   const buehne = el('div', 'buehne-q');
   buehne.appendChild(fragebild(q.prompt, q, form()));
   s.appendChild(buehne);
+
+  // A writing question has NO CARDS. The answer is the tracing.
+  if (q.prompt.kind === 'schreiben') {
+    const platz = el('div', 'schreibplatz');
+    s.appendChild(platz);
+    wurzel.appendChild(s);
+    // Measured after it is in the document, because the surface sizes
+    // its letters to the box it was given and the box does not exist
+    // until the layout has run.
+    const kasten = platz.getBoundingClientRect();
+    tracerWeg();
+    schreiber = makeTracer({
+      text: q.prompt.text,
+      w: Math.max(240, Math.floor(kasten.width)),
+      h: Math.max(180, Math.floor(kasten.height)),
+      onZug: () => audio.pop(),
+      onGlyph: () => audio.chimeRight(),
+      onFertig: () => {
+        if (!lauf || lauf.beschaeftigt) return;
+        lauf.beschaeftigt = true;
+        lauf.richtig++;
+        stand.merken(q.fact, true);
+        audio.chimeRight();
+        audio.sparkle(6);
+        const c = zentrumVon(platz);
+        fx.burst('stern', c.x, c.y, { n: 16, speed: 210, up: 0.7, life: 0.9 });
+        setTimeout(weiter, 900);
+      },
+    });
+    platz.appendChild(schreiber.el);
+    // A way to be shown, for a child who is stuck. There is no way to
+    // be WRONG here — straying does nothing at all, the stroke simply
+    // does not advance — so the only help anyone can need is seeing it
+    // done once.
+    const zeig = knopf(t('runde.zeigen'), () => schreiber?.zeigen());
+    zeig.classList.add('zeigknopf');
+    s.appendChild(zeig);
+    luma.einmal('say.schreib');
+    return;
+  }
 
   const karten = el('div', `karten${kartenKlasse(q)}`);
   q.choices.forEach((label, idx) => {

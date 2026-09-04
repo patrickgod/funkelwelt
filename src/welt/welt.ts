@@ -383,7 +383,7 @@ export class Welt {
     if (gen) return gen;
     // A plaque has exactly three faces and they are chosen by the map,
     // not by a seed — variant 3 would be a blank board beside a door.
-    if (art === 'tafel') return 5;
+    if (art === 'tafel') return 6;
     return art === 'haus' || art === 'schild' || art === 'laterne' ? 1 : 8;
   }
 

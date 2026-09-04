@@ -1030,3 +1030,36 @@ button.gross {
   color: var(--creme);
   text-shadow: 0 6px 0 var(--ink);
 }
+
+
+/* THE WRITING SURFACE.
+ *
+ * It takes the room the answer cards would have had, and then some: a
+ * letter a child traces with a whole finger needs to be big, and there
+ * is nothing else on this screen to make room for. */
+.schreibplatz {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+  padding: 4px 0;
+}
+
+.tracer {
+  touch-action: none;
+  border-radius: 18px;
+  background: rgba(248, 240, 220, 0.96);
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.35);
+}
+
+/* "Show me" sits under the surface and is deliberately quiet. There is
+   no way to be wrong here, so this is not a rescue — it is a child
+   asking to watch it done once. */
+.zeigknopf {
+  flex: 0 0 auto;
+  align-self: center;
+  margin-bottom: 6px;
+  opacity: 0.85;
+}

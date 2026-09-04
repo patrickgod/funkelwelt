@@ -560,6 +560,7 @@ function zeigeHaus(tuer: Tuer): void {
     : tuer === 'addition' ? runde.HAUS_ADDITION
     : tuer === 'richtung' ? runde.HAUS_RICHTUNG
     : tuer === 'silben' ? runde.HAUS_SILBEN
+    : tuer === 'schreiben' ? runde.HAUS_SCHREIBEN
     : runde.HAUS_VERLIEBTE_ZAHLEN;
   runde.starten(ui, haus, () => {
     schirm = 'welt';
@@ -747,6 +748,11 @@ function frame(now: number): void {
       muenzenGezeigt = m;
     }
   }
+
+  // The writing surface, if one is on screen. It is the only thing on a
+  // round screen that moves by itself, and it runs off this loop rather
+  // than its own so that it stops when the game does.
+  runde.takt(zeit);
 
   const dpr = Math.min(3, window.devicePixelRatio || 1);
   fxCtx.setTransform(dpr, 0, 0, dpr, 0, 0);

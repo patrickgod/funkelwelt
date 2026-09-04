@@ -737,6 +737,29 @@ export function tafel(art: number): Px {
     }
     p.rect(3, 5, 4, 2, shade(P.plaster, 1));
     p.rect(10, 5, 4, 2, shade(P.plaster, 1));
+  } else if (art === 5) {
+    // A PENCIL, not a finger.
+    //
+    // The first version drew a hand with a pointing finger, and the
+    // contact sheet showed a beige blob: skin on a plaster board is
+    // barely two steps apart, and at sixteen pixels two steps is
+    // nothing. A pencil is dark timber with a bright tip against cream,
+    // which is contrast a child sees from the path — and it says
+    // "writing" just as plainly, even though what they actually use is
+    // their finger.
+    const holz = shade(P.timber, 2);
+    for (let i = 0; i < 9; i++) {
+      p.rect(4 + i, 3 + i, 3, 2, holz);
+      p.set(4 + i, 3 + i, shade(P.timber, 3));
+    }
+    p.rect(3, 12, 3, 3, shade(P.skin, 3));      // the wood at the tip
+    p.set(3, 14, INK);
+    p.set(4, 13, INK);
+    // The line it has drawn, curling away underneath.
+    const tinte = shade(P.chalk, 3);
+    for (let i = 0; i < 11; i++) {
+      p.set(2 + i, 14 - Math.round(Math.sin(i * 0.8) * 1.6), tinte);
+    }
   } else {
     // ONE plus, filling the board, and nothing beside it.
     //

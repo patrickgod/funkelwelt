@@ -271,5 +271,46 @@ NAMEN.forEach((n, i) => {
 `);
 }
 
+// ---------------------------------------------------- the door plaques
+
+if (doIt('tafel')) {
+  await sheet('tafel', `
+import { tafel } from '../src/welt/kacheln.js';
+
+// All six, at the size the world draws them AND at the size a doubting
+// adult wants. This sheet exists because two of the first four drafts
+// were unreadable at the size they are actually seen — an ear at
+// sixteen pixels is a brown smudge — and nobody found out until they
+// were side by side.
+const W = 18, H = 26;
+const NAMEN = ['Verliebte', 'Nachbarn', 'Addition', 'Richtung', 'Silben', 'Schreiben'];
+const SKALEN = [3, 6];
+
+const c = document.createElement('canvas');
+c.width = 40 + NAMEN.length * (W * 6 + 24);
+c.height = 60 + (H * 3 + H * 6) + 40;
+document.body.appendChild(c);
+const ctx = c.getContext('2d')!;
+ctx.imageSmoothingEnabled = false;
+ctx.fillStyle = '#548544';
+ctx.fillRect(0, 0, c.width, c.height);
+ctx.font = 'bold 15px sans-serif';
+ctx.textAlign = 'center';
+
+NAMEN.forEach((n, i) => {
+  const x = 20 + i * (W * 6 + 24);
+  ctx.fillStyle = '#f8f0dc';
+  ctx.fillText(n, x + (W * 6) / 2, 22);
+  let y = 34;
+  for (const s of SKALEN) {
+    ctx.drawImage(tafel(i).toCanvas(), x, y, W * s, H * s);
+    y += H * s + 14;
+  }
+});
+
+(window as any).ready = true;
+`);
+}
+
 await browser.close();
 rmSync('.contact', { recursive: true, force: true });

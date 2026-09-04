@@ -79,7 +79,7 @@ export const GRAS = 0, BLUMEN = 1, HOCHGRAS = 2, WEG = 3,
   BRUECKE = 4, SAND = 5, WASSER = 6, FELS = 7;
 
 /** Everything a hero cannot walk through. */
-const FEST_ZEICHEN = '#~TtoHf^*GgKWMNP12345Z';
+const FEST_ZEICHEN = '#~TtoHf^*GgKWMNPQ123456Z';
 /** Everything that reads as water for the purpose of drawing an edge. */
 const NASS = '~b';
 /** Everything that reads as path for the purpose of drawing an edge. */
@@ -111,7 +111,8 @@ function amWasser(x: number, y: number): boolean {
  * Which door he is standing in. One per house, and all four of them
  * are maths: this region IS the maths world, and Deutsch gets its own.
  */
-export type Tuer = 'verliebte' | 'nachbarn' | 'addition' | 'richtung' | 'silben';
+export type Tuer =
+  | 'verliebte' | 'nachbarn' | 'addition' | 'richtung' | 'silben' | 'schreiben';
 
 export type Art =
   | 'baum' | 'busch' | 'stein' | 'haus' | 'zaun' | 'schild' | 'laterne' | 'tafel';
@@ -216,6 +217,9 @@ export let TUER_RICHTUNG = { tx: -1, ty: -1 };
 /** Das Haus der Silben, in the second region. */
 export let TUER_SILBEN = { tx: -1, ty: -1 };
 
+/** Das Haus der Schreiber, next door to it. */
+export let TUER_SCHREIBEN = { tx: -1, ty: -1 };
+
 /**
  * The waypoint stone.
  *
@@ -263,16 +267,16 @@ const UFER: readonly string[] = [
   '##.......t..............T.....................##',
   '##....=........o................T.....TTTTTTT.##',
   '##....=...............................TTTTTTT.##',
-  '##...*=...PPPPP......."""""....F........T.T.T.##',
-  '##....=...PPPPP......."""""...................##',
-  '##....=,..PPPPP.......""""".......t...........##',
-  '##....=.."PPPPP....F.."""""...................##',
-  '##....=...PPPPP.......""""".................T.##',
-  '##....=.....p.5.............."................##',
-  '##...*=.....=.................................##',
-  '##....=..o..=.....t........o..................##',
-  '##....=.....=.............................T...##',
-  '##....=.,...=.*.......*..,..*.................##',
+  '##...*=...PPPPP.......QQQQQ....F........T.T.T.##',
+  '##....=...PPPPP.......QQQQQ...................##',
+  '##....=,..PPPPP.......QQQQQ.......t...........##',
+  '##....=.."PPPPP....F..QQQQQ...................##',
+  '##....=...PPPPP.......QQQQQ.................T.##',
+  '##....=.....p.5.........q.6.."................##',
+  '##...*=.....=...........=.....................##',
+  '##....=..o..=.....t.....=..o..................##',
+  '##....=.....=...........=.................T...##',
+  '##....=.,...=.*.......*.=,*.*.................##',
   '##....=========================,.....F........##',
   '##...........,..."......F.....=...............##',
   '##..."............ssssssssssssbssss.....t.....##',
@@ -338,6 +342,7 @@ export function ladeRegion(r: Region): void {
   TUER_RECHNEN = { tx: -1, ty: -1 };
   TUER_RICHTUNG = { tx: -1, ty: -1 };
   TUER_SILBEN = { tx: -1, ty: -1 };
+  TUER_SCHREIBEN = { tx: -1, ty: -1 };
   STEIN = null;
   bauen();
 }
@@ -361,6 +366,7 @@ function bauen(): void {
   let rechX0 = KW, rechX1 = -1, rechY1 = -1;
   let richX0 = KW, richX1 = -1, richY1 = -1;
   let silbX0 = KW, silbX1 = -1, silbY1 = -1;
+  let schrX0 = KW, schrX1 = -1, schrY1 = -1;
 
   for (let y = 0; y < KH; y++) {
     for (let x = 0; x < KW; x++) {
@@ -374,7 +380,7 @@ function bauen(): void {
         case '.': b = GRAS; break;
         case ',': b = BLUMEN; break;
         case '"': b = HOCHGRAS; break;
-        case '=': case 'D': case 'E': case 'm': case 'n': case 'p':
+        case '=': case 'D': case 'E': case 'm': case 'n': case 'p': case 'q':
         case 'G': case 'g': b = WEG; break;
         case 'b': b = BRUECKE; break;
         case 's': b = SAND; break;
@@ -458,6 +464,9 @@ function bauen(): void {
         case 'p':
           TUER_SILBEN = { tx: x, ty: y };
           break;
+        case 'q':
+          TUER_SCHREIBEN = { tx: x, ty: y };
+          break;
         case 'Z':
           STEIN = { mitte: x * KACHEL + 8, fuss: (y + 1) * KACHEL, tx: x, ty: y };
           break;
@@ -470,10 +479,16 @@ function bauen(): void {
         case '3': stell('tafel', x, y, 2); break;
         case '4': stell('tafel', x, y, 3); break;
         case '5': stell('tafel', x, y, 4); break;
+        case '6': stell('tafel', x, y, 5); break;
         case 'W':
           wortX0 = Math.min(wortX0, x);
           wortX1 = Math.max(wortX1, x);
           wortY1 = Math.max(wortY1, y);
+          break;
+        case 'Q':
+          schrX0 = Math.min(schrX0, x);
+          schrX1 = Math.max(schrX1, x);
+          schrY1 = Math.max(schrY1, y);
           break;
         case 'P':
           silbX0 = Math.min(silbX0, x);
@@ -508,6 +523,7 @@ function bauen(): void {
   if (rechX1 >= 0) stell('haus', rechX0, rechY1, 4, rechX1 - rechX0 + 1);
   if (richX1 >= 0) stell('haus', richX0, richY1, 5, richX1 - richX0 + 1);
   if (silbX1 >= 0) stell('haus', silbX0, silbY1, 6, silbX1 - silbX0 + 1);
+  if (schrX1 >= 0) stell('haus', schrX0, schrY1, 7, schrX1 - schrX0 + 1);
 
   // Back to front. Sorted once here rather than every frame: the world
   // is authored and nothing in it ever moves, so the order it is drawn
@@ -614,6 +630,7 @@ export function tuerVon(tx: number, ty: number): { tx: number; ty: number } | nu
     case 'N': return TUER_RECHNEN;
     case 'M': return TUER_RICHTUNG;
     case 'P': return TUER_SILBEN;
+    case 'Q': return TUER_SCHREIBEN;
     default: return null;
   }
 }
@@ -808,6 +825,7 @@ export function inTuer(x: number, y: number): Tuer | null {
   if (tx === TUER_RECHNEN.tx && ty === TUER_RECHNEN.ty) return 'addition';
   if (tx === TUER_RICHTUNG.tx && ty === TUER_RICHTUNG.ty) return 'richtung';
   if (tx === TUER_SILBEN.tx && ty === TUER_SILBEN.ty) return 'silben';
+  if (tx === TUER_SCHREIBEN.tx && ty === TUER_SCHREIBEN.ty) return 'schreiben';
   return null;
 }
 

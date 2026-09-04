@@ -55,10 +55,12 @@ const DE = {
   'haus.verliebteZahlen': 'Das Haus der verliebten Zahlen',
   'haus.nachbarzahlen': 'Das Haus der Nachbarzahlen',
   'haus.addition': 'Das Haus der Addition',
+  'haus.schreiben': 'Das Haus der Schreiber',
   'haus.silben': 'Das Haus der Silben',
   'haus.richtung': 'Das Haus von links und rechts',
 
   // -------------------------------------------------------- a round
+  'runde.zeigen': 'Zeig es mir',
   'runde.raus': 'Zurück',
   'runde.fertig': 'Geschafft!',
   'runde.nochmal': 'Noch mal',
@@ -158,6 +160,7 @@ const DE = {
   'say.nachRechts': 'Tippe auf das, was nach rechts fährt.',
   'say.nachLinks': 'Tippe auf das, was nach links fährt.',
   'say.nochmal': 'Das war knifflig. Komm, wir fangen nochmal von vorne an.',
+  'say.schreib': 'Fahr mit dem Finger nach. Fang beim roten Punkt an.',
   'say.hilfe': 'Das ist knifflig, oder? Schau, ich zeig es dir.',
 
   // No slots, on purpose. Every one of these becomes a fixed MP3 at

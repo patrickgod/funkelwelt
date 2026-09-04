@@ -347,6 +347,31 @@ if (want('ufer')) {
     await page.waitForTimeout(2600);
     await lumaWeg();
     await shot('silben');
+    await page.locator('button', { hasText: 'Zurück' }).first().tap().catch(() => {});
+    await page.waitForTimeout(700);
+  }
+  // And next door: the writing house.
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.region = 'ufer';
+    s.ort = { x: 24.5, y: 19.5 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await page.reload();
+  await page.waitForTimeout(800);
+  await starten();
+  await page.locator('.platz').first().tap();
+  await page.waitForTimeout(2400);
+  await lumaWeg();
+  const q = await page.evaluate(() => window.weltOrt?.(24 * 16 + 8, 15 * 16 + 8) ?? null);
+  if (q) {
+    await page.mouse.click(q[0], q[1]);
+    await page.waitForTimeout(2800);
+    await lumaWeg();
+    await page.waitForTimeout(400);
+    await lumaWeg();
+    await shot('schreiben');
   }
 }
 

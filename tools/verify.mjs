@@ -1197,6 +1197,125 @@ async function beiTor(sterne, wort = 0) {
   await lumaWeg();
 }
 
+// ----------------------------------------- Das Haus der Schreiber
+//
+// The other half of Patrick's German brief, and the only exercise in
+// the game with no answer cards: the answer IS the tracing.
+//
+// A widget like this is exactly where "it appeared, so it works" gets
+// accepted — and the hat shipped once claiming to be on his head while
+// being drawn on nothing at all. So this WRITES: it reads the stroke
+// the surface is asking for and drags a finger along it.
+
+{
+  await inDieWelt();
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.region = 'ufer';
+    s.ort = { x: 24.5, y: 19.5 };
+    s.sterne = { mathe: 0, wort: 0 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  // `?perf=1` turns on the tracer's own path hook. Recomputing the
+  // layout here would be checking a copy of the maths instead of the
+  // maths, so the widget hands out the stroke it is really asking for.
+  await page.goto(`${BASE}?perf=1`);
+  await page.waitForTimeout(700);
+  await starten();
+  await page.locator('.platz').first().tap();
+  await page.waitForTimeout(2400);
+  await lumaWeg();
+  await waehle(24, 15, 4200);
+  await lumaWeg();
+  await page.waitForTimeout(400);
+  await lumaWeg();
+
+  check('the second door on the shore opens a writing surface',
+    await page.locator('canvas.tracer').count() === 1);
+  check('and it asks with NO answer cards at all',
+    await page.locator('.karten button').count() === 0);
+  check('there is a way to be shown, and no way to be wrong',
+    await page.locator('.zeigknopf').count() === 1);
+
+  // Every syllable it can ask must be writable with the glyphs that
+  // exist — a syllable with a missing letter is a question that cannot
+  // be answered at all, and nothing on screen would say so.
+  const schriftSrc = readFileSync('src/games/schrift.ts', 'utf8');
+  const gl = [...schriftSrc.slice(
+    schriftSrc.indexOf('export const GLYPHS'),
+    schriftSrc.indexOf('/** Everything the writing houses'),
+  ).matchAll(/^ {2}([A-Za-z]):/gm)].map((m) => m[1]);
+  const silbenSrc2 = readFileSync('src/games/silben.ts', 'utf8');
+  const teile = [...silbenSrc2.matchAll(/teile: \[([^\]]+)\]/g)]
+    .flatMap((m) => m[1].split(',').map((t) => t.trim().replace(/'/g, '')));
+  const unschreibbar = [...new Set(teile.filter(
+    (t) => [...t].some((c) => !gl.includes(c))))];
+  check('every syllable it can ask can actually be written',
+    gl.length > 8 && unschreibbar.length === 0,
+    unschreibbar.length ? unschreibbar.join(', ') : `${gl.length} letters`);
+
+  // AND NOW WRITE ONE. Follow the checkpoints with the pointer, which
+  // is exactly what a finger does.
+  async function zeichneZug() {
+    const cps = await page.evaluate(() => window.__zug?.() ?? []);
+    if (cps.length === 0) return false;
+    const box = await page.locator('canvas.tracer').boundingBox();
+    if (!box) return false;
+    // A DOT is one checkpoint and is TOUCHED, not drawn. The i's dot
+    // stopped the first version of this loop dead after two strokes,
+    // which is also the answer to "can a child finish an i" — they
+    // could, but nothing was checking.
+    if (cps.length === 1) {
+      await page.mouse.move(box.x + cps[0].x, box.y + cps[0].y);
+      await page.mouse.down();
+      await page.mouse.up();
+      await page.waitForTimeout(220);
+      return true;
+    }
+    await page.mouse.move(box.x + cps[0].x, box.y + cps[0].y);
+    await page.mouse.down();
+    for (const c of cps) {
+      await page.mouse.move(box.x + c.x, box.y + c.y);
+    }
+    await page.mouse.up();
+    await page.waitForTimeout(220);
+    return true;
+  }
+
+  const cps0 = await page.evaluate(() => window.__zug?.() ?? []);
+  check('the surface hands out the stroke it is asking for',
+    cps0.length >= 2, `${cps0.length} checkpoints`);
+
+  let zuege = 0;
+  for (let i = 0; i < 12; i++) {
+    if (await page.locator('canvas.tracer').count() === 0) break;
+    if (!await zeichneZug()) break;
+    zuege++;
+    // The round moves on 900ms after the last stroke, not instantly —
+    // there is a burst of stars in between, which is the point of it.
+    await page.waitForTimeout(1200);
+    if (await page.locator('.pip.fertig').count() > 0) break;
+  }
+  check('following the letter with a finger writes it, and the round moves on',
+    await page.locator('.pip.fertig').count() > 0, `${zuege} strokes drawn`);
+
+  await page.locator('button', { hasText: 'Zurück' }).first().tap().catch(() => {});
+  await page.waitForTimeout(500);
+  await page.goto(BASE);
+  await page.waitForTimeout(600);
+  await inDieWelt();
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.region = 'wiese';
+    s.ort = { x: 7.5, y: 22.4 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await inDieWelt();
+  await lumaWeg();
+}
+
 // ---------------------------------------- a miss, and three of them
 //
 // Patrick: "wenn etwas falsch ist, sollten wir nicht die richtige
