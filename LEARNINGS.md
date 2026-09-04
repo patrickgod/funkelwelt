@@ -669,3 +669,33 @@ it. The app said the new sentence on screen and the old one out loud
 until the file was deleted by hand. It is commented now, which is not as
 good as detecting it, and detecting it means hashing the text into the
 filename — worth doing the next time that file is opened.
+
+## A fixed delay is a guess about a machine that is never the one that matters
+
+**Signature:** green here, twice; red in CI on the first run.
+
+Luma now asks before a child enters a house, so every check that used to
+walk in has to answer her. The helper clicked the door, waited three
+seconds, and tapped "yes".
+
+Three seconds is how long the walk takes on this laptop. The CI runner
+is slower, so the fairy had not asked yet, the yes went nowhere, the
+round never opened, and the failure surfaced forty lines later as a
+timeout waiting for a button on the round-end sheet — which is a
+completely different screen from the one that was actually wrong.
+
+It waits for her now: `waitFor({ state: 'visible' })` on the yes button,
+then taps it.
+
+Generalises, and it is the third time this project has paid for it in a
+different costume: **a `waitForTimeout` is an assertion about hardware.**
+It passes on the machine it was written on and fails on the one that
+matters, and when it fails it does so somewhere else — because the run
+carries on for another minute before anything notices. Wait for the
+THING, not for a number.
+
+The tell that it is worth going back and fixing rather than nudging the
+number up: the failure did not name the feature that broke. A check that
+fails far from its cause is a check that will be misdiagnosed, and
+raising the timeout would have hidden it again until the next slower
+machine.

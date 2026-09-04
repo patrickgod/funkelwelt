@@ -286,19 +286,24 @@ async function waehle(tx, ty, ms = 3000) {
     ([x, y]) => window.weltOrt?.(x, y) ?? null, [tx * 16 + 8, ty * 16 + 8]);
   if (!p) return false;
   await page.mouse.click(p[0], p[1]);
-  await page.waitForTimeout(ms);
-  // Arriving asks a question now — Luma, with a big yes and a big no —
-  // so every check that used to walk in has to say yes.
-  await jaSagen();
+  // WAIT for Luma to ask, do not assume how long the walk takes.
+  //
+  // This waited a fixed three seconds and then answered. It passed here
+  // twice and failed in CI on the first try, because the runner is
+  // slower: the fairy had not asked yet, the yes went nowhere, and the
+  // round never opened. A fixed delay is a guess about a machine, and
+  // the machine it is guessing about is never the one that matters.
+  await jaSagen(ms);
   return true;
 }
 
-/** Answer Luma's "shall we?" with yes, if she is asking. */
-async function jaSagen(ms = 900) {
+/** Answer Luma's "shall we?" with yes. Waits for her to ask. */
+async function jaSagen(warten = 3000) {
   const ja = page.locator('.luma-ja');
+  await ja.first().waitFor({ state: 'visible', timeout: warten }).catch(() => {});
   if (await ja.count() === 0) return false;
   await ja.first().tap();
-  await page.waitForTimeout(ms);
+  await page.waitForTimeout(900);
   return true;
 }
 
