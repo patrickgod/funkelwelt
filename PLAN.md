@@ -1,5 +1,52 @@
 # Plan
 
+## WHERE THIS STOPPED, AND WHY
+
+Patrick, after playing it with his son:
+
+> *"nach den playtests scheint es, dass die lerninseln tatsächlich das
+> bessere spiel zum lernen sind"*
+
+Development stopped here. That is the finding, it came from the only
+test that counts, and it is written at the top rather than in a footnote
+because everything below is downstream of it.
+
+**The diagnosis, from the playtest before it:**
+
+> *"mein sohn rennt mehr rum um sterne zu suchen oder zu entdecken wo er
+> noch so hinlaufen kann. grundsaetzlich gut, aber eigentlich soll es ja
+> um die aufgaben und das lernen gehen."*
+
+That is the whole thing in two sentences. **The world competes with the
+lessons and wins.** A child given a meadow, fourteen lightsparks, eight
+shadows, two worlds and a shop will explore, because exploring is
+immediate, novel, and free — and the exercises are none of those. He
+played it correctly; the incentives were wrong.
+
+Lernkiste has no world. You open it, you pick an island, you answer ten
+things. There is nothing else to do, so the thing that gets done is the
+learning. Funkelwelt spent its budget on the frame around the exercises,
+and the frame turned out to be the competition.
+
+**If anybody picks this up again**, the one idea worth trying first is
+in item 3 below and it was never built: *a lightspark becomes a
+question*. It does not fight the child's instinct to run and find
+things — it puts the exercise inside the thing they already want. Every
+piece needed for it exists. It might be the difference; it might not,
+and the honest answer is that nobody knows, because it was a proposal
+awaiting a decision when the project stopped.
+
+**What is here and works**, verified by a suite that plays the whole
+game with taps: two authored worlds, six houses across maths and German
+first-reading, a waypoint between them, shadows that are chased away
+rather than beaten, a shop with no wrong purchase, gates that show what
+they want, a map, and a writing surface that checks stroke order. None
+of that is wasted if the exercises ever move somewhere a child does not
+have to be lured away from a meadow to reach.
+
+---
+
+
 What to build, in order, and why that order.
 
 The ordering rule throughout: **build the risky thing first, and look at

@@ -1,5 +1,15 @@
 # Funkelwelt
 
+> **This project is stopped.** It was playtested with the child it was
+> built for, and the verdict was that Lernkiste — the same team's
+> world-less version — teaches better. The reason is worth more than the
+> code: a child given a world will explore it, because exploring is
+> immediate and free, and ten questions are neither. The world competed
+> with the lessons and won.
+>
+> `PLAN.md` opens with the full finding, including the one idea that
+> might have fixed it and was never built.
+
 A small role-playing game for a six- or seven-year-old, in which the
 fighting is arithmetic and nothing is ever lost.
 

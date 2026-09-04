@@ -1,5 +1,16 @@
 # Handover — start here
 
+> **STOPPED.** Patrick, after playing it with his son: *"nach den
+> playtests scheint es, dass die lerninseln tatsächlich das bessere
+> spiel zum lernen sind."* Read the first section of `PLAN.md` before
+> anything in this file — it says why, and the why is more useful than
+> any of the how below.
+>
+> The short version: the world competes with the lessons and wins. A
+> child given a meadow and a shop explores, because exploring is
+> immediate and free and answering ten questions is neither. Lernkiste
+> has no world, so the thing that gets done there is the learning.
+
 You are picking up a small role-playing game for a six- or seven-year-
 old, in which the fighting is arithmetic and nothing is ever lost.
 

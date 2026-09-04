@@ -875,3 +875,38 @@ tool that writes a file, sends a message or draws a picture needs
 something that says which one — otherwise the only test of whether it
 worked is a person recognising the content, and people stop looking at
 things that have always been fine.
+
+## The frame competed with the picture, and won
+
+**Signature:** the game worked, every check passed, and the child
+learned less than he did in the version with no game around it.
+
+Funkelwelt put the exercises inside a world: a meadow to cross, sparks
+to find, shadows to chase off, a shop, two regions, a map. Every one of
+those was built carefully and most of them are good. The child played
+for the world and answered the questions as a toll on the way.
+
+Lernkiste, by the same hand, has no world at all. You open it, pick an
+island, and answer ten things. There is nothing else to do, so the thing
+that gets done is the learning — and after the playtests, that is the
+one that teaches better.
+
+The measurement that made it obvious was an accounting one: a lightspark
+paid two coins for walking into it and asked nothing. A house paid four,
+or seven for a clean round, and asked ten questions. **Exploring was the
+cheapest reward per minute in the game, and also the most novel.** The
+incentives said "run around", so he ran around.
+
+Generalises, and it is the most expensive thing in this file:
+**motivation you add around a task competes with the task.** Not
+supports — competes. A frame is only free if it is less interesting than
+what it frames, and a frame less interesting than the content is a frame
+nobody wanted. The version that works is the one where the reward for
+the exercise IS the exercise finishing, because there is nothing else on
+offer.
+
+The fix that was proposed and never tried — make the collectables BE
+questions, so exploring and answering are the same action — is the only
+shape that escapes this, because it does not compete with the child's
+instinct, it rides it. Whether that would have been enough is unknown.
+It should have been the first thing built rather than the twentieth.
