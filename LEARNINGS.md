@@ -736,3 +736,42 @@ clever. One `Date.now()` per check and a sort. I spent two attempts and
 two full runs guessing before spending one run knowing, and the one run
 knowing also told me my previous change had been a regression, which no
 amount of staring at the code would have.
+
+## A cache keyed on existence remembers nothing about correctness
+
+**Signature:** the app said one sentence on screen and a different one
+out loud, and it was found by ear.
+
+`tools/genvoice.mjs` skipped any line whose MP3 already existed. That is
+the obvious rule and it is right for a line that has never changed and
+wrong for every line that has: editing the words of `say.nochZu` left
+the old take in place, and the fairy went on saying the previous
+sentence for as long as nobody listened.
+
+The fix is not to hash the text into the filename — that re-records all
+sixty-two takes once, at real cost, to fix a problem with one of them.
+It is to remember what each take was recorded FROM. `tools/stimmen.json`
+does, the tool re-records when the words differ, and the first run
+seeded it from what was on disk so nothing was re-recorded to install
+the mechanism.
+
+Generalises: **"does the output exist" is a cache key that cannot
+express staleness.** It is the same shape as a build that checks for
+`dist/main.js` rather than comparing timestamps — which this project
+already had, and already got caught by. Any cache keyed on existence is
+correct exactly until an input changes, which is the only interesting
+case.
+
+Two smaller things fell out of it.
+
+The write-back is the whole mechanism, and I shipped the read without
+it: the manifest was seeded once and never updated, so a changed line
+was re-recorded on EVERY run for ever. Caught because the same line was
+re-recorded twice in a row, which is the sort of thing that reads as
+noise unless you happen to look at the number.
+
+And the suite's staleness guard watched `src/` and `public/` but not
+`assets/` — so a voice line recorded after the last build was missing
+from `dist/`, and the suite failed on a 404 for a file that was sitting
+right there on disk. The guard exists to stop the suite measuring a
+stale build, and audio is part of the build.

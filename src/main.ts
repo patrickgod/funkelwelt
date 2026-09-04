@@ -425,6 +425,12 @@ function weltBauen(): void {
   // screen — every step is Luma saying two sentences and then a thing
   // on the ground to walk to.
   setTimeout(() => {
+    // Arriving in the SECOND world for the first time gets its own
+    // hello. Stepping out of a stone into a place with different ground
+    // under your feet and no word about it is disorienting at any age,
+    // and this is the one moment in the game where the whole screen
+    // changes at once.
+    if (stand.get().region === 'ufer' && luma.einmal('say.amUfer')) return;
     luma.einmal('say.willkommen', () => lernenZuLaufen());
   }, neu ? 1500 : 650);
 }

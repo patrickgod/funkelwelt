@@ -395,6 +395,21 @@ it.** A risk you have not built is a risk you are still carrying.
   then immediately caught one of my fixes making the syllable house
   SLOWER.
 
+* **A recording that has drifted from its line is now a build error.**
+  `genvoice` kept any take whose file existed, so editing a line's words
+  left the old audio and the app said one sentence on screen and another
+  out loud. It remembers what each take was recorded from, re-records
+  only what changed, and the suite checks the manifest against the
+  strings the app uses.
+
+  The staleness guard now watches `assets/` too — a line recorded after
+  the last build was missing from `dist/`, and the suite failed on a 404
+  for a file that was on disk.
+
+* **Luma greets the shore.** Stepping out of a stone into a place with
+  different ground under your feet and no word about it is disorienting
+  at any age, and it is the one moment where the whole screen changes.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick

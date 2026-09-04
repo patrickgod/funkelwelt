@@ -19,7 +19,7 @@
 import { chromium, devices } from 'playwright';
 import { createServer } from 'node:http';
 import { readFile, readdir, stat } from 'node:fs/promises';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { extname, join } from 'node:path';
 import { inflateSync } from 'node:zlib';
 
@@ -52,12 +52,22 @@ async function neuesteQuelle(dir) {
     console.log('  FAIL  dist/main.js does not exist — run `npm run build`');
     process.exit(1);
   }
-  const quelle = Math.max(await neuesteQuelle('src'), await neuesteQuelle('public'));
+  // `assets/` counts too. It did not, and a voice line recorded after
+  // the last build was missing from `dist/` — so the suite failed on a
+  // 404 for a file that was sitting right there on disk. The guard
+  // exists to stop the suite measuring a stale build, and audio is part
+  // of the build.
+  const quelle = Math.max(
+    await neuesteQuelle('src'),
+    await neuesteQuelle('public'),
+    await neuesteQuelle('assets'),
+  );
   if (quelle > gebaut.mtimeMs) {
     const alt = Math.round((quelle - gebaut.mtimeMs) / 1000);
-    console.log(`  FAIL  dist/ is ${alt}s older than src/ — the build did not run,`);
-    console.log('        so everything below would be measuring the previous one.');
-    console.log('        Almost always a failing typecheck. Run `npm run build`.');
+    console.log(`  FAIL  dist/ is ${alt}s older than the sources — the build`);
+    console.log('        did not run, so everything below would be measuring');
+    console.log('        the previous one. Usually a failing typecheck, or a');
+    console.log('        voice line recorded since. Run `npm run build`.');
     process.exit(1);
   }
 }
@@ -2012,6 +2022,42 @@ async function beiTorBei(x, sterne) {
     `${start.x.toFixed(1)},${start.y.toFixed(1)} -> `
     + `${waehrend.x.toFixed(1)},${waehrend.y.toFixed(1)}`
     + ` (target tile 12,23; aimed at ${wiese ? wiese.map(Math.round).join(',') : '?'})`);
+}
+
+// ------------------------------- every spoken line says what it says
+//
+// `tools/genvoice.mjs` used to keep any take whose FILE existed, so
+// editing a line's words left the old recording in place and the app
+// said the new sentence on screen and the old one out loud. It happened
+// once, to `say.nochZu`, and it was found by ear.
+//
+// The tool now remembers what each take was recorded from. This checks
+// that the memory agrees with the strings the app actually uses —
+// which is the same thing the ear was doing, only every run.
+
+{
+  const i18n = readFileSync('src/core/i18n.ts', 'utf8');
+  const gesprochen = {};
+  for (const m of i18n.matchAll(
+    /'(say[.][A-Za-z0-9]+)':[\s]*[\n]?[\s]*'((?:[^'\\]|\\.)*)'/g)) {
+    gesprochen[m[1].replace(/[.]/g, '-').toLowerCase()] = m[2].replace(/\\'/g, "'");
+  }
+  const stimmen = existsSync('tools/stimmen.json')
+    ? JSON.parse(readFileSync('tools/stimmen.json', 'utf8'))
+    : {};
+
+  check('the voice manifest exists at all',
+    Object.keys(stimmen).length > 20, `${Object.keys(stimmen).length} takes`);
+
+  const treiben = Object.keys(gesprochen).filter(
+    (k) => stimmen[k] !== undefined && stimmen[k] !== gesprochen[k]);
+  check('and every recording still says what its line says',
+    treiben.length === 0,
+    treiben.length ? treiben.join(', ') : `${Object.keys(gesprochen).length} lines`);
+
+  const fehlt = Object.keys(gesprochen).filter((k) => stimmen[k] === undefined);
+  check('and every line Luma can say has been recorded',
+    fehlt.length === 0, fehlt.join(', '));
 }
 
 // ------------------------------------------ every generator has a door

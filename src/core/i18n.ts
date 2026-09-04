@@ -70,6 +70,9 @@ const DE = {
   'say.fragSchreiben': 'Hier schreibt man mit dem Finger. Willst du rein?',
   'say.fragLaden': 'Möchtest du dir den Karren ansehen?',
   'say.fragSchatten': 'Ein Schatten. Willst du ihm zeigen, was du kannst?',
+  'say.amUfer':
+    'Da sind wir. Das ist das Ufer — hier wohnen die Wörter. Hör mal, '
+    + 'wie das Wasser klingt.',
   'say.derStein':
     'Siehst du den runden Stein? Der bringt dich in eine ganz andere '
     + 'Welt. Da wohnen die Wörter.',

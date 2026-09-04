@@ -214,6 +214,21 @@ if (SAMPLES) {
 
 mkdirSync('assets/voice', { recursive: true });
 
+/**
+ * What each existing take was recorded from.
+ *
+ * Lives in `tools/` and not in `assets/`, because it is a fact about
+ * the toolchain rather than something a child's iPad needs to download.
+ *
+ * On the first run it does not exist, and every line is assumed to
+ * match — which is true today and is the only assumption available
+ * short of re-recording all sixty of them to find out.
+ */
+const STIMMEN = 'tools/stimmen.json';
+const gesprochen = existsSync(STIMMEN)
+  ? JSON.parse(readFileSync(STIMMEN, 'utf8'))
+  : null;
+
 // The word list is NOT generated while Deutsch has no house.
 //
 // Patrick moved the syllables to their own world — "und dann in der
@@ -242,15 +257,36 @@ const alle = { ...spokenLines(), ...silbenWoerter() };
 const stems = Object.keys(alle).sort();
 console.log(`  ${stems.length} lines from src/core/i18n.ts and src/games/woerter.ts`);
 
+// First run: seed the manifest from what is on disk, so nothing is
+// re-recorded today. From tomorrow a changed line is a changed file.
+if (gesprochen === null) {
+  const saat = {};
+  for (const stem of Object.keys(alle)) {
+    if (existsSync(`assets/voice/${stem}.mp3`)) saat[stem] = alle[stem];
+  }
+  writeFileSync(STIMMEN, `${JSON.stringify(saat, null, 1)}
+`);
+  console.log(`  seeded ${STIMMEN} from ${Object.keys(saat).length} existing takes`);
+}
+const bekannt = gesprochen ?? JSON.parse(readFileSync(STIMMEN, 'utf8'));
+
 let gemacht = 0, uebersprungen = 0, kaputt = 0;
 for (const stem of stems) {
   const path = `assets/voice/${stem}.mp3`;
-  // NOTE: an existing file is kept, so CHANGING a line in `i18n.ts`
-  // does not re-record it — the old take stays and the app says one
-  // thing on screen and another out loud. That happened to `say.nochZu`
-  // the day the gates learned to explain themselves. Delete the file,
-  // or use --force, when you edit a line's words.
-  if (!FORCE && existsSync(path)) { uebersprungen++; continue; }
+  // A take is kept only if it still SAYS THE SAME THING.
+  //
+  // This used to be `if the file exists, skip it`, which meant editing a
+  // line's words left the old recording in place — the app said the new
+  // sentence on screen and the old one out loud. It happened to
+  // `say.nochZu` the day the gates learned to explain themselves, and
+  // it was found by ear rather than by anything.
+  //
+  // So `tools/stimmen.json` remembers what each take was recorded FROM,
+  // and a line whose text has changed is treated as a missing file.
+  if (!FORCE && existsSync(path) && bekannt[stem] === alle[stem]) {
+    uebersprungen++;
+    continue;
+  }
   process.stdout.write(`  ${stem} … `);
   try {
     await tts(alle[stem], VOICE, path);
@@ -262,5 +298,16 @@ for (const stem of stems) {
     console.log(`FAILED ${e.message}`);
   }
 }
+// Written back every run, so a take that was re-recorded is remembered
+// by its NEW words. This is the whole mechanism: without it the
+// manifest is a snapshot of the day it was seeded and a changed line
+// is re-recorded on every single run, for ever.
+const jetzt = {};
+for (const stem of Object.keys(alle)) {
+  if (existsSync(`assets/voice/${stem}.mp3`)) jetzt[stem] = alle[stem];
+}
+writeFileSync(STIMMEN, `${JSON.stringify(jetzt, null, 1)}
+`);
+
 console.log(`\n  ${gemacht} written, ${uebersprungen} already there, ${kaputt} failed`);
 if (kaputt) process.exit(1);
