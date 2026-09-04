@@ -723,6 +723,20 @@ export function tafel(art: number): Px {
         p.rect(rechts ? 11 + i : 5 - i, cy - 3 + i, 1, 7 - i * 2, kern);
       }
     }
+  } else if (art === 4) {
+    // Two arcs under a row of marks: Silbenbögen, which is the exact
+    // picture a German first-grader draws under a word all year.
+    const tinte = shade(P.chalk, 3);
+    for (const [x0, x1] of [[2, 8], [9, 15]] as const) {
+      const r = (x1 - x0) / 2;
+      for (let i = 0; i <= x1 - x0; i++) {
+        const y = 11 - Math.round(Math.sqrt(Math.max(0, r * r - (i - r) * (i - r))) * 0.9);
+        p.set(x0 + i, y, tinte);
+        p.set(x0 + i, y + 1, shade(P.chalk, 2));
+      }
+    }
+    p.rect(3, 5, 4, 2, shade(P.plaster, 1));
+    p.rect(10, 5, 4, 2, shade(P.plaster, 1));
   } else {
     // ONE plus, filling the board, and nothing beside it.
     //

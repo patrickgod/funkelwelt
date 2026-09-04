@@ -222,7 +222,23 @@ mkdirSync('assets/voice', { recursive: true });
 // `woerter()` stays right where it is: when that world is built, one
 // line brings them back, and the recordings are a `node tools/genvoice`
 // away rather than a rewrite.
-const alle = { ...spokenLines() };
+/**
+ * The first words, for Das Haus der Silben.
+ *
+ * Spoken as the WHOLE word rather than syllable by syllable: the
+ * exercise is to find where the syllables are, and a voice that has
+ * already chopped it up has answered the question.
+ */
+function silbenWoerter() {
+  const src = readFileSync('src/games/silben.ts', 'utf8');
+  const out = {};
+  for (const m of src.matchAll(/\{ wort: '([^']+)'/g)) {
+    out[`wort-${m[1].toLowerCase()}`] = `${m[1]}.`;
+  }
+  return out;
+}
+
+const alle = { ...spokenLines(), ...silbenWoerter() };
 const stems = Object.keys(alle).sort();
 console.log(`  ${stems.length} lines from src/core/i18n.ts and src/games/woerter.ts`);
 

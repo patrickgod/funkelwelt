@@ -30,14 +30,14 @@ import { KACHEL } from './kacheln.js';
 export const KW = 48;
 export const KH = 36;
 
-export const ZEILEN: readonly string[] = [
+const WIESE: readonly string[] = [
   '################################################',
   '################################################',
   '##TTTT.T."TTTTTTTT.T...TTFTTs~~~s.TT.TT...TT..##',
   '##.T..T...T......TTT...TTTT,s~~~sTT.TT"TT#######',
   '##.TTT.....,...T.F..TT..Tt..s~~~sTTTTT.T..#.F."#',
   '##........T.,....T..T....,T"s~~~s.T"T.,.T.#,.*.#',
-  '##...,.,.T.T........S....,..s~~~s...T...T.#...F#',
+  '##...,.,.T.T........S.Z..,..s~~~s...T...T.#...F#',
   '##...NNNNN....."".......o.*"s~~~s........G.G####',
   '##...NNNNN.,...,......=======bbb======......####',
   '##..FNNNNN.......t.,,.=....,s~~~s....=..."..####',
@@ -79,7 +79,7 @@ export const GRAS = 0, BLUMEN = 1, HOCHGRAS = 2, WEG = 3,
   BRUECKE = 4, SAND = 5, WASSER = 6, FELS = 7;
 
 /** Everything a hero cannot walk through. */
-const FEST_ZEICHEN = '#~TtoHf^*GgKWMN1234';
+const FEST_ZEICHEN = '#~TtoHf^*GgKWMNP12345Z';
 /** Everything that reads as water for the purpose of drawing an edge. */
 const NASS = '~b';
 /** Everything that reads as path for the purpose of drawing an edge. */
@@ -111,7 +111,7 @@ function amWasser(x: number, y: number): boolean {
  * Which door he is standing in. One per house, and all four of them
  * are maths: this region IS the maths world, and Deutsch gets its own.
  */
-export type Tuer = 'verliebte' | 'nachbarn' | 'addition' | 'richtung';
+export type Tuer = 'verliebte' | 'nachbarn' | 'addition' | 'richtung' | 'silben';
 
 export type Art =
   | 'baum' | 'busch' | 'stein' | 'haus' | 'zaun' | 'schild' | 'laterne' | 'tafel';
@@ -213,6 +213,20 @@ export let TUER_RECHNEN = { tx: -1, ty: -1 };
 /** Das Haus von links und rechts. */
 export let TUER_RICHTUNG = { tx: -1, ty: -1 };
 
+/** Das Haus der Silben, in the second region. */
+export let TUER_SILBEN = { tx: -1, ty: -1 };
+
+/**
+ * The waypoint stone.
+ *
+ * One in each region, and tapping it goes to the other. Patrick asked
+ * for waypoints when there was one world and nothing to connect; now
+ * there are two, and this is the whole of the connection — no map
+ * screen to choose from, no list. There are two worlds, so a stone that
+ * says "the other one" is complete.
+ */
+export let STEIN: { mitte: number; fuss: number; tx: number; ty: number } | null = null;
+
 function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void {
   const mitte = tx * KACHEL + (tiles * KACHEL) / 2;
   const fuss = (ty + 1) * KACHEL;
@@ -228,8 +242,115 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
   });
 }
 
+/**
+ * DAS UFER — the second region, where Deutsch lives.
+ *
+ * Authored by hand like the meadow, on the same grid, and deliberately
+ * a different KIND of place: the meadow has a stream you cross and a
+ * pond you walk round, this has a lagoon you stand at the edge of, a
+ * jetty out over it, and sand instead of grass along the whole south.
+ * A child should know which world they are in from one screen without
+ * being told, and the ground is the cheapest way to say it.
+ */
+const UFER: readonly string[] = [
+  '################################################',
+  '################################################',
+  '##............................................##',
+  '##......T.T.T.T.T.T.T.T.T.T.T.T.T.T.T.T.T.T...##',
+  '##..F....T..T..TT.T..T..T..T..T..o..T..T..T...##',
+  '##..........................T.................##',
+  '##....Z.............T...............T......F..##',
+  '##.......t..............T.....................##',
+  '##....=........o................T.....TTTTTTT.##',
+  '##....=...............................TTTTTTT.##',
+  '##...*=...PPPPP......."""""....F........T.T.T.##',
+  '##....=...PPPPP......."""""...................##',
+  '##....=,..PPPPP.......""""".......t...........##',
+  '##....=.."PPPPP....F.."""""...................##',
+  '##....=...PPPPP.......""""".................T.##',
+  '##....=.....p.5.............."................##',
+  '##...*=.....=.................................##',
+  '##....=..o..=.....t........o..................##',
+  '##....=.....=.............................T...##',
+  '##....=.,...=.*.......*..,..*.................##',
+  '##....=========================,.....F........##',
+  '##...........,..."......F.....=...............##',
+  '##..."............ssssssssssssbssss.....t.....##',
+  '##................s~~~~~~~~~~~b~~~s...........##',
+  '##.........t...ssss~~~~~~~~~~~b~~~ssss........##',
+  '##.............s~~~~~~~~~~~~~~~~~~~~~s........##',
+  '##.............s~~~~~~~~~~~~~~~~~~~~~s........##',
+  '##.............s~~~~~~~~~~~~~~~~~~~~~s........##',
+  '##......t......s~~~~~~~~~~~~~~~~~~~~~so.......##',
+  '##............Fs~~~~~~~~~~~~~~~~~~~~~s........##',
+  '##...F.........s~~~~~~~~~~~~~~~~~~~~~s........##',
+  '##.............s~~~~~~~~~~~~~~~~~~~~~s........##',
+  '##........sssssssssssssssssssssssssssssssss...##',
+  '##...................t.............t..........##',
+  '################################################',
+  '################################################',
+];
+
 // ---------------------------------------------------------------- derive
-{
+
+/**
+ * The regions, in the order a child meets them.
+ *
+ * Patrick: "und dann in der nächsten welt die silben?" — so the two
+ * subjects are two WORLDS, and this is where they live. Both are
+ * authored by hand on the same 48x36 grid: a world a child can learn by
+ * heart is worth more than a world nobody has ever walked across, and
+ * the same grid means everything derived from a map works on both
+ * without an argument.
+ */
+export const REGIONEN = ['wiese', 'ufer'] as const;
+export type Region = (typeof REGIONEN)[number];
+
+const KARTEN: Record<Region, readonly string[]> = { wiese: WIESE, ufer: UFER };
+
+/** Which region is currently built. Everything below describes it. */
+export let REGION: Region = 'wiese';
+
+/** The rows of the region currently built. */
+export let ZEILEN: readonly string[] = WIESE;
+
+/**
+ * Build a region, replacing whatever was built before.
+ *
+ * Every export in this file describes ONE region at a time. That is a
+ * deliberate choice over holding both in memory: the world screen only
+ * ever draws one, the save only ever remembers one, and a module that
+ * quietly serves two would need every caller to say which — including
+ * the forty places that currently just ask `festAn`.
+ */
+export function ladeRegion(r: Region): void {
+  REGION = r;
+  ZEILEN = KARTEN[r];
+  dinge.length = 0;
+  funken.length = 0;
+  schatten.length = 0;
+  tore.length = 0;
+  offen.clear();
+  torTeil.clear();
+  LADEN = null;
+  TUER = { tx: -1, ty: -1 };
+  TUER_WORT = { tx: -1, ty: -1 };
+  TUER_RECHNEN = { tx: -1, ty: -1 };
+  TUER_RICHTUNG = { tx: -1, ty: -1 };
+  TUER_SILBEN = { tx: -1, ty: -1 };
+  STEIN = null;
+  bauen();
+}
+
+function bauen(): void {
+  // Every id a save remembers carries its REGION.
+  //
+  // Both maps are 48x36 and both have a lightspark at tile 4,4 — so
+  // without this, picking one up in the meadow would pick up its twin
+  // on the shore, and a shadow chased on one map would be gone from the
+  // other. The prefix is the cheapest fix and it is also the honest
+  // one: these ids ARE per-region facts and always were.
+  const r = REGION;
   for (const z of ZEILEN) {
     if (z.length !== KW) throw new Error(`a map row is ${z.length} long, not ${KW}`);
   }
@@ -239,6 +360,7 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
   let wortX0 = KW, wortX1 = -1, wortY1 = -1;
   let rechX0 = KW, rechX1 = -1, rechY1 = -1;
   let richX0 = KW, richX1 = -1, richY1 = -1;
+  let silbX0 = KW, silbX1 = -1, silbY1 = -1;
 
   for (let y = 0; y < KH; y++) {
     for (let x = 0; x < KW; x++) {
@@ -252,7 +374,7 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
         case '.': b = GRAS; break;
         case ',': b = BLUMEN; break;
         case '"': b = HOCHGRAS; break;
-        case '=': case 'D': case 'E': case 'm': case 'n':
+        case '=': case 'D': case 'E': case 'm': case 'n': case 'p':
         case 'G': case 'g': b = WEG; break;
         case 'b': b = BRUECKE; break;
         case 's': b = SAND; break;
@@ -272,10 +394,10 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
         case '^': stell('schild', x, y, seed); break;
         case '*': stell('laterne', x, y, seed); break;
         case 'F':
-          funken.push({ id: `f${x},${y}`, x: x * KACHEL + 8, y: y * KACHEL + 9 });
+          funken.push({ id: `${r}:f${x},${y}`, x: x * KACHEL + 8, y: y * KACHEL + 9 });
           break;
         case 'S':
-          schatten.push({ id: `s${x},${y}`, x: x * KACHEL + 8, y: (y + 1) * KACHEL });
+          schatten.push({ id: `${r}:s${x},${y}`, x: x * KACHEL + 8, y: (y + 1) * KACHEL });
           break;
         case 'K':
           LADEN = { mitte: x * KACHEL + 8, fuss: (y + 1) * KACHEL };
@@ -299,10 +421,10 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
           //
           // Every tile of the run reports to the leftmost one's id, so
           // opening the gate opens the whole opening.
-          torTeil.set(y * KW + x, `g${zeichen(x - 1, y) === c ? x - 1 : x},${y}`);
+          torTeil.set(y * KW + x, `${r}:g${zeichen(x - 1, y) === c ? x - 1 : x},${y}`);
           if (zeichen(x - 1, y) === c) break;
           tore.push({
-            id: `g${x},${y}`, tx: x, ty: y,
+            id: `${r}:g${x},${y}`, tx: x, ty: y,
             mitte: x * KACHEL + 8, fuss: (y + 1) * KACHEL,
             // Both gates are maths now, at different heights. The
             // second used to want Wörter 2, which stopped being
@@ -333,6 +455,12 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
         case 'm':
           TUER_RICHTUNG = { tx: x, ty: y };
           break;
+        case 'p':
+          TUER_SILBEN = { tx: x, ty: y };
+          break;
+        case 'Z':
+          STEIN = { mitte: x * KACHEL + 8, fuss: (y + 1) * KACHEL, tx: x, ty: y };
+          break;
         // The plaques beside the three doors. Not decoration: the house
         // sprite is the same building three times, so without these the
         // only way to find the shapes house is to walk into two wrong
@@ -341,10 +469,16 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
         case '2': stell('tafel', x, y, 1); break;
         case '3': stell('tafel', x, y, 2); break;
         case '4': stell('tafel', x, y, 3); break;
+        case '5': stell('tafel', x, y, 4); break;
         case 'W':
           wortX0 = Math.min(wortX0, x);
           wortX1 = Math.max(wortX1, x);
           wortY1 = Math.max(wortY1, y);
+          break;
+        case 'P':
+          silbX0 = Math.min(silbX0, x);
+          silbX1 = Math.max(silbX1, x);
+          silbY1 = Math.max(silbY1, y);
           break;
         case 'M':
           richX0 = Math.min(richX0, x);
@@ -366,11 +500,14 @@ function stell(art: Art, tx: number, ty: number, seed: number, tiles = 1): void 
     }
   }
 
-  if (hausX1 < 0) throw new Error('the map has no house');
-  stell('haus', hausX0, hausY1, 1, hausX1 - hausX0 + 1);
+  // The meadow's first house is where a new adventurer starts; the
+  // shore's is not, so only the region that HAS one insists on it.
+  if (REGION === 'wiese' && hausX1 < 0) throw new Error('the map has no house');
+  if (hausX1 >= 0) stell('haus', hausX0, hausY1, 1, hausX1 - hausX0 + 1);
   if (wortX1 >= 0) stell('haus', wortX0, wortY1, 2, wortX1 - wortX0 + 1);
   if (rechX1 >= 0) stell('haus', rechX0, rechY1, 4, rechX1 - rechX0 + 1);
   if (richX1 >= 0) stell('haus', richX0, richY1, 5, richX1 - richX0 + 1);
+  if (silbX1 >= 0) stell('haus', silbX0, silbY1, 6, silbX1 - silbX0 + 1);
 
   // Back to front. Sorted once here rather than every frame: the world
   // is authored and nothing in it ever moves, so the order it is drawn
@@ -476,6 +613,7 @@ export function tuerVon(tx: number, ty: number): { tx: number; ty: number } | nu
     case 'W': return TUER_WORT;
     case 'N': return TUER_RECHNEN;
     case 'M': return TUER_RICHTUNG;
+    case 'P': return TUER_SILBEN;
     default: return null;
   }
 }
@@ -528,7 +666,7 @@ export function zielFuerTipp(zx: number, zy: number): { x: number; y: number } {
 
 /** Something a tap can CHOOSE, and what happens when he gets there. */
 export interface Ziel {
-  art: 'tuer' | 'laden' | 'schatten';
+  art: 'tuer' | 'laden' | 'schatten' | 'stein';
   /** The door, the cart, or the shadow's own id. */
   id: string;
   /** Where to walk to, in world pixels. */
@@ -566,6 +704,12 @@ export function zielAn(zx: number, zy: number, weg: ReadonlySet<string>): Ziel |
     if (Math.abs(sch.x - zx) < 14 && Math.abs(sch.y - 12 - zy) < 18) {
       return { art: 'schatten', id: sch.id, x: sch.x, y: sch.y - 6 };
     }
+  }
+
+  if (STEIN && Math.abs(STEIN.mitte - zx) < 20 && Math.abs(STEIN.fuss - 10 - zy) < 24) {
+    // Stand BELOW the stone, as with the cart: the stone itself is
+    // solid, and routing onto it finds no route at all.
+    return { art: 'stein', id: 'stein', x: STEIN.mitte, y: STEIN.fuss + KACHEL / 2 };
   }
 
   if (LADEN && Math.abs(LADEN.mitte - zx) < 20 && Math.abs(LADEN.fuss - 8 - zy) < 22) {
@@ -663,5 +807,8 @@ export function inTuer(x: number, y: number): Tuer | null {
   if (tx === TUER_WORT.tx && ty === TUER_WORT.ty) return 'nachbarn';
   if (tx === TUER_RECHNEN.tx && ty === TUER_RECHNEN.ty) return 'addition';
   if (tx === TUER_RICHTUNG.tx && ty === TUER_RICHTUNG.ty) return 'richtung';
+  if (tx === TUER_SILBEN.tx && ty === TUER_SILBEN.ty) return 'silben';
   return null;
 }
+
+ladeRegion('wiese');

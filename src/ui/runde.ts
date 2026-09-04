@@ -106,6 +106,36 @@ export const HAUS_RICHTUNG: Haus = {
   fach: 'mathe',
 };
 
+/**
+ * Das Haus der Silben, on the shore.
+ *
+ * The first door in the second world, and the first thing in this game
+ * that teaches reading. It pays WORT-STERNE — the star that has had
+ * nothing to earn it since the word house closed, and the reason the
+ * per-subject machinery was kept rather than deleted.
+ */
+export const HAUS_SILBEN: Haus = {
+  id: 'silben-lesen',
+  spiel: 'silben-lesen',
+  name: 'haus.silben',
+  fach: 'wort',
+};
+
+/**
+ * Which houses stand in which region.
+ *
+ * The shadows read this: a shadow asks what the world around it
+ * teaches, so one in the meadow asks numbers and one on the shore asks
+ * syllables. Before this list existed the shadows asked from GAMES,
+ * which is every generator in the app — and the moment the second world
+ * landed, a shadow in the maths meadow started asking a child to split
+ * "Amelie" into syllables.
+ */
+export const HAEUSER: Record<string, Haus[]> = {
+  wiese: [HAUS_VERLIEBTE_ZAHLEN, HAUS_NACHBARZAHLEN, HAUS_ADDITION, HAUS_RICHTUNG],
+  ufer: [HAUS_SILBEN],
+};
+
 interface Lauf {
   haus: Haus;
   fragen: Question[];

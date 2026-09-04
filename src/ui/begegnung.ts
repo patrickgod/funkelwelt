@@ -33,13 +33,15 @@ import * as fx from '../core/fx.js';
 import { iconCanvas } from '../core/icons.js';
 import { tenFrameCanvas } from '../core/tenframe.js';
 import { fragebild, karteFuer, kartenKlasse, rahmenSkala } from './frage.js';
-import { buildRound, bekanntePaare, GAMES } from '../games/games.js';
+import { buildRound, bekanntePaare } from '../games/games.js';
 import type { Question } from '../games/types.js';
 import { schatten as schattenPx, artVon, SW, SH } from '../spiel/schatten.js';
 import { el, tap, knopf, zentrumVon } from './dom.js';
 import * as luma from './luma.js';
 
 import * as laden from './laden.js';
+import * as karte from '../welt/karte.js';
+import { HAEUSER } from './runde.js';
 
 /**
  * How many right answers fill the bar.
@@ -67,13 +69,20 @@ let wurzel: HTMLElement | null = null;
 let raus: ((geschafft: boolean) => void) | null = null;
 
 /**
- * What a shadow may ask: everything the four houses teach.
+ * What a shadow may ask: whatever the houses in ITS region teach.
  *
- * Read from GAMES rather than listed by hand, so a new house cannot be
- * built without the shadows learning it too — the old list of one is
- * exactly what happens when this is written out somewhere.
+ * Read from the house list rather than written out here, so a new house
+ * cannot be built without the shadows learning it — and read PER
+ * REGION, because a shadow in the maths meadow asking a child to split
+ * "Amelie" into syllables is a shadow that has wandered in from another
+ * world. That happened the hour the shore was built.
  */
-const SPIELE = Object.keys(GAMES);
+function spieleHier(): string[] {
+  const haeuser = HAEUSER[karte.REGION] ?? [];
+  const raus = new Set<string>();
+  for (const h of haeuser) for (const g of [h.spiel].flat()) raus.add(g);
+  return [...raus];
+}
 
 /** Fisher-Yates, so an encounter is not the same shape twice. */
 function mischen<T>(arr: T[]): T[] {
@@ -111,7 +120,7 @@ export function starten(ui: HTMLElement, id: string, zurueck: (weg: boolean) => 
     // Shuffled per encounter rather than rotated: a house is a lesson
     // and has a rhythm worth keeping, but a shadow is a surprise and
     // should not be predictable.
-    fragen: buildRound(mischen(SPIELE), mutVoll() * 4),
+    fragen: buildRound(mischen(spieleHier()), mutVoll() * 4),
     i: 0,
     mut: 0,
     beschaeftigt: false,

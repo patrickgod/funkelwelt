@@ -1017,3 +1017,16 @@ button.gross {
 }
 
 .kartenknopf { min-width: 60%; }
+
+
+/* The word, whole, before it is cut up. Bigger than an answer card by
+   a clear margin: the question is one word and the cards are three
+   versions of it, so the eye needs to know which is which without
+   reading either. */
+.silbenwort {
+  font-size: clamp(52px, 11vh, 108px);
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--creme);
+  text-shadow: 0 6px 0 var(--ink);
+}

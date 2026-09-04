@@ -55,6 +55,7 @@ const DE = {
   'haus.verliebteZahlen': 'Das Haus der verliebten Zahlen',
   'haus.nachbarzahlen': 'Das Haus der Nachbarzahlen',
   'haus.addition': 'Das Haus der Addition',
+  'haus.silben': 'Das Haus der Silben',
   'haus.richtung': 'Das Haus von links und rechts',
 
   // -------------------------------------------------------- a round

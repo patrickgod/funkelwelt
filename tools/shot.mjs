@@ -324,6 +324,32 @@ if (want('torstufen')) {
   }
 }
 
+// The second world: the shore, the waypoint stone, and the syllable
+// house.
+if (want('ufer')) {
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.region = 'ufer';
+    s.ort = { x: 12.5, y: 19.5 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await page.reload();
+  await page.waitForTimeout(800);
+  await starten();
+  await page.locator('.platz').first().tap();
+  await page.waitForTimeout(2400);
+  await lumaWeg();
+  await shot('ufer');
+  const p = await page.evaluate(() => window.weltOrt?.(12 * 16 + 8, 15 * 16 + 8) ?? null);
+  if (p) {
+    await page.mouse.click(p[0], p[1]);
+    await page.waitForTimeout(2600);
+    await lumaWeg();
+    await shot('silben');
+  }
+}
+
 // The cart, with coins for two of the four things on it.
 if (want('laden')) {
   await page.evaluate(() => {

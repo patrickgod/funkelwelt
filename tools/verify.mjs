@@ -1063,6 +1063,140 @@ async function beiTor(sterne, wort = 0) {
     hell > dunkel + 120, `${dunkel} without it, ${hell} with`);
 }
 
+// ----------------------------------------------- the second world
+//
+// Patrick: "und dann in der nächsten welt die silben? lesen und
+// schreiben, und kombinationen wie Lea, lulu, Mama, Oma, etc. aber eben
+// nur mit den buchstaben lLeEaAoOuUmMiI"
+//
+// Two subjects became two WORLDS, and the waypoint stone is the whole
+// of the connection between them.
+
+{
+  // THE LETTER SET, checked at the source.
+  //
+  // This is the one rule of the second world that a well-meaning person
+  // will break by accident: adding "Nele" to a list of names is a
+  // reasonable-looking edit that quietly hands a child a letter they
+  // have never been taught. Seven letters, and the list says so.
+  const silbenSrc = readFileSync('src/games/silben.ts', 'utf8');
+  const woerter = [...silbenSrc.matchAll(/\{ wort: '([^']+)', teile: \[([^\]]+)\] \}/g)]
+    .map((m) => ({
+      wort: m[1],
+      teile: m[2].split(',').map((t) => t.trim().replace(/'/g, '')),
+    }));
+  const fremd = woerter.filter(
+    (w) => [...w.wort.toLowerCase()].some((c) => !'aeilmou'.includes(c)));
+  check('every word in the second world uses only the seven letters',
+    woerter.length > 12 && fremd.length === 0,
+    fremd.length ? fremd.map((w) => w.wort).join(', ') : `${woerter.length} words`);
+  const kaputt = woerter.filter((w) => w.teile.join('') !== w.wort);
+  check('and every syllable split actually spells its word',
+    kaputt.length === 0,
+    kaputt.map((w) => `${w.wort} != ${w.teile.join('-')}`).join('; '));
+
+  // THE WAYPOINT. Tap the stone, walk to it, arrive somewhere else.
+  await inDieWelt();
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.region = 'wiese';
+    s.ort = { x: 22.5, y: 9.5 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await inDieWelt();
+  await lumaWeg();
+  const stein = await page.evaluate(() => window.weltStein?.() ?? null);
+  check('the meadow has a waypoint stone', stein !== null, JSON.stringify(stein));
+  if (stein) {
+    await waehle(stein.tx, stein.ty, 4200);
+    await lumaWeg();
+    const nach = await slot();
+    check('tapping it takes him to the other world',
+      nach.region === 'ufer', `now in ${nach.region}`);
+    check('and he arrives standing at the stone there, not in a wall',
+      await page.locator('.hud').count() === 1
+      && nach.ort.x > 2 && nach.ort.y > 2, JSON.stringify(nach.ort));
+
+    // And back, which is the half that is easy to forget.
+    const stein2 = await page.evaluate(() => window.weltStein?.() ?? null);
+    check('the shore has one too', stein2 !== null, JSON.stringify(stein2));
+    if (stein2) {
+      await waehle(stein2.tx, stein2.ty, 4200);
+      await lumaWeg();
+      check('and it brings him back',
+        (await slot()).region === 'wiese', `now in ${(await slot()).region}`);
+    }
+  }
+
+  // DAS HAUS DER SILBEN, on the shore.
+  await inDieWelt();
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.region = 'ufer';
+    s.ort = { x: 12.5, y: 19.5 };
+    s.sterne = { mathe: 0, wort: 0 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await inDieWelt();
+  await lumaWeg();
+  await waehle(12, 15, 4200);
+  await lumaWeg();
+  check('the door on the shore opens Das Haus der Silben',
+    await page.locator('.silbenwort').count() === 1);
+  check('and it asks with a word, not with a voice alone',
+    ((await page.locator('.silbenwort').first().textContent()) ?? '').length > 1);
+  check('three ways to cut it up, not two',
+    await page.locator('.karten button').count() === 3,
+    `${await page.locator('.karten button').count()} cards`);
+
+  // Answer by SPLITTING THE WORD, which is what the child does.
+  let richtigS = 0, gefragtS = 0;
+  for (let i = 0; i < 14; i++) {
+    if (await page.locator('.blatt').count()) break;
+    await lumaWeg();
+    const wort = ((await page.locator('.silbenwort').first().textContent()) ?? '').trim();
+    const karten = page.locator('.karten button');
+    if (await karten.count() === 0) break;
+    const labels = await karten.evaluateAll(
+      (els) => els.map((e) => (e.textContent ?? '').trim()));
+    // Every card must be the same letters in the same order — only the
+    // cuts differ. A card that is not is a broken question.
+    const gleich = labels.every((l) => l.split('·').join('') === wort);
+    if (!gleich) {
+      check('every card is the same word, cut differently',
+        false, `${wort}: ${labels.join(' / ')}`);
+      gefragtS++;
+    }
+    const idx = labels.findIndex((l) => l === wort.split(/(?=[A-Z])/).join(''));
+    // The right answer is not derivable from the screen alone — the
+    // split IS the knowledge — so this taps the first card and only
+    // counts the questions, not the correctness.
+    await karten.nth(idx >= 0 ? idx : 0).tap();
+    await page.waitForTimeout(1200);
+    gefragtS++;
+    if (await page.locator('.karten button.falsch').count() === 0) richtigS++;
+    await page.waitForTimeout(1400);
+  }
+  check('the syllable house asks a whole round of them',
+    gefragtS >= 3, `${gefragtS} questions`);
+
+  // Back to the meadow. Everything after this assumes it, and a block
+  // that leaves the world somewhere else hands the next check a failure
+  // that has nothing to do with what it is testing.
+  await inDieWelt();
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k));
+    s.region = 'wiese';
+    s.ort = { x: 7.5, y: 22.4 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+  await inDieWelt();
+  await lumaWeg();
+}
+
 // ---------------------------------------- a miss, and three of them
 //
 // Patrick: "wenn etwas falsch ist, sollten wir nicht die richtige
@@ -1847,7 +1981,8 @@ async function beiTor(sterne, wort = 0) {
   check('  …and never stars, which it did not teach',
     s3.sterne.mathe === s2.sterne.mathe && s3.sterne.wort === s2.sterne.wort);
   check('  …and it is written down as gone',
-    s3.schatten.length === 1, JSON.stringify(s3.schatten));
+    s3.schatten.length === 1 && s3.schatten[0].startsWith('wiese:'),
+    JSON.stringify(s3.schatten));
 
   await page.locator('button', { hasText: 'Zurück in die Welt' }).first().tap();
   await page.waitForTimeout(700);
@@ -1903,8 +2038,11 @@ async function beiTor(sterne, wort = 0) {
   const vor = await slot();
   await laufe('ArrowDown', 500);
   const s = await slot();
+  // The id carries its region now, because both maps are 48x36 and both
+  // have a spark at the same tile — without the prefix, picking one up
+  // in the meadow would pick up its twin on the shore.
   check('walking into a lightspark picks it up',
-    s.funken.includes('f27,16'), `carrying ${JSON.stringify(s.funken)}`);
+    s.funken.includes('wiese:f27,16'), `carrying ${JSON.stringify(s.funken)}`);
   check('and it pays coins rather than stars',
     s.muenzen - vor.muenzen > 0
     && s.sterne.mathe === vor.sterne.mathe

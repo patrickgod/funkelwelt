@@ -86,6 +86,18 @@ export function fragebild(p: Prompt, q: Question, fuellung: Fuellung = 'perle'):
       }
       break;
     }
+    case 'silbenwort': {
+      // The word, whole and big, and a way to hear it. The question is
+      // "where does this come apart", so the word has to be readable as
+      // one thing first.
+      box.appendChild(el('div', 'silbenwort', p.wort));
+      const hoeren = el('button', 'hoeren');
+      hoeren.appendChild(iconCanvas('ohr', 68));
+      const sag = (): void => { audio.say(`wort-${p.wort.toLowerCase()}`, p.wort); };
+      tap(hoeren, sag);
+      box.appendChild(hoeren);
+      break;
+    }
     case 'richtung': {
       // The whole question, and it is one arrow. It is spoken as well,
       // for a child who wants it read to them, but it does not need to

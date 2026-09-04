@@ -55,6 +55,8 @@ export interface Stand {
    * instead of to the arithmetic.
    */
   funken: string[];
+  /** Which region he is standing in. */
+  region: string;
   /**
    * Which shadows have been chased away.
    *
@@ -101,6 +103,7 @@ function frisch(): Stand {
     staerke: {},
     ort: { x: 0, y: 0 },
     funken: [],
+    region: 'wiese',
     schatten: [],
     steuerung: 'tippen',
     geschafft: {},
@@ -151,6 +154,7 @@ export function laden(i: number): Stand {
       ort: roh.ort && typeof roh.ort === 'object'
         ? { x: Number(roh.ort.x) || 0, y: Number(roh.ort.y) || 0 }
         : basis.ort,
+      region: typeof roh.region === 'string' ? roh.region : 'wiese',
       funken: Array.isArray(roh.funken)
         ? roh.funken.filter((x) => typeof x === 'string') : [],
       schatten: Array.isArray(roh.schatten)

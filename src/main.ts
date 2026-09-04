@@ -20,6 +20,7 @@ import * as runde from './ui/runde.js';
 import * as luma from './ui/luma.js';
 import * as begegnung from './ui/begegnung.js';
 import * as laden from './ui/laden.js';
+import * as karte from './welt/karte.js';
 import type { Tuer } from './welt/karte.js';
 import * as weltkarte from './ui/weltkarte.js';
 
@@ -378,6 +379,16 @@ function weltBauen(): void {
   vorschau = null;
   leeren();
   fx.clear();
+  // The region the SAVE says he is in, before anything reads the map.
+  //
+  // `karte.ts` builds one region at a time, and it builds the meadow at
+  // module load — so a child who closed the game standing on the shore
+  // would otherwise reopen it standing in the meadow, at the same
+  // coordinates, quite possibly inside a tree.
+  const wo = stand.get().region as karte.Region;
+  if (karte.REGION !== wo && (karte.REGIONEN as readonly string[]).includes(wo)) {
+    karte.ladeRegion(wo);
+  }
   dieWelt = new Welt(stand.get().aussehen);
   dieWelt.groesse(welt.clientWidth || window.innerWidth, welt.clientHeight || window.innerHeight);
   // The bridge `tools/verify.mjs` aims taps through. See `schirmOrt`
@@ -386,6 +397,8 @@ function weltBauen(): void {
     (x: number, y: number) => dieWelt?.schirmOrt(x, y) ?? null;
   (window as unknown as { weltWahl?: unknown }).weltWahl =
     () => dieWelt?.gewaehlt() ?? null;
+  (window as unknown as { weltStein?: unknown }).weltStein =
+    () => (karte.STEIN ? { tx: karte.STEIN.tx, ty: karte.STEIN.ty } : null);
   // The steering listens on the canvas rather than on the document, so
   // that a tap on the HUD is a tap on the HUD and not also a step to the
   // left. #ui is transparent to pointers except where a control is.
@@ -398,6 +411,7 @@ function weltBauen(): void {
   // learns to walk through without listening.
   dieWelt.anTor = (offen) => luma.einmal(offen ? 'say.torAuf' : 'say.nochZu');
   dieWelt.anKarren = () => zeigeLaden();
+  dieWelt.anStein = () => reisen();
   muenzenGezeigt = -1;
   hudBauen();
   // The world arrives dark and opens. Long the first time, because that
@@ -439,6 +453,43 @@ function lernenZuLaufen(): void {
 function zeigeAufHaus(): void {
   if (stand.get().geschafft['verliebte-zahlen']) return;
   luma.einmal('say.erstesHaus');
+}
+
+/**
+ * The waypoint: to the other world, and back.
+ *
+ * Two regions and one stone in each, so there is nothing to choose
+ * from — "the other one" is the whole of the decision. A list of
+ * destinations is a menu, and a menu is reading.
+ *
+ * He arrives standing just below the stone he came out of, which is the
+ * thing that makes it feel like a place rather than a loading screen:
+ * the first thing on screen is the same kind of object he just touched.
+ */
+function reisen(): void {
+  if (schirm !== 'welt' || !dieWelt) return;
+  luma.weg();
+  audio.whoosh(0.5, 700);
+  const s = stand.get();
+  const hin: karte.Region = s.region === 'ufer' ? 'wiese' : 'ufer';
+
+  // TEAR THE OLD WORLD DOWN FIRST.
+  //
+  // `weltVerlassen` writes the adventurer's position out of the world
+  // object it is closing — so setting the arrival position before it
+  // runs means the old position wins. He arrived on the shore standing
+  // at the meadow stone's coordinates, which is a patch of grass
+  // sixteen tiles from anything, and the way home was off the screen.
+  weltVerlassen();
+
+  karte.ladeRegion(hin);
+  s.region = hin;
+  const stein = karte.STEIN;
+  s.ort = stein
+    ? { x: stein.mitte / 16, y: (stein.fuss + 16) / 16 }
+    : { x: karte.START.x / 16, y: karte.START.y / 16 };
+  stand.sichern();
+  zeigeWelt();
 }
 
 /** The cart. Four things, no placing, and no way to spend badly. */
@@ -508,6 +559,7 @@ function zeigeHaus(tuer: Tuer): void {
   const haus = tuer === 'nachbarn' ? runde.HAUS_NACHBARZAHLEN
     : tuer === 'addition' ? runde.HAUS_ADDITION
     : tuer === 'richtung' ? runde.HAUS_RICHTUNG
+    : tuer === 'silben' ? runde.HAUS_SILBEN
     : runde.HAUS_VERLIEBTE_ZAHLEN;
   runde.starten(ui, haus, () => {
     schirm = 'welt';

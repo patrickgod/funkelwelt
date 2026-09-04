@@ -170,7 +170,10 @@ export class Welt {
   /** The market cart. */
   private karrenBild: HTMLCanvasElement | null = null;
   private amKarren = false;
+  private amStein = false;
   anKarren: (() => void) | null = null;
+  /** Standing at the waypoint stone, having chosen it. */
+  anStein: (() => void) | null = null;
   private readonly weg = new Set<string>();
 
   /** Tap-to-walk. */
@@ -380,7 +383,7 @@ export class Welt {
     if (gen) return gen;
     // A plaque has exactly three faces and they are chosen by the map,
     // not by a seed — variant 3 would be a blank board beside a door.
-    if (art === 'tafel') return 4;
+    if (art === 'tafel') return 5;
     return art === 'haus' || art === 'schild' || art === 'laterne' ? 1 : 8;
   }
 
@@ -589,6 +592,7 @@ export class Welt {
     this.schattenPruefen();
     this.torPruefen();
     this.karrenPruefen();
+    this.steinPruefen();
     this.tuerPruefen();
   }
 
@@ -699,6 +703,21 @@ export class Welt {
     audio.sparkle(3);
     const ruf = this.anKarren;
     setTimeout(() => ruf(), 320);
+  }
+
+  /** Standing at the waypoint stone. */
+  private steinPruefen(): void {
+    const st = karte.STEIN;
+    if (!st) { this.amStein = false; return; }
+    const drin = Math.abs(st.mitte - this.hx) < 16 && Math.abs(st.fuss + 8 - this.hy) < 20;
+    if (!drin) { this.amStein = false; return; }
+    if (this.amStein || !this.anStein) return;
+    if (this.auswahl?.art !== 'stein') return;
+    this.amStein = true;
+    this.auswahl = null;
+    audio.sparkle(6);
+    const ruf = this.anStein;
+    setTimeout(() => ruf(), 340);
   }
 
   /**

@@ -52,6 +52,7 @@
 import type { Game, Question, Prompt } from './types.js';
 import { staerkeVon } from '../core/spielstand.js';
 import { FAHRZEUGE, type Richtung } from './fahrzeuge.js';
+import { WOERTER as SILBEN_WOERTER, andereTeilungen } from './silben.js';
 
 function shuffle<T>(arr: T[]): T[] {
   const a = arr.slice();
@@ -250,6 +251,47 @@ export const richtung: Game = {
   },
 };
 
+// -------------------------------------------- Das Haus der Silben
+
+/**
+ * Where do the syllables go?
+ *
+ * The word is shown whole and the cards are three ways of cutting it
+ * up, one of which is right. This is Silbenbögen — the exercise a
+ * German first-grader does before they read anything else — and it is
+ * chosen over "hear the word and pick it" for one reason: it needs no
+ * sound at all.
+ *
+ * Rule 15 says the sound is switchable off in two taps, and reading
+ * exercises are where that rule is hardest to keep, because reading
+ * usually needs the word delivered somehow. Splitting a word you can
+ * SEE needs nothing delivered. The voice is still there for a child who
+ * wants to hear it, and it adds the sound of the syllables to the sight
+ * of them, which is the whole point of the method — but nothing breaks
+ * when it is off.
+ */
+export const silbenLesen: Game = {
+  id: 'silben-lesen',
+  facts: () => SILBEN_WOERTER.map((w) => `sl:${w.wort}`),
+  next(pick) {
+    const fact = pick(this.facts());
+    const w = SILBEN_WOERTER.find((x) => x.wort === fact.slice(3)) ?? SILBEN_WOERTER[0];
+    const gut = w.teile.join('·');
+    const falsch: string[] = [];
+    for (const t of shuffle(andereTeilungen(w))) {
+      const wie = t.join('·');
+      if (wie !== gut && !falsch.includes(wie)) falsch.push(wie);
+      if (falsch.length === 2) break;
+    }
+    return {
+      fact,
+      prompt: { kind: 'silbenwort', wort: w.wort },
+      choices: shuffle([gut, ...falsch]),
+      correct: -1,
+    } as Question;
+  },
+};
+
 /**
  * The correct index, resolved once here rather than in every generator.
  *
@@ -289,6 +331,10 @@ function expectedAnswer(gameId: string, q: Question): string {
       const p = q.prompt as Extract<Prompt, { kind: 'rechnung' }>;
       return String(p.a + p.b);
     }
+    case 'silben-lesen': {
+      const w = SILBEN_WOERTER.find((x) => x.wort === q.fact.slice(3));
+      return w ? w.teile.join('·') : q.choices[0];
+    }
     case 'richtung': {
       // Whichever card is going the way the arrow points. Read off the
       // CARDS rather than off the generator, so a card list that was
@@ -307,6 +353,7 @@ export const GAMES: Record<string, Game> = {
   'zahlenreihe': zahlenreihe,
   'rechenmeister': rechenmeister,
   'richtung': richtung,
+  'silben-lesen': silbenLesen,
 };
 
 /** How many questions a round of this house has. About three minutes. */
