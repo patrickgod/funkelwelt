@@ -151,13 +151,33 @@ function zeigeTitel(): void {
       // slot, so the level is computed here from the slot's own stars.
       const mathe = Math.max(1, Math.floor(Math.sqrt(st.sterne.mathe / 8)) + 1);
       const wort = Math.max(1, Math.floor(Math.sqrt(st.sterne.wort / 8)) + 1);
-      karte.appendChild(el('div', 'pzeile',
-        `${t('fach.mathe')} ${mathe} · ${t('fach.wort')} ${wort}`));
+      // The two stars, as ICONS. It said "Zahlen 4 · Wörter 1", which
+      // is two words a six-year-old cannot read attached to the two
+      // numbers they care most about — and the icons already exist and
+      // are what the HUD and the round screen use. Rule 14 applies
+      // hardest on the screen a child meets first.
+      const zeile = el('div', 'pzeile psterne');
+      const gold = el('span', 'pstern');
+      gold.append(iconCanvas('stern', 26), el('span', undefined, String(mathe)));
+      const blau = el('span', 'pstern');
+      blau.append(iconCanvas('sternWort', 26), el('span', undefined, String(wort)));
+      zeile.append(gold, blau);
+      karte.appendChild(zeile);
       const std = Math.floor(st.spielzeit / 3600);
       const min = Math.floor((st.spielzeit % 3600) / 60);
       karte.appendChild(el('div', 'pzeile', t('titel.spielzeit', { h: std, m: min })));
       void m;
     } else {
+      // An empty slot gets its own MARK: one spark, two, three.
+      //
+      // Three empty slots used to be three identical grey rectangles
+      // with the same German words on them — so the very first choice
+      // the game asks a child to make was one they could only make by
+      // reading, or by remembering a position. A child who picks the
+      // two-spark one can find it again tomorrow.
+      const marke = el('div', 'pmarke');
+      for (let f = 0; f <= i; f++) marke.appendChild(iconCanvas('stern', 34));
+      karte.appendChild(marke);
       karte.appendChild(el('div', 'pleer', t('titel.leer')));
     }
     tap(karte, () => {

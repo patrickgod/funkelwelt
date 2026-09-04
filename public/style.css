@@ -1091,3 +1091,34 @@ button.gross {
    wrong answer. */
 .luma-ja { min-width: 46%; }
 .luma-nein { min-width: 34%; opacity: 0.92; }
+
+
+/* THE SLOT CARDS.
+ *
+ * One star, two, three: the mark that tells three empty slots apart
+ * without a word on them. A child who picks the two-star one can find
+ * it again tomorrow, which is the whole job of this screen. */
+.pmarke {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 10px;
+  opacity: 0.75;
+}
+.pmarke canvas { image-rendering: pixelated; display: block; }
+
+/* The two stars a slot has earned, as icons rather than as the words
+   "Zahlen" and "Wörter" — which are two words a six-year-old cannot
+   read attached to the two numbers they care most about. */
+.psterne {
+  display: flex;
+  gap: 18px;
+  justify-content: center;
+  align-items: center;
+}
+.pstern {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.pstern canvas { image-rendering: pixelated; display: block; }

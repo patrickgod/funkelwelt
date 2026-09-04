@@ -2047,6 +2047,61 @@ async function beiTorBei(x, sterne) {
     + ` (target tile 12,23; aimed at ${wiese ? wiese.map(Math.round).join(',') : '?'})`);
 }
 
+// ------------------------------------------- the first screen of all
+//
+// The slot screen is the first choice the game asks a child to make,
+// and it asked it in German: three identical grey rectangles reading
+// "Neues Abenteuer". A child who cannot read had position and nothing
+// else, which is rule 14 broken on the one screen where it matters most
+// — there is nothing else on it.
+
+{
+  await page.goto(BASE);
+  await page.evaluate(() => {
+    for (let i = 0; i < 3; i++) localStorage.removeItem(`funkelwelt.platz${i}.v1`);
+  });
+  await page.goto(BASE);
+  await page.locator('.start, .platz').first()
+    .waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+  await starten();
+
+  const marken = await page.locator('.platz').evaluateAll(
+    (els) => els.map((e) => e.querySelectorAll('.pmarke canvas').length));
+  check('an empty slot is told apart by a picture, not by its position',
+    marken.length === 3 && new Set(marken).size === 3 && !marken.includes(0),
+    `marks: ${marken.join(', ')}`);
+
+  // And an occupied one shows its two stars as the ICONS the rest of
+  // the game uses, rather than as the words "Zahlen" and "Wörter" —
+  // two words a six-year-old cannot read, attached to the two numbers
+  // they care most about.
+  // Written straight into storage: this block just cleared every slot,
+  // so opening one would land in the character editor rather than on a
+  // card with a child on it.
+  await page.evaluate(() => {
+    localStorage.setItem('funkelwelt.platz0.v1', JSON.stringify({
+      name: 'Ben',
+      aussehen: { haut: 1, haar: 1, frisur: 0, kleid: 0 },
+      sterne: { mathe: 40, wort: 12 },
+      muenzen: 5, spielzeit: 90, funken: [], schatten: [],
+      geschafft: {}, staerke: {}, gehoert: [], ausruestung: [],
+      region: 'wiese', ort: { x: 7.5, y: 22.4 },
+      ton: true, stimme: true, steuerung: 'tippen',
+    }));
+  });
+  await page.goto(BASE);
+  await page.locator('.platz').first()
+    .waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+  await starten();
+  const belegt = page.locator('.platz').first();
+  check('and a slot with a child in it shows its stars as stars',
+    await belegt.locator('.psterne canvas').count() === 2,
+    `${await belegt.locator('.psterne canvas').count()} icons`);
+  const worte = ((await belegt.textContent()) ?? '');
+  check('and does not spell the subjects out in words',
+    !worte.includes('Zahlen') && !worte.includes('Wörter'), worte.trim().slice(0, 40));
+}
+
 // ------------------------------- every spoken line says what it says
 //
 // `tools/genvoice.mjs` used to keep any take whose FILE existed, so

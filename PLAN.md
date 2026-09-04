@@ -425,6 +425,13 @@ it.** A risk you have not built is a risk you are still carrying.
   earning coins in the second world should not have to cross a waypoint
   to spend them.
 
+* **The first screen a child sees.** Three empty slots were three
+  identical grey rectangles reading "Neues Abenteuer" — so the first
+  choice the game asks for could only be made by reading, or by
+  remembering a position. Each empty slot now carries one, two or three
+  stars, and an occupied one shows its two stars as the icons the rest
+  of the game uses instead of the words "Zahlen" and "Wörter".
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick
