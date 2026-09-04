@@ -313,6 +313,26 @@ it.** A risk you have not built is a risk you are still carrying.
   three marks and earned three stars had been lied to by the gate.
   Luma names what the lights are doing, once, and still says no numbers.
 
+* **Das Ufer, and the way there.** `karte.ts` builds one region at a
+  time; `ladeRegion` rebuilds everything from a different set of rows.
+  The shore is authored by hand like the meadow and is deliberately a
+  different kind of place — a lagoon you stand at the edge of, a jetty,
+  sand along the whole south — so a child knows which world they are in
+  from one screen.
+
+  A waypoint stone in each region, and tapping it goes to the other.
+  Nothing to choose from: with two worlds, "the other one" is the whole
+  decision, and a list of destinations is a menu, and a menu is reading.
+
+* **Das Haus der Silben.** Silbenbögen: the word whole, three ways of
+  cutting it up, one right. Chosen over "hear it and pick it" because it
+  needs NO SOUND — rule 15 is hardest to keep in a reading exercise, and
+  splitting a word you can see needs nothing delivered. Twenty-seven
+  words from Patrick's seven letters, and the list checks itself.
+
+  It pays the Wort-Stern, which has had nothing to earn it since the
+  word house closed.
+
 ## Next, in order
 
 ### 1. The adventurer: a decision for Patrick
@@ -393,13 +413,7 @@ Still open, and still the questions the world was built early to answer:
 * **Does Luma get in the way?** Three misses is a number nobody has
   tested.
 
-### 3. How you get to the next world
-
-**You do not. It does not exist yet.** Asked and answered: the second
-region is Deutsch and it is item 8. Until it is built there is one
-world, and the waypoints have nothing to connect.
-
-### 4. The thing the design has not answered: coming back
+### 3. The thing the design has not answered: coming back
 
 Patrick: *"Wir müssen im Konzept halt einen Weg finden wie man immer
 wieder dieselben Themen übt und z.B. die verliebten Zahlen nicht enden
@@ -426,44 +440,34 @@ and **none should be built before Patrick picks one**:
   "come back when you are stronger" building, and `buildRound` already
   takes as many generators as you give it.
 
-### 5. The second world: Deutsch
+### 4. Silben schreiben
 
-Patrick: *"und dann in der nächsten welt die silben? lesen und
-schreiben, und kombinationen wie Lea, lulu, Mama, Oma, etc. aber eben
-nur mit den buchstaben lLeEaAoOuUmMiI"*
+The other half of Patrick's German brief, and the only part of the
+original design that has never been built at all: the child writes a
+syllable with a finger.
 
-That is a complete brief, and the letter set is the important half:
+It needs the tracing surface from Lernkiste (`src/games/schrift.ts`,
+313 lines) and the writing font that goes with it. `types.ts` still
+carries the `schreiben` prompt kind, waiting, and it is the one prompt
+with no answer cards — the answer IS the tracing, and the round moves on
+when the last stroke lands.
 
-    a A   e E   i I   l L   m M   o O   u U
+The house site is already standing empty on the shore, at tiles 22-26,
+rows 10-14, so there is somewhere to put it.
 
-Seven letters, both cases, and nothing else. It is the standard German
-Erstlesen starter set, and it is chosen so that every word a child meets
-is built only from letters they have been taught — which is the whole
-method. Lea, Lulu, Mama, Oma, Mimi, Emil, Elli, Lilo, Mia, Uli, Lama,
-Eule, Muli.
+The letter set is the same seven, and `src/games/silben.ts` already
+holds the words and their splits.
 
-**Silben lesen** needs a generator and a prompt kind. **Silben
-schreiben** needs the tracing surface from Lernkiste
-(`src/games/schrift.ts`, 313 lines) and its writing font; it is the one
-prompt in the design with no answer cards at all, and `types.ts` still
-carries the `schreiben` kind, waiting.
+### 5. Anything else about the shore
 
-`src/games/woerter.ts` and `wortbilder.ts` are still here, unbundled and
-unreferenced, along with `woerter()` in `tools/genvoice.mjs`. One line
-brings the recordings back.
+It has one house and no shadows, no cart and no gates. That is fine for
+a world that is one afternoon old, and every one of those is a day's
+work rather than a design question — but the shore should not stay a
+corridor with a door at the end.
 
-### 6. Waypoints
-
-Patrick's, and now they have a job: two worlds means walking between
-them. Build them when the second world exists and not before.
-
-### 7. Anything else about a second region
-
-The gate proves the mechanism on twelve tiles. What it opens onto should
-eventually be somewhere, not a walled garden — and the honest note is
-that the pocket is small and deliberately so: the mechanism was the
-point, and a whole second 48×36 region is a day's work that should wait
-until somebody has played the first one.
+The obvious order: the second house (Silben schreiben), then shadows so
+the Wort-Stern has a second source, then a gate so the shore has
+somewhere to earn its way into.
 
 ## Later, once the loop is proven
 

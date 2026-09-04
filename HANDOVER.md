@@ -150,7 +150,30 @@ taken away and nothing marked.
 And when a pair to ten comes good in **both** directions, that outranks
 the payout and is shown first. That is the thing the whole app is for.
 
-**This region is the MATHS world.** There will be a second one for
+**THERE ARE TWO WORLDS.** `karte.ts` builds ONE at a time —
+`ladeRegion(r)` rebuilds every export in that file from a different set
+of authored rows — so everything it exports describes whichever region
+is currently loaded. The save remembers which (`stand.region`), and
+`zeigeWelt` loads it before anything reads the map.
+
+Every id a save remembers carries its region (`wiese:f27,16`). Both maps
+are 48×36 and have things at the same tiles, so an unprefixed id is a
+spark in one world being collected by walking in the other.
+
+**Die Wiese is the MATHS world; Das Ufer is Deutsch.** A waypoint stone
+in each goes to the other. Shadows ask what THEIR region teaches — see
+`HAEUSER` in `src/ui/runde.ts`, and do not go back to reading GAMES,
+which is how a shadow in the maths meadow came to ask a child to split
+"Amelie" into syllables.
+
+**The seven letters are the rule of the second world:** a A, e E, i I,
+l L, m M, o O, u U, and nothing else. Every word a child meets there is
+built only from letters they have been taught, which is the whole
+method — adding a name that needs an eighth letter breaks it rather
+than extending it. `src/games/silben.ts` checks itself and so does the
+suite.
+
+**Die Wiese is the MATHS world.** There will be a second one for
 Deutsch — that is Patrick's shape, not an idea to revisit — and the
 waypoints in PLAN.md exist to get between them.
 
