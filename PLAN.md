@@ -26,9 +26,13 @@ it.** A risk you have not built is a risk you are still carrying.
   inside the world, because HANDOVER.md's first open question is which
   one a six-year-old prefers and nobody knows.
 
-  Opening the world measures 155 ms and walking costs 0.81 ms of script
-  per frame — on a desktop under software rendering, which bounds the
-  work rather than predicting the device.
+  Measured, and re-measured on 4 September after the second world: the
+  meadow opens in 158 ms and the shore in 157, and walking costs 0.95 ms
+  of script per frame in the meadow and 0.99 on the shore — on a desktop
+  under software rendering, which bounds the work rather than predicting
+  the device. Two worlds, six houses, five kinds of creature, a map and
+  a writing surface later, that is 3 ms and 0.14 ms more than the first
+  measurement.
 
   **The bar it has not cleared yet:** a grown-up walks around for two
   minutes with nothing else in the game and does not get bored. Nobody

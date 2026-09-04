@@ -44,11 +44,40 @@ const ctx = await browser.newContext({
 });
 const page = await ctx.newPage();
 await page.goto(`http://localhost:${PORT}/`);
-await page.waitForTimeout(700);
+// The title screen came AFTER this tool was last run, which is how the
+// numbers in PLAN and HANDOVER came to be months of features out of
+// date: a measuring tool nobody runs is a tool that has stopped
+// working, and the only sign is that the documented figures never
+// change.
+await page.locator('.start, .platz').first()
+  .waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+if (await page.locator('.start').count()) {
+  await page.locator('button', { hasText: 'Spiel starten' }).first().tap();
+  await page.locator('.platz').first()
+    .waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
+}
 await page.locator('.platz').first().tap();
 await page.waitForTimeout(500);
 await page.locator('.namensfeld').fill('Messung');
 await page.waitForTimeout(200);
+
+// WHICH WORLD. There are two now, and the shore is mostly lagoon —
+// water is the one ground that animates, so it is the one worth
+// measuring separately rather than assuming the meadow speaks for both.
+//
+//   node tools/messen.mjs          the meadow
+//   node tools/messen.mjs ufer     the shore
+const REGION = process.argv[2] === 'ufer' ? 'ufer' : 'wiese';
+if (REGION === 'ufer') {
+  await page.evaluate(() => {
+    const k = 'funkelwelt.platz0.v1';
+    const s = JSON.parse(localStorage.getItem(k) ?? '{}');
+    s.region = 'ufer';
+    s.ort = { x: 30.5, y: 21.5 };
+    localStorage.setItem(k, JSON.stringify(s));
+  });
+}
+console.log(`  measuring: ${REGION}`);
 
 // Opening the world: from the tap to the first frame with the region on
 // it. Polled on the canvas itself, so it is the wait, not a guess.
@@ -62,8 +91,9 @@ const auf = await page.evaluate(async () => {
   for (let i = 0; i < 400; i++) {
     await new Promise((r) => requestAnimationFrame(r));
     const d = x.getImageData(Math.round(c.width / 2), Math.round(c.height / 2), 1, 1).data;
-    // The dim meadow is 63,108,58; anything green means the region is up.
-    if (d[1] > 60 && d[1] > d[2]) return performance.now() - t0;
+    // Anything that is not the black of an empty canvas means the
+    // region is composited and on screen.
+    if (d[0] + d[1] + d[2] > 90) return performance.now() - t0;
   }
   return -1;
 });

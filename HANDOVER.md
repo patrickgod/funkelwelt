@@ -292,10 +292,16 @@ answer moves nothing at all, and leaving takes nothing. Chased away it
 leaves a light where it stood, for ever, so clearing all seven makes the
 region measurably brighter.
 
-Measured, not estimated: opening the world takes 155 ms and walking
-costs 0.81 ms of script per frame — on a desktop under software
-rendering, so read it as a bound on the work rather than as a frame rate
-on an iPad. `node tools/messen.mjs` takes it again.
+Measured, not estimated, on 4 September: the meadow opens in 158 ms and
+the shore in 157, and walking costs 0.95 ms of script per frame in the
+meadow and 0.99 on the shore. Read it as a bound on the WORK rather than
+as a frame rate on an iPad — it is a desktop under software rendering.
+
+`node tools/messen.mjs` takes it again, and `node tools/messen.mjs ufer`
+does the shore. It runs on every deploy and prints into the log, which
+is not for the numbers but for the tool: it had rotted, it predated the
+title screen, nobody had run it in months, and the only sign was that
+the figures in this file never changed.
 
 ## The art, and where the line is
 

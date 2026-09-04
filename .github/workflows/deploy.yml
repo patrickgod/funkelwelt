@@ -98,6 +98,24 @@ jobs:
         timeout-minutes: 12
         run: node tools/verify.mjs
 
+      # MEASURE, and print it into the log.
+      #
+      # This does not assert anything — a headless Chromium on a runner
+      # is not an iPad, and a threshold here would be a threshold about
+      # GitHub's hardware. It runs because the tool ROTTED: it predated
+      # the title screen, nobody had run it in months, and the only
+      # sign was that the numbers in PLAN and HANDOVER never changed.
+      #
+      # It CAN fail the build, deliberately. The only way it fails is by
+      # not reaching the world, which means the app's entry flow changed
+      # under it — and that is worth finding out on the day rather than
+      # the next time somebody wonders how fast the game is.
+      - name: Measure
+        timeout-minutes: 3
+        run: |
+          node tools/messen.mjs
+          node tools/messen.mjs ufer
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

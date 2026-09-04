@@ -775,3 +775,33 @@ And the suite's staleness guard watched `src/` and `public/` but not
 from `dist/`, and the suite failed on a 404 for a file that was sitting
 right there on disk. The guard exists to stop the suite measuring a
 stale build, and audio is part of the build.
+
+## A measuring tool nobody runs has already stopped working
+
+**Signature:** the performance numbers in PLAN and HANDOVER had not
+changed in months, and I had been quoting them.
+
+`tools/messen.mjs` tapped a save slot as the first thing it did. The
+title screen was added in front of that weeks ago; the tool has been
+broken ever since, and nothing said so, because the only sign a
+measuring tool has died is that its figures stop moving — which looks
+exactly like a project whose performance is stable.
+
+Fixed, and re-measured: two worlds, six houses, five kinds of creature,
+a map and a writing surface later, the world opens in 158 ms instead of
+155 and walking costs 0.95 ms of script per frame instead of 0.81. The
+numbers were nearly right, which is luck rather than vindication — I had
+no way of knowing that while quoting them.
+
+The fix for the rot is not discipline. It runs on every deploy now and
+prints into the log. It asserts NOTHING — a threshold measured on a
+GitHub runner is a fact about GitHub — but it can fail the build, and
+the only way it fails is by not reaching the world, which means the
+app's entry flow changed under it.
+
+Generalises: **a tool that is only run by a person is a tool that is
+already broken and does not know it.** Rule 6 says numbers in documents
+are measurements, never estimates — but a measurement has a DATE, and a
+figure whose date nobody can name has quietly turned back into an
+estimate. Either the tool runs automatically, or the number in the
+document should carry the day it was taken so its age is visible.
