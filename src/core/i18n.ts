@@ -148,6 +148,7 @@ const DE = {
   // them, and the exercise works with the sound switched off.
   'say.nachRechts': 'Tippe auf das, was nach rechts fährt.',
   'say.nachLinks': 'Tippe auf das, was nach links fährt.',
+  'say.nochmal': 'Das war knifflig. Komm, wir fangen nochmal von vorne an.',
   'say.hilfe': 'Das ist knifflig, oder? Schau, ich zeig es dir.',
 
   // No slots, on purpose. Every one of these becomes a fixed MP3 at

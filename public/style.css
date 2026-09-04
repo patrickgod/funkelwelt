@@ -661,10 +661,49 @@ button.gross {
 
 .karten button.richtig { background: var(--gruen); color: var(--hell); }
 
-/* A miss does not go red. The card lifts back to where it came from and
-   the ten-frame shows what that choice WOULD have made. AGENTS.md rule
-   11: damage goes one way, and a red card is damage. */
-.karten button.daneben { animation: stupsen 340ms ease; opacity: 0.5; }
+/* A miss FLASHES and the card comes back.
+ *
+ * This used to say, in as many words, that a miss does not go red —
+ * because a red card is damage and damage goes one way. Patrick asked
+ * for the other thing: "einfach kurz rot aufleuchten und nochmal
+ * probieren lassen."
+ *
+ * What makes it kind is that nothing is taken and nothing is revealed.
+ * The card lights up, comes back, and the question is still the
+ * question. It is 320ms — long enough to be seen, short enough that it
+ * is over before a child has finished flinching. */
+.karten button.falsch {
+  animation: falsch-blitz 320ms ease;
+}
+
+@keyframes falsch-blitz {
+  0% { background: var(--creme); }
+  30% { background: #e35f5c; color: var(--hell); transform: translateX(-4px); }
+  55% { transform: translateX(4px); }
+  100% { background: var(--creme); }
+}
+
+/* THE THREE STRIKES.
+ *
+ * Gold, not red, and circles rather than hearts. What is counted is
+ * "goes round again" and not damage — there is no health in this game
+ * and these must not become the first of it. */
+.strikes { display: flex; gap: 10px; align-items: center; }
+
+.strike {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 3px solid var(--gold);
+  opacity: 0.4;
+  transition: opacity 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.strike.voll {
+  background: var(--gold);
+  opacity: 1;
+  transform: scale(1.15);
+}
 
 @keyframes stupsen {
   0%   { transform: translateY(0); }

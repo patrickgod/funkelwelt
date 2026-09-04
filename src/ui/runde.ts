@@ -114,6 +114,23 @@ interface Lauf {
   beschaeftigt: boolean;
   daneben: number;
   /**
+   * Wrong answers in this attempt at the house. Three and it restarts.
+   *
+   * Patrick: "wenn etwas falsch ist, sollten wir nicht die richtige
+   * lösung verraten. einfach kurz rot aufleuchten und nochmal probieren
+   * lassen. erst bei 3 'strikes' beginnt das haus von vorne."
+   */
+  strikes: number;
+  /**
+   * Whether this question has already been answered once.
+   *
+   * Only the FIRST attempt is remembered by the scheduler. A child who
+   * gets it on the third go has not learned it three times worse than
+   * one who got it first — and counting every retry would make the
+   * spaced repetition read a struggling child as a hopeless one.
+   */
+  erster: boolean;
+  /**
    * Which pairs to ten were already solid when this round STARTED.
    *
    * Captured here and not at the end, which is where it was first
@@ -161,6 +178,8 @@ export function starten(ui: HTMLElement, haus: Haus, zurueck: () => void): void 
   lauf = {
     haus,
     fragen: buildRound(haus.spiel, rundenLaenge(haus.spiel)),
+    strikes: 0,
+    erster: true,
     i: 0,
     richtig: 0,
     beschaeftigt: false,
@@ -209,6 +228,25 @@ function frageZeichnen(): void {
       `pip ${i < lauf.i ? 'fertig' : i === lauf.i ? 'jetzt' : ''}${gerade ? ' eben' : ''}`));
   }
   oben.appendChild(pips);
+
+  // The three strikes, always on screen and filling as they are used.
+  //
+  // Visible from the first question rather than appearing on the first
+  // mistake: a counter a child only meets when they are already
+  // struggling is a counter that arrives as a punishment. Seeing all
+  // three sitting empty from the start makes the third one a thing they
+  // watched coming, not a thing that happened to them.
+  //
+  // Circles and not hearts, and they fill with the same warm gold as
+  // everything else rather than going red. What is being counted is
+  // "goes round again", not damage — KONZEPT is explicit that there is
+  // no health in this game and that has not changed.
+  const str = el('div', 'strikes');
+  for (let i = 0; i < 3; i++) {
+    str.appendChild(el('div', `strike${i < lauf.strikes ? ' voll' : ''}`));
+  }
+  oben.appendChild(str);
+
   oben.appendChild(beutel(stand.get().sterne[lauf.haus.fach], stand.get().muenzen));
   s.appendChild(oben);
 
@@ -219,7 +257,7 @@ function frageZeichnen(): void {
   const karten = el('div', `karten${kartenKlasse(q)}`);
   q.choices.forEach((label, idx) => {
     const b = karteFuer(label);
-    tap(b, () => antwort(idx, b, buehne, karten));
+    tap(b, () => antwort(idx, b, buehne));
     karten.appendChild(b);
   });
   s.appendChild(karten);
@@ -252,16 +290,17 @@ function feldErsetzen(buehne: HTMLElement, n: number, extra: number): void {
   if (f) f.replaceChildren(tenFrameCanvas({ n, extra, shape: form() }, rahmenSkala()));
 }
 
-function antwort(idx: number, btn: HTMLButtonElement, buehne: HTMLElement, karten: HTMLElement): void {
+function antwort(idx: number, btn: HTMLButtonElement, buehne: HTMLElement): void {
   if (!lauf || lauf.beschaeftigt) return;
   const q = lauf.fragen[lauf.i];
   const richtig = idx === q.correct;
   lauf.beschaeftigt = true;
 
-  stand.merken(q.fact, richtig);
+  if (lauf.erster) stand.merken(q.fact, richtig);
 
   if (richtig) {
     lauf.richtig++;
+    lauf.erster = true;
     btn.classList.add('richtig');
     audio.chimeRight();
     audio.pop();
@@ -279,38 +318,70 @@ function antwort(idx: number, btn: HTMLButtonElement, buehne: HTMLElement, karte
     return;
   }
 
-  // A miss. Nothing is taken away, nothing turns red, no buzzer.
+  // A MISS: a short red flash, and try again.
+  //
+  // This is Patrick's, and it reverses two things that were written
+  // down as rules — `showOnMiss` drew the correct answer as a picture,
+  // and AGENTS.md rule 11 said a red card is damage. His reasoning:
+  // "wenn etwas falsch ist, sollten wir nicht die richtige lösung
+  // verraten. einfach kurz rot aufleuchten und nochmal probieren
+  // lassen."
+  //
+  // What makes it kind rather than harsh is the RETRY. A wrong answer
+  // used to be an ending — here is the answer, on to the next one —
+  // and it is now "not that one, have another go", which is what a
+  // person sitting next to the child would say. Being shown the answer
+  // and moved along is the version that teaches nothing.
   lauf.daneben++;
-  btn.classList.add('daneben');
+  // EVERY wrong answer is a strike, including a second wrong answer at
+  // the same question. Counting only the first attempt per question
+  // meant a child could guess through the cards one at a time at no
+  // cost, which is not what "three strikes" says and not what it is
+  // for. `erster` still exists, but only to decide what the scheduler
+  // is told — see below.
+  lauf.strikes++;
+  btn.classList.add('falsch');
   audio.chimeSoft();
-  const gewaehlt = Number(btn.textContent);
-  if (q.prompt.kind === 'tenframe' && q.prompt.n >= 0 && Number.isFinite(gewaehlt)) {
-    // What that choice WOULD have made, in the frame. The correction is
-    // a picture of the child's own answer, not a word for it.
-    feldErsetzen(buehne, q.prompt.n, Math.min(gewaehlt, 10 - q.prompt.n));
+  strikesZeigen();
+
+  if (lauf.strikes >= 3) {
+    // Three, and the house starts again. Announced by Luma rather than
+    // by the screen simply resetting, because a round that restarts
+    // without a word is a round that looks broken.
+    setTimeout(() => {
+      if (!lauf) return;
+      btn.classList.remove('falsch');
+      luma.zeige('say.nochmal', () => {
+        if (!lauf) return;
+        lauf.fragen = buildRound(lauf.haus.spiel, rundenLaenge(lauf.haus.spiel));
+        lauf.i = 0;
+        lauf.richtig = 0;
+        lauf.daneben = 0;
+        lauf.strikes = 0;
+        lauf.erster = true;
+        lauf.beschaeftigt = false;
+        frageZeichnen();
+      });
+    }, 620);
+    return;
   }
+
   setTimeout(() => {
     if (!lauf) return;
-    btn.classList.remove('daneben');
-    const gut = karten.children[q.correct] as HTMLButtonElement | undefined;
-    if (gut) gut.classList.add('richtig');
-    if (q.prompt.kind === 'tenframe' && q.prompt.n >= 0) {
-      feldErsetzen(buehne, q.prompt.n, 10 - q.prompt.n);
-    }
-    // Not one of these says wrong. The frame is already showing what
-    // the answer was; a voice saying it again would be a grown-up
-    // pointing at it.
-    audio.sagEinesVon(['say.schauMal1', 'say.schauMal2', 'say.schauMal3']);
-    // Three misses and Luma turns up. Once per round at most: she is
-    // help, and help that arrives every time a child slips is somebody
-    // standing over them.
-    if (lauf && lauf.daneben === 3 && !lauf.hilft) {
-      lauf.hilft = true;
-      setTimeout(() => luma.zeige('say.hilfe', weiter), 900);
-    } else {
-      setTimeout(weiter, 1400);
-    }
-  }, 700);
+    btn.classList.remove('falsch');
+    // The card comes BACK. Nothing is disabled, nothing is marked, and
+    // the question is still the question — which is what "try again"
+    // has to look like when there are no words on the screen.
+    lauf.erster = false;
+    lauf.beschaeftigt = false;
+  }, 620);
+}
+
+/** The three strikes, as they fill. */
+function strikesZeigen(): void {
+  if (!lauf || !wurzel) return;
+  const punkte = wurzel.querySelectorAll('.strike');
+  punkte.forEach((p, i) => p.classList.toggle('voll', i < lauf!.strikes));
 }
 
 function weiter(): void {

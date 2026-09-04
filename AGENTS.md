@@ -69,10 +69,28 @@ a rule without its reason gets followed literally and wrongly.
 10. **There is no fail state and no way to reach one.** No red X, no
     buzzer, no "wrong", no score that can go down. A mistake shows the
     right answer as a picture and moves on.
-11. **In this game specifically: damage goes ONE WAY.** A wrong answer
-    must never cost the child anything — no health, no coins, no
-    progress. See KONZEPT.md; it is the single most important decision
-    in the project and the one an RPG framing will keep trying to undo.
+11. **A wrong answer costs nothing that cannot be tried again.**
+    Amended by Patrick after playing it, and the amendment is narrow, so
+    read both halves.
+
+    What CHANGED: in the houses, a wrong answer flashes the card red,
+    the answer is NOT revealed, and the child tries the same question
+    again. Three wrong answers and the house starts from the beginning.
+    His words: "einfach kurz rot aufleuchten und nochmal probieren
+    lassen. erst bei 3 'strikes' beginnt das haus von vorne."
+
+    What did NOT change, and must not: no health, no coins taken, no
+    stars taken, and nothing at all is lost in a shadow encounter — Mut
+    only ever fills. The strikes are gold circles rather than red
+    hearts and they are on screen from the first question, so the third
+    one is something a child watched coming rather than something that
+    happened to them.
+
+    The reason the change is defensible is the RETRY. Being shown the
+    answer and moved along is an ending; "not that one, have another go"
+    is what a person sitting beside the child would say. If you are
+    tempted to add a cost on top of this, don't — that is the RPG
+    framing KONZEPT.md warns about, and this is as far as it goes.
 12. **Every child-facing interactive thing is at least 64×64 CSS
     pixels** with clear space around it. Apple's 44pt is for adults.
     The suite measures this. The one deliberate exception is the slot

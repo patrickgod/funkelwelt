@@ -948,6 +948,91 @@ async function beiTor(sterne, wort = 0) {
   await page.waitForTimeout(600);
 }
 
+// ---------------------------------------- a miss, and three of them
+//
+// Patrick: "wenn etwas falsch ist, sollten wir nicht die richtige
+// lösung verraten. einfach kurz rot aufleuchten und nochmal probieren
+// lassen. erst bei 3 'strikes' beginnt das haus von vorne."
+//
+// This reverses `showOnMiss` and AGENTS.md rule 11, so it is asserted
+// rather than assumed — and the assertions are written as what a CHILD
+// would see, because that is the whole substance of the change: the
+// answer is not shown, the question does not go away, and the third
+// strike is something they watched coming.
+
+{
+  async function falschTippen() {
+    const zahl = await page.locator('.frage[data-zahl]').first()
+      .getAttribute('data-zahl').catch(() => null);
+    const karten = page.locator('.karten button');
+    const labels = await karten.evaluateAll(
+      (els) => els.map((e) => (e.textContent ?? '').trim()));
+    const idx = labels.findIndex((l) => l !== String(10 - Number(zahl)));
+    if (idx < 0) return false;
+    await karten.nth(idx).tap();
+    await page.waitForTimeout(900);
+    return true;
+  }
+
+  await inDieWelt();
+  await stellAuf(7.5, 22.4);
+  await inDieWelt();
+  await lumaWeg();
+  await waehle(7, 20);
+  await lumaWeg();
+
+  check('the three strikes are on screen from the first question',
+    await page.locator('.strike').count() === 3
+    && await page.locator('.strike.voll').count() === 0);
+
+  const frageVorher = await page.locator('.frage[data-zahl]').first()
+    .getAttribute('data-zahl');
+  await falschTippen();
+
+  // THE ONE PATRICK ASKED FOR.
+  check('a wrong answer does not reveal the right one',
+    await page.locator('.karten button.richtig').count() === 0);
+  check('and the question stays put, so it can be tried again',
+    await page.locator('.frage[data-zahl]').first()
+      .getAttribute('data-zahl') === frageVorher,
+    `was ${frageVorher}`);
+  check('and one strike is used',
+    await page.locator('.strike.voll').count() === 1);
+  check('no pip has been used up by getting it wrong',
+    await page.locator('.pip.fertig').count() === 0);
+
+  // Now get it right, from the same question, on the second go.
+  const zahl = await page.locator('.frage[data-zahl]').first()
+    .getAttribute('data-zahl');
+  const karten = page.locator('.karten button');
+  const labels = await karten.evaluateAll(
+    (els) => els.map((e) => (e.textContent ?? '').trim()));
+  const gut = labels.indexOf(String(10 - Number(zahl)));
+  if (gut >= 0) {
+    await karten.nth(gut).tap();
+    await page.waitForTimeout(1400);
+    check('and answering it right on the second go moves on',
+      await page.locator('.pip.fertig').count() === 1);
+    check('a strike already used is not given back',
+      await page.locator('.strike.voll').count() === 1);
+  }
+
+  // Two more, which is three, which is the house starting again.
+  await falschTippen();
+  await falschTippen();
+  await page.waitForTimeout(1400);
+  await lumaWeg();
+  await page.waitForTimeout(600);
+  check('three strikes and the house begins again',
+    await page.locator('.pip.fertig').count() === 0
+    && await page.locator('.runde').count() === 1);
+  check('and the strikes are given back with it',
+    await page.locator('.strike.voll').count() === 0);
+
+  await page.locator('button', { hasText: 'Zurück' }).first().tap().catch(() => {});
+  await page.waitForTimeout(600);
+}
+
 // ------------------------------------ walking past is walking past
 //
 // The other half of tap-to-choose, and the half that is the point of
